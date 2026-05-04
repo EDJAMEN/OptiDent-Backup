@@ -32,11 +32,6 @@ if (
     if ($stmt->execute()) {
         $last_id = $conn->insert_id;
 
-        // Optionally, also insert into patients_meta
-        $meta_query = "INSERT INTO patients_meta (user_id) VALUES (?)";
-        $meta_stmt = $conn->prepare($meta_query);
-        $meta_stmt->bind_param("i", $last_id);
-        $meta_stmt->execute();
 
         http_response_code(201);
         echo json_encode(["status" => "success", "message" => "Patient added successfully", "id" => $last_id]);

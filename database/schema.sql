@@ -29,32 +29,22 @@ CREATE TABLE `users` (
     `status`          ENUM('pending','active','suspended')      NOT NULL DEFAULT 'active',
     `is_master`       BOOLEAN      NOT NULL DEFAULT FALSE,
     `is_active`       BOOLEAN      NOT NULL DEFAULT TRUE,
-    -- Staff/Dentist fields
-    `professional_id` VARCHAR(50)  DEFAULT NULL,
-    `position`        VARCHAR(100) DEFAULT NULL,
-    -- OAuth
-    `google_id`       VARCHAR(255) DEFAULT NULL,
-    -- Timestamps
-    `created_at`      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `deleted_at`      TIMESTAMP    NULL     DEFAULT NULL,   -- soft-delete for Archive feature
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- ============================================================
--- TABLE 2: patients_meta
--- Extended medical profile — one row per patient
--- ============================================================
-CREATE TABLE `patients_meta` (
-    `user_id`                  INT(11)      NOT NULL,
+    -- Patient specific fields (merged)
     `dob`                      DATE         DEFAULT NULL,
     `emergency_contact_name`   VARCHAR(100) DEFAULT NULL,
     `emergency_contact_phone`  VARCHAR(20)  DEFAULT NULL,
     `allergies`                TEXT         DEFAULT NULL,
     `medications`              TEXT         DEFAULT NULL,
     `reward_points`            INT(11)      NOT NULL DEFAULT 0,
-    PRIMARY KEY (`user_id`),
-    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+    -- Staff/Dentist fields
+    `professional_id` VARCHAR(50)  DEFAULT NULL,
+    `position`        VARCHAR(100) DEFAULT NULL,
+    -- Timestamps
+    `created_at`      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `deleted_at`      TIMESTAMP    NULL     DEFAULT NULL,   -- soft-delete for Archive feature
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- ============================================================
 -- TABLE 3: services
@@ -114,7 +104,6 @@ CREATE TABLE `appointments` (
     `status`              ENUM('pending','upcoming','completed','cancelled','walk-in')
                                    NOT NULL DEFAULT 'pending',
     `cancellation_reason` TEXT     DEFAULT NULL,   -- filled on decline/cancel
-    `is_offline_sync`     BOOLEAN  DEFAULT FALSE,
     `created_at`          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     FOREIGN KEY (`patient_id`) REFERENCES `users`(`id`)    ON DELETE CASCADE,
@@ -141,23 +130,9 @@ CREATE TABLE `invoices` (
     FOREIGN KEY (`appointment_id`) REFERENCES `appointments`(`id`)  ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ============================================================
--- TABLE 8: treatments
--- Clinical record per appointment (tooth number, notes)
--- ============================================================
-CREATE TABLE `treatments` (
-    `id`             INT(11) NOT NULL AUTO_INCREMENT,
-    `appointment_id` INT(11) NOT NULL,
-    `tooth_number`   VARCHAR(10) DEFAULT NULL,
-    `diagnosis`      TEXT        DEFAULT NULL,
-    `clinical_notes` TEXT        DEFAULT NULL,
-    `created_at`     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (`appointment_id`) REFERENCES `appointments`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================
--- TABLE 9: reward_points_logs
+-- TABLE 8: reward_points_logs
 -- Full transaction history of point earnings and redemptions
 -- ============================================================
 CREATE TABLE `reward_points_logs` (
@@ -169,34 +144,6 @@ CREATE TABLE `reward_points_logs` (
     `created_at` TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     FOREIGN KEY (`patient_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- ============================================================
--- TABLE 10: chat_history
--- AI chatbot conversation log per patient
--- ============================================================
-CREATE TABLE `chat_history` (
-    `id`         INT(11)              NOT NULL AUTO_INCREMENT,
-    `patient_id` INT(11)              NOT NULL,
-    `message`    TEXT                 NOT NULL,
-    `sender`     ENUM('user','ai')    NOT NULL,
-    `created_at` TIMESTAMP            NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (`patient_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- ============================================================
--- TABLE 11: sync_logs
--- Offline mode sync tracking
--- ============================================================
-CREATE TABLE `sync_logs` (
-    `id`         INT(11)      NOT NULL AUTO_INCREMENT,
-    `action`     VARCHAR(50)  NOT NULL,
-    `table_name` VARCHAR(50)  NOT NULL,
-    `record_id`  INT(11)      DEFAULT NULL,
-    `payload`    TEXT         DEFAULT NULL,
-    `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
@@ -216,15 +163,11 @@ INSERT INTO `schedule_settings` (`setting_key`, `setting_value`) VALUES
 -- ana@dentassist.com  / 123456  → Dentist
 -- maria@gmail.com     / 123456  → Patient
 INSERT INTO `users`
-    (`id`, `full_name`, `email`, `phone`, `password_hash`, `role`, `status`, `is_master`, `is_active`)
+    (`id`, `full_name`, `email`, `phone`, `password_hash`, `role`, `status`, `is_master`, `is_active`, `dob`, `allergies`, `reward_points`)
 VALUES
-    (1, 'Dr. L. Reyes', 'admin@dentassist.com', '09170000000', '123456', 'admin',   'active', 1, 1),
-    (2, 'Dr. Ana Cruz',  'ana@dentassist.com',   '09171234567', '123456', 'dentist', 'active', 0, 1),
-    (3, 'Maria Santos',  'maria@gmail.com',       '09171112222', '123456', 'patient', 'active', 0, 1);
-
--- Patient medical record for Maria
-INSERT INTO `patients_meta` (`user_id`, `dob`, `allergies`, `reward_points`)
-VALUES (3, '1995-05-10', 'None', 120);
+    (1, 'Dr. L. Reyes', 'admin@dentassist.com', '09170000000', '123456', 'admin',   'active', 1, 1, NULL, NULL, 0),
+    (2, 'Dr. Ana Cruz',  'ana@dentassist.com',   '09171234567', '123456', 'dentist', 'active', 0, 1, NULL, NULL, 0),
+    (3, 'Maria Santos',  'maria@gmail.com',       '09171112222', '123456', 'patient', 'active', 0, 1, '1995-05-10', 'None', 120);
 
 -- Default services
 INSERT INTO `services` (`id`, `name`, `description`, `price`, `duration_minutes`) VALUES

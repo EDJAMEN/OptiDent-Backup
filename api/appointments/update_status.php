@@ -60,14 +60,14 @@ if (!empty($data->appointment_id) && !empty($data->status)) {
             // 2. Award Booking Bonus (0.5%)
             $points_to_award = max(1, floor($current['price'] * 0.005));
             $award_reason = "Booking bonus (Approved - 0.5% of ₱" . $current['price'] . ")";
-            $conn->query("UPDATE patients_meta SET reward_points = reward_points + $points_to_award WHERE user_id = $patient_id");
+            $conn->query("UPDATE users SET reward_points = reward_points + $points_to_award WHERE id = $patient_id");
             $conn->query("INSERT INTO reward_points_logs (patient_id, points, action, reason) VALUES ($patient_id, $points_to_award, 'earned', '$award_reason')");
 
             // 3. Deduct Reward Points (If applied)
             if ($current['reward_id']) {
                 $pts_to_deduct = $current['points_required'];
                 $deduct_reason = "Redeemed for appointment: " . $current['reward_name'];
-                $conn->query("UPDATE patients_meta SET reward_points = reward_points - $pts_to_deduct WHERE user_id = $patient_id");
+                $conn->query("UPDATE users SET reward_points = reward_points - $pts_to_deduct WHERE id = $patient_id");
                 $conn->query("INSERT INTO reward_points_logs (patient_id, points, action, reason) VALUES ($patient_id, $pts_to_deduct, 'redeemed', '$deduct_reason')");
             }
         }
@@ -78,7 +78,7 @@ if (!empty($data->appointment_id) && !empty($data->status)) {
             if (($old_status === 'upcoming' || $old_status === 'processing') && $current['reward_id']) {
                 $pts_to_refund = $current['points_required'];
                 $refund_reason = "Refund: Cancelled approved appointment (" . $current['reward_name'] . ")";
-                $conn->query("UPDATE patients_meta SET reward_points = reward_points + $pts_to_refund WHERE user_id = $patient_id");
+                $conn->query("UPDATE users SET reward_points = reward_points + $pts_to_refund WHERE id = $patient_id");
                 $conn->query("INSERT INTO reward_points_logs (patient_id, points, action, reason) VALUES ($patient_id, $pts_to_refund, 'earned', '$refund_reason')");
             }
 
@@ -86,7 +86,7 @@ if (!empty($data->appointment_id) && !empty($data->status)) {
             // Note: This endpoint is admin-side.
             $points_consolation = 3;
             $cons_reason = "Clinic Cancellation Consolation (Staff-initiated)";
-            $conn->query("UPDATE patients_meta SET reward_points = reward_points + $points_consolation WHERE user_id = $patient_id");
+            $conn->query("UPDATE users SET reward_points = reward_points + $points_consolation WHERE id = $patient_id");
             $conn->query("INSERT INTO reward_points_logs (patient_id, points, action, reason) VALUES ($patient_id, $points_consolation, 'earned', '$cons_reason')");
         }
 
@@ -94,7 +94,7 @@ if (!empty($data->appointment_id) && !empty($data->status)) {
         if ($new_status === 'completed' && $old_status !== 'completed') {
             $points_to_award = max(2, floor($current['price'] * 0.015));
             $comp_reason = "Visit completed (1.5% of ₱" . $current['price'] . ")";
-            $conn->query("UPDATE patients_meta SET reward_points = reward_points + $points_to_award WHERE user_id = $patient_id");
+            $conn->query("UPDATE users SET reward_points = reward_points + $points_to_award WHERE id = $patient_id");
             $conn->query("INSERT INTO reward_points_logs (patient_id, points, action, reason) VALUES ($patient_id, $points_to_award, 'earned', '$comp_reason')");
 
             // Generate Invoice

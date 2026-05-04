@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Security Fundamentals Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .drag-item { 
+            cursor: grab; 
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .drag-item:active { cursor: grabbing; }
+        .drop-target {
+            min-height: 44px;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        .drop-target.occupied {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            border-style: solid;
+            font-weight: 500;
+        }
+        .correct-border { border: 2px solid #10b981 !important; background-color: #ecfdf5 !important; }
+        .incorrect-border { border: 2px solid #ef4444 !important; background-color: #fef2f2 !important; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans text-slate-900">
+    <div class="max-w-5xl mx-auto py-10 px-4">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl font-bold text-slate-800">Network Security Comprehensive Quiz</h1>
+            <p class="text-slate-500 mt-2">Match the security concepts to their correct descriptions.</p>
+        </header>
+
+        <div id="quiz-container" class="space-y-8">
+            
+            <!-- Part 1: Vulnerabilities (Matching Design) -->
+            <section class="bg-white p-8 rounded-lg shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold mb-6 text-slate-700">Part 1: Network Vulnerabilities</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div id="v-terms" class="space-y-3">
+                        <div draggable="true" data-id="policy" class="drag-item p-4 bg-white border border-slate-300 rounded shadow-sm hover:border-indigo-400">security policy weakness</div>
+                        <div draggable="true" data-id="config" class="drag-item p-4 bg-white border border-slate-300 rounded shadow-sm hover:border-indigo-400">configuration weakness</div>
+                        <div draggable="true" data-id="tech" class="drag-item p-4 bg-white border border-slate-300 rounded shadow-sm hover:border-indigo-400">technological weakness</div>
+                    </div>
+                    <div id="v-descriptions" class="space-y-4">
+                        <div class="flex flex-col gap-2">
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded text-sm leading-relaxed">The network administrator did not fully consider the implications of unauthorized users accessing the network.</div>
+                            <div class="drop-target w-full" data-answer="policy">Drop here</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded text-sm leading-relaxed">A network engineer is examining the operating system of a network device for vulnerabilities.</div>
+                            <div class="drop-target w-full" data-answer="tech">Drop here</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded text-sm leading-relaxed">When implementing an access list on a router, a network engineer did not filter a type of malicious traffic.</div>
+                            <div class="drop-target w-full" data-answer="config">Drop here</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Part 2: Threats (Matching Design) -->
+            <section class="bg-white p-8 rounded-lg shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold mb-6 text-slate-700">Part 2: Security Threats</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div id="t-terms" class="space-y-3">
+                        <div draggable="true" data-id="info" class="drag-item p-3 bg-white border border-slate-300 rounded text-sm hover:border-indigo-400">information theft</div>
+                        <div draggable="true" data-id="identity" class="drag-item p-3 bg-white border border-slate-300 rounded text-sm hover:border-indigo-400">identity theft</div>
+                        <div draggable="true" data-id="loss" class="drag-item p-3 bg-white border border-slate-300 rounded text-sm hover:border-indigo-400">data loss</div>
+                        <div draggable="true" data-id="dos" class="drag-item p-3 bg-white border border-slate-300 rounded text-sm hover:border-indigo-400">disruption of service</div>
+                    </div>
+                    <div id="t-descriptions" class="space-y-4">
+                        <div class="flex flex-col gap-2">
+                            <div class="p-3 border border-slate-200 rounded text-sm">installing virus code to destroy surveillance recordings for certain days</div>
+                            <div class="drop-target" data-answer="loss">Drop here</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="p-3 border border-slate-200 rounded text-sm">pretending to be someone else by using stolen personal information to apply for a credit card</div>
+                            <div class="drop-target" data-answer="identity">Drop here</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="p-3 border border-slate-200 rounded text-sm">preventing users from accessing a website by sending a large number of link requests in a short period</div>
+                            <div class="drop-target" data-answer="dos">Drop here</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="p-3 border border-slate-200 rounded text-sm">obtaining trade secret documents illegally</div>
+                            <div class="drop-target" data-answer="info">Drop here</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Part 3: Firewalls (Matching Design) -->
+            <section class="bg-white p-8 rounded-lg shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold mb-6 text-slate-700">Part 3: Firewall Methods</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div id="f-terms" class="space-y-3">
+                        <div draggable="true" data-id="spi" class="drag-item p-3 bg-white border border-slate-300 rounded text-sm hover:border-indigo-400">stateful packet inspection</div>
+                        <div draggable="true" data-id="url" class="drag-item p-3 bg-white border border-slate-300 rounded text-sm hover:border-indigo-400">URL filtering</div>
+                        <div draggable="true" data-id="app" class="drag-item p-3 bg-white border border-slate-300 rounded text-sm hover:border-indigo-400">application filtering</div>
+                        <div draggable="true" data-id="packet" class="drag-item p-3 bg-white border border-slate-300 rounded text-sm hover:border-indigo-400">packet filtering</div>
+                    </div>
+                    <div id="f-descriptions" class="space-y-4">
+                        <div class="flex flex-col gap-2">
+                            <div class="p-3 border border-slate-200 rounded text-sm">prevents or allows access based on the operating system of the source or destination device</div>
+                            <div class="drop-target" data-answer="unknown">Drop here</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="p-3 border border-slate-200 rounded text-sm">prevents or allows access based on the port numbers used in the request</div>
+                            <div class="drop-target" data-answer="app">Drop here</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="p-3 border border-slate-200 rounded text-sm">prevents or allows access based on whether the traffic is in response to requests from internal hosts</div>
+                            <div class="drop-target" data-answer="spi">Drop here</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="p-3 border border-slate-200 rounded text-sm">prevents or allows access based on web addresses or keywords</div>
+                            <div class="drop-target" data-answer="url">Drop here</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="p-3 border border-slate-200 rounded text-sm">prevents or allows access based on the IP or MAC addresses of the source and destination</div>
+                            <div class="drop-target" data-answer="packet">Drop here</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="mt-12 text-center pb-20">
+            <button id="check-btn" class="bg-indigo-600 text-white px-12 py-4 rounded font-bold shadow hover:bg-indigo-700 transition transform active:scale-95">
+                Check Answers
+            </button>
+            <div id="result" class="mt-6 text-2xl font-bold hidden"></div>
+            <button id="reset-btn" onclick="location.reload()" class="mt-4 text-indigo-600 font-medium hover:underline block mx-auto hidden">Restart & Shuffle</button>
+        </div>
+    </div>
+
+    <script>
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Shuffle all term containers
+            ['v-terms', 't-terms', 'f-terms'].forEach(id => {
+                const container = document.getElementById(id);
+                const items = Array.from(container.children);
+                shuffle(items).forEach(item => container.appendChild(item));
+            });
+
+            // Shuffle description containers (parent of description+drop-target pairs)
+            ['v-descriptions', 't-descriptions', 'f-descriptions'].forEach(id => {
+                const container = document.getElementById(id);
+                const pairs = Array.from(container.children);
+                shuffle(pairs).forEach(pair => container.appendChild(pair));
+            });
+
+            initDragAndDrop();
+        });
+
+        let draggedElement = null;
+
+        function initDragAndDrop() {
+            const dragItems = document.querySelectorAll('.drag-item');
+            const dropTargets = document.querySelectorAll('.drop-target');
+
+            dragItems.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    draggedElement = this;
+                    e.dataTransfer.setData('text/plain', this.dataset.id);
+                    this.style.opacity = '0.4';
+                });
+
+                item.addEventListener('dragend', function() {
+                    this.style.opacity = '1';
+                });
+            });
+
+            dropTargets.forEach(target => {
+                target.addEventListener('dragover', e => e.preventDefault());
+                
+                target.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    const id = e.dataTransfer.getData('text/plain');
+                    const text = draggedElement.textContent;
+                    
+                    this.textContent = text;
+                    this.dataset.userAnswer = id;
+                    this.classList.add('occupied');
+                    this.classList.remove('border-dashed');
+                });
+            });
+        }
+
+        document.getElementById('check-btn').addEventListener('click', function() {
+            let score = 0;
+            let total = 0;
+            const targets = document.querySelectorAll('.drop-target');
+
+            targets.forEach(target => {
+                // Skip if the correct answer is 'unknown' (the dummy OS option in Part 3)
+                if(target.dataset.answer === 'unknown') return;
+
+                total++;
+                if (target.dataset.userAnswer === target.dataset.answer) {
+                    score++;
+                    target.classList.add('correct-border');
+                } else {
+                    target.classList.add('incorrect-border');
+                }
+            });
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = `Score: ${score} / ${total}`;
+            resultDiv.className = `mt-6 text-2xl font-bold ${score === total ? 'text-emerald-600' : 'text-indigo-600'}`;
+            resultDiv.classList.remove('hidden');
+            document.getElementById('reset-btn').classList.remove('hidden');
+            
+            this.disabled = true;
+            this.classList.add('opacity-50', 'cursor-not-allowed');
+        });
+    </script>
+</body>
+</html>

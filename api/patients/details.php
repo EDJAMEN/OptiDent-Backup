@@ -9,9 +9,8 @@ if (!empty($_GET['id'])) {
 
     // 1. Get user and meta
     $user_query = "SELECT u.id, u.full_name, u.email, u.phone, u.created_at, 
-                          pm.dob, pm.emergency_contact_name, pm.emergency_contact_phone, pm.allergies, pm.medications, pm.reward_points
+                          u.dob, u.emergency_contact_name, u.emergency_contact_phone, u.allergies, u.medications, u.reward_points
                    FROM users u
-                   LEFT JOIN patients_meta pm ON u.id = pm.user_id
                    WHERE u.id = ? LIMIT 1";
     
     $stmt = $conn->prepare($user_query);

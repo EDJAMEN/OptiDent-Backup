@@ -49,11 +49,6 @@ $stmt->bind_param("ssssss", $name, $email, $phone, $default_pass, $role, $status
 if ($stmt->execute()) {
     $newId = $conn->insert_id;
 
-    // Create empty patients_meta row
-    $meta = $conn->prepare("INSERT INTO patients_meta (user_id, reward_points) VALUES (?, 0)");
-    $meta->bind_param("i", $newId);
-    $meta->execute();
-
     http_response_code(201);
     echo json_encode([
         "status"  => "success",

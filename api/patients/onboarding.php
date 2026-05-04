@@ -16,23 +16,10 @@ if (!empty($data->user_id)) {
     $allergies = !empty($data->allergies) ? htmlspecialchars(strip_tags($data->allergies)) : null;
     $medications = !empty($data->medications) ? htmlspecialchars(strip_tags($data->medications)) : null;
 
-    // Check if patients_meta row already exists
-    $check = $conn->prepare("SELECT user_id FROM patients_meta WHERE user_id = ?");
-    $check->bind_param("i", $user_id);
-    $check->execute();
-    $check->store_result();
-
-    if ($check->num_rows > 0) {
-        // Update existing
-        $query = "UPDATE patients_meta SET dob=?, emergency_contact_name=?, emergency_contact_phone=?, allergies=?, medications=? WHERE user_id=?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("sssssi", $dob, $emergency_name, $emergency_phone, $allergies, $medications, $user_id);
-    } else {
-        // Insert new
-        $query = "INSERT INTO patients_meta (user_id, dob, emergency_contact_name, emergency_contact_phone, allergies, medications, reward_points) VALUES (?, ?, ?, ?, ?, ?, 0)";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("isssss", $user_id, $dob, $emergency_name, $emergency_phone, $allergies, $medications);
-    }
+    // Update existing user with medical info
+    $query = "UPDATE users SET dob=?, emergency_contact_name=?, emergency_contact_phone=?, allergies=?, medications=? WHERE id=?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("sssssi", $dob, $emergency_name, $emergency_phone, $allergies, $medications, $user_id);
 
     if ($stmt->execute()) {
         http_response_code(200);

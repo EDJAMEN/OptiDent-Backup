@@ -26,7 +26,7 @@ if (!empty($data->patient_id) && !empty($data->reward_id)) {
         }
 
         // 2. Check Patient Balance
-        $balance_stmt = $conn->prepare("SELECT reward_points FROM patients_meta WHERE user_id = ?");
+        $balance_stmt = $conn->prepare("SELECT reward_points FROM users WHERE id = ?");
         $balance_stmt->bind_param("i", $patient_id);
         $balance_stmt->execute();
         $patient = $balance_stmt->get_result()->fetch_assoc();
@@ -37,7 +37,7 @@ if (!empty($data->patient_id) && !empty($data->reward_id)) {
 
         // 3. Deduct Points
         $new_balance = $patient['reward_points'] - $reward['points_required'];
-        $update_stmt = $conn->prepare("UPDATE patients_meta SET reward_points = ? WHERE user_id = ?");
+        $update_stmt = $conn->prepare("UPDATE users SET reward_points = ? WHERE id = ?");
         $update_stmt->bind_param("ii", $new_balance, $patient_id);
         $update_stmt->execute();
 

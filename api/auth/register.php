@@ -38,14 +38,6 @@ if (!empty($data->full_name) && !empty($data->email) && !empty($data->password) 
         if ($stmt->execute()) {
             $new_id = $conn->insert_id;
 
-            // Also create patients_meta record for patients (with 0 reward points, no medical data yet)
-            if ($role === 'patient') {
-                $meta_query = "INSERT INTO patients_meta (user_id, reward_points) VALUES (?, 0)";
-                $meta_stmt = $conn->prepare($meta_query);
-                $meta_stmt->bind_param("i", $new_id);
-                $meta_stmt->execute();
-            }
-
             http_response_code(201);
             echo json_encode([
                 "status" => "success",

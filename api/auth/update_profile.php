@@ -42,27 +42,14 @@ if (!empty($data->user_id) && !empty($data->full_name) && !empty($data->email)) 
                 $allergies = isset($data->allergies) ? htmlspecialchars(strip_tags($data->allergies)) : null;
                 $medications = isset($data->medications) ? htmlspecialchars(strip_tags($data->medications)) : null;
 
-                // Check if row exists in patients_meta
-                $check_meta = $conn->prepare("SELECT user_id FROM patients_meta WHERE user_id = ?");
-                $check_meta->bind_param("i", $user_id);
-                $check_meta->execute();
-                if ($check_meta->get_result()->num_rows > 0) {
-                    $upd_meta = $conn->prepare("UPDATE patients_meta SET dob = ?, emergency_contact_name = ?, emergency_contact_phone = ?, allergies = ?, medications = ? WHERE user_id = ?");
-                    $upd_meta->bind_param("sssssi", $dob, $e_name, $e_phone, $allergies, $medications, $user_id);
-                    $upd_meta->execute();
-                } else {
-                    // Only insert if it's actually a patient (we can verify by checking if it's NOT a staff member or just assume based on caller)
-                    $ins_meta = $conn->prepare("INSERT INTO patients_meta (user_id, dob, emergency_contact_name, emergency_contact_phone, allergies, medications) VALUES (?, ?, ?, ?, ?, ?)");
-                    $ins_meta->bind_param("isssss", $user_id, $dob, $e_name, $e_phone, $allergies, $medications);
-                    $ins_meta->execute();
-                }
+                $upd_meta = $conn->prepare("UPDATE users SET dob = ?, emergency_contact_name = ?, emergency_contact_phone = ?, allergies = ?, medications = ? WHERE id = ?");
+                $upd_meta->bind_param("sssssi", $dob, $e_name, $e_phone, $allergies, $medications, $user_id);
+                $upd_meta->execute();
             }
-
             // Fetch updated user data to return
             $get_query = "SELECT u.id, u.full_name as name, u.email, u.phone, u.role as role, u.status, u.professional_id, u.position, u.is_active,
-                                pm.dob, pm.emergency_contact_name, pm.emergency_contact_phone, pm.allergies, pm.medications, pm.reward_points
+                                u.dob, u.emergency_contact_name, u.emergency_contact_phone, u.allergies, u.medications, u.reward_points
                         FROM users u
-                        LEFT JOIN patients_meta pm ON u.id = pm.user_id
                         WHERE u.id = ?";
             $get_stmt = $conn->prepare($get_query);
             $get_stmt->bind_param("i", $user_id);

@@ -133,6 +133,18 @@ const app = {
         });
     },
 
+    togglePassword: function (btn) {
+        const input = btn.parentElement.querySelector('.password-field');
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bx-hide', 'bx-show');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bx-show', 'bx-hide');
+        }
+    },
+
     acceptAgreement: function () {
         const checkbox = document.getElementById('agree-checkbox');
         if (!checkbox || !checkbox.checked) {
@@ -148,7 +160,7 @@ const app = {
 
     login: async function () {
         const emailInput = document.querySelector('#form-login input[type="text"]').value;
-        const passwordInput = document.querySelector('#form-login input[type="password"]').value;
+        const passwordInput = document.querySelector('#form-login .password-field').value;
 
         if (!emailInput || !passwordInput) {
             this.showToast("Please enter email and password.", "warning");
@@ -912,7 +924,7 @@ const app = {
         document.getElementById('logout-modal').classList.remove('hidden');
     },
 
-    closeLogoutModal: function() {
+    closeLogoutModal: function () {
         document.getElementById('logout-modal').classList.add('hidden');
     },
 
@@ -925,27 +937,27 @@ const app = {
     },
 
     // --- Theme Management ---
-    initDarkMode: function() {
+    initDarkMode: function () {
         const savedTheme = localStorage.getItem('dentassist-theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         this.updateThemeLogos(savedTheme);
     },
 
-    toggleDarkMode: function() {
+    toggleDarkMode: function () {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
+
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('dentassist-theme', newTheme);
         this.updateThemeLogos(newTheme);
-        
+
         this.showToast(`${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} mode activated!`, "info");
     },
 
-    updateThemeLogos: function(theme) {
+    updateThemeLogos: function (theme) {
         const logoPath = theme === 'dark' ? 'assets/darkmode_dentassist.png' : 'assets/lightmode_dentassist.png';
         const themeIcon = theme === 'dark' ? 'bx-sun' : 'bx-moon';
-        
+
         document.querySelectorAll('.logo-img').forEach(img => {
             img.src = logoPath;
         });
@@ -1042,7 +1054,7 @@ const app = {
         const dateInput = document.getElementById('booking-date').value;
 
         if (!dentistId) {
-            this.showToast("Please choose a dentist in Step 1.", "warning");
+            // Silently return if no dentist is selected yet (prevents popups on page load/refresh)
             return;
         }
         if (!dateInput) {
@@ -1203,7 +1215,7 @@ const app = {
                     rewardSection.classList.remove('hidden');
                     const optionsList = document.getElementById('booking-reward-options');
                     let html = `<div class="option" onclick="app.setCustomSelect('booking-reward-custom', 'Select a reward...', 'booking-reward-select', '')">Select a reward...</div>`;
-                    
+
                     availableRewards.forEach(r => {
                         html += `
                             <div class="option" onclick="app.setCustomSelect('booking-reward-custom', '${r.name}', 'booking-reward-select', '${r.id}')">
@@ -1226,7 +1238,7 @@ const app = {
         const rewardId = document.getElementById('booking-reward-select').value;
         const msgEl = document.getElementById('booking-reward-msg');
         const btn = document.getElementById('apply-reward-btn');
-        
+
         // If already applied, clicking the button again will "Remove" it
         if (this.appliedReward) {
             this.appliedReward = null;
@@ -1315,7 +1327,7 @@ const app = {
             this._pendingBooking = null;
 
             if (response.ok && result.status === 'success') {
-                this.showToast("Appointment confirmed! See you then. 🎉", "success");
+                this.showToast(result.message || "Appointment confirmed! See you then. 🎉", "success");
 
                 // Fetch updated appointments immediately
                 await this.refreshUserAppointments();
@@ -2311,7 +2323,7 @@ const app = {
             if (result.status === 'success') {
                 this.bookingServicesCache = result.data; // Save for later retrieval
                 let html = `<div class="option" onclick="app.setCustomSelect('booking-service-custom', '-- Choose a Service --', 'booking-service', ''); app.checkAvailability();">-- Choose a Service --</div>`;
-                
+
                 result.data.forEach(s => {
                     const displayName = `${s.name} - ₱${s.price} (${s.duration_minutes}m)`;
                     html += `
@@ -2327,7 +2339,7 @@ const app = {
         }
     },
 
-    initQuickDatePicker: function() {
+    initQuickDatePicker: function () {
         const picker = document.getElementById('quick-date-picker');
         if (!picker) return;
 
@@ -2353,27 +2365,27 @@ const app = {
             `;
         }
         picker.innerHTML = html;
-        
+
         // Select today by default
         const firstCard = picker.querySelector('.date-card');
         if (firstCard) this.handleDateSelect(firstCard, today.toISOString().split('T')[0]);
     },
 
-    handleDateSelect: function(el, date) {
+    handleDateSelect: function (el, date) {
         // UI
         document.querySelectorAll('.date-card').forEach(c => c.classList.remove('selected'));
         el.classList.add('selected');
-        
+
         // Data
         const input = document.getElementById('booking-date');
         input.value = date;
-        
+
         this.checkAvailability();
     },
 
-    handleCustomDateSelect: function(date) {
+    handleCustomDateSelect: function (date) {
         if (!date) return;
-        
+
         // Try to find matching card
         const cards = document.querySelectorAll('.date-card');
         let found = false;
@@ -2393,22 +2405,22 @@ const app = {
 
     currentCalendarDate: new Date(),
 
-    openCalendarModal: function() {
+    openCalendarModal: function () {
         this.currentCalendarDate = new Date();
         document.getElementById('calendar-modal').classList.remove('hidden');
         this.renderCalendar();
     },
 
-    closeCalendarModal: function() {
+    closeCalendarModal: function () {
         document.getElementById('calendar-modal').classList.add('hidden');
     },
 
-    changeCalendarMonth: function(dir) {
+    changeCalendarMonth: function (dir) {
         this.currentCalendarDate.setMonth(this.currentCalendarDate.getMonth() + dir);
         this.renderCalendar();
     },
 
-    renderCalendar: function() {
+    renderCalendar: function () {
         const grid = document.getElementById('calendar-days');
         const monthYear = document.getElementById('calendar-month-year');
         if (!grid || !monthYear) return;
@@ -2418,10 +2430,10 @@ const app = {
 
         const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
         const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-        
+
         let html = '';
         const today = new Date();
-        today.setHours(0,0,0,0);
+        today.setHours(0, 0, 0, 0);
 
         // Padding for first day
         for (let i = 0; i < firstDay; i++) {
@@ -2445,7 +2457,7 @@ const app = {
         grid.innerHTML = html;
     },
 
-    selectCalendarDate: function(date) {
+    selectCalendarDate: function (date) {
         this.handleCustomDateSelect(date);
         this.closeCalendarModal();
     },
@@ -3289,7 +3301,7 @@ document.addEventListener('click', (e) => {
     if (trigger) {
         const container = trigger.closest('.custom-select');
         container.classList.toggle('active');
-        
+
         // Close others
         document.querySelectorAll('.custom-select').forEach(cs => {
             if (cs !== container) cs.classList.remove('active');

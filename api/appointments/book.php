@@ -26,8 +26,8 @@ if (!empty($data->patient_id) && !empty($data->service_id) && !empty($data->appo
         exit;
     }
     
-    // 1. Get service duration to calculate end_time
-    $service_query = "SELECT duration_minutes FROM services WHERE id = ? LIMIT 1";
+    // 1. Get service duration and price
+    $service_query = "SELECT duration_minutes, price FROM services WHERE id = ? LIMIT 1";
     $stmt_service = $conn->prepare($service_query);
     $stmt_service->bind_param("i", $service_id);
     $stmt_service->execute();
@@ -89,7 +89,7 @@ if (!empty($data->patient_id) && !empty($data->service_id) && !empty($data->appo
             $reward = $reward_stmt->get_result()->fetch_assoc();
 
             if ($reward) {
-                $balance_stmt = $conn->prepare("SELECT reward_points FROM patients_meta WHERE user_id = ?");
+                $balance_stmt = $conn->prepare("SELECT reward_points FROM users WHERE id = ?");
                 $balance_stmt->bind_param("i", $patient_id);
                 $balance_stmt->execute();
                 $pat_meta = $balance_stmt->get_result()->fetch_assoc();
@@ -108,8 +108,9 @@ if (!empty($data->patient_id) && !empty($data->service_id) && !empty($data->appo
         $stmt->bind_param("iissssi", $patient_id, $dentist_id, $service_id, $appointment_date, $start_time, $end_time, $reward_id);
         
         if ($stmt->execute()) {
+            $estimated_points = max(1, floor($service['price'] * 0.005));
             http_response_code(201);
-            echo json_encode(["status" => "success", "message" => "Appointment booked successfully."]);
+            echo json_encode(["status" => "success", "message" => "Appointment booked! You will earn " . $estimated_points . " points once approved."]);
         } else {
             http_response_code(503);
             echo json_encode(["status" => "error", "message" => "Unable to book appointment."]);
