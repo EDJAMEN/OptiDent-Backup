@@ -1597,9 +1597,54 @@ button {
     position: relative;
 }
 
-/* Hide old floating medical crosses to keep it clean */
-.auth-wrapper .floating-shape {
-    display: none;
+/* Auth reCAPTCHA Styling */
+.recaptcha-container {
+    margin: 16px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.auth-box {
+    border-radius: 32px;
+    padding: 40px 32px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .auth-box {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.auth-header p {
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    opacity: 0.8;
+}
+
+.auth-tabs {
+    background: var(--muted);
+    padding: 4px;
+    border-radius: 100px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    border-radius: 100px;
+    padding: 8px 24px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    background: var(--white);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    color: var(--primary);
 }
 
 .role-selector {

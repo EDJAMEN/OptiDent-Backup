@@ -12,6 +12,8 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <!-- Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 
 <body>
@@ -45,11 +47,6 @@
 
         <!-- 1. AUTHENTICATION FLOW -->
         <section id="auth-section" class="screen active auth-wrapper flex-center">
-            <!-- Decorative Elements -->
-            <i class='bx bx-plus-medical floating-shape shape-1'></i>
-            <i class='bx bxs-circle floating-shape shape-2'></i>
-            <i class='bx bx-plus-medical floating-shape shape-3'></i>
-
             <div class="auth-box card soft-shadow-lg">
                 <div class="auth-header">
                     <div class="logo logo-large flex-center">
@@ -87,6 +84,10 @@
                         <div class="text-right mt-1 mb-2">
                             <a href="#" class="text-sm font-medium text-dim hover-lift" style="display:inline-block;"
                                 onclick="app.switchScreen('forgot-password-section')">Forgot Password?</a>
+                        </div>
+                        <!-- reCAPTCHA Login -->
+                        <div class="flex-center mb-2 recaptcha-container">
+                            <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
                         </div>
                         <button type="button" class="btn-primary w-full shadow-hover"
                             onclick="app.login()">Login</button>
@@ -213,7 +214,12 @@
                             </div>
                         </div>
 
-                        <button type="button" class="btn-primary w-full mt-2 shadow-hover"
+                        <!-- reCAPTCHA Register -->
+                        <div class="flex-center mt-2 mb-1 recaptcha-container">
+                            <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+                        </div>
+
+                        <button type="button" class="btn-primary w-full mt-1 shadow-hover"
                             onclick="app.register()">Create
                             Account</button>
 
@@ -232,11 +238,6 @@
 
         <!-- 1.2 FORGOT PASSWORD SECTION -->
         <section id="forgot-password-section" class="screen auth-wrapper flex-center">
-            <!-- Decorative Elements -->
-            <i class='bx bx-plus-medical floating-shape shape-1'></i>
-            <i class='bx bxs-circle floating-shape shape-2'></i>
-            <i class='bx bx-plus-medical floating-shape shape-3'></i>
-
             <div class="auth-box card soft-shadow-lg">
                 <div class="auth-header" style="position: relative;">
                     <div style="position: absolute; left: 16px; top: 32px;">
@@ -288,11 +289,6 @@
 
         <!-- 1.5 ONBOARDING INTAKE -->
         <section id="onboarding-section" class="screen auth-wrapper flex-center">
-            <!-- Decorative Elements -->
-            <i class='bx bx-plus-medical floating-shape shape-1'></i>
-            <i class='bx bxs-circle floating-shape shape-2'></i>
-            <i class='bx bx-plus-medical floating-shape shape-3'></i>
-
             <div class="auth-box card soft-shadow-lg">
                 <div class="page-header text-center mb-2" style="position: relative;">
                     <div style="position: absolute; left: 0; top: 0;">

@@ -5,10 +5,18 @@ header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
 include_once '../config/database.php';
+include_once 'recaptcha_verify.php';
 
 $data = json_decode(file_get_contents("php://input"));
 
-if (!empty($data->email) && !empty($data->password)) {
+if (!empty($data->email) && !empty($data->password) && !empty($data->recaptcha_token)) {
+    // Verify reCAPTCHA
+    if (!verifyRecaptcha($data->recaptcha_token)) {
+        http_response_code(403);
+        echo json_encode(["status" => "error", "message" => "reCAPTCHA verification failed. Please try again."]);
+        exit;
+    }
+
     $email = htmlspecialchars(strip_tags($data->email));
 
     // Fetch user with full details

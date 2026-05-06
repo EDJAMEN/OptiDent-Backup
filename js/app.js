@@ -9,6 +9,14 @@ const app = {
     rewardsCache: [], // Cache for reward details
     resetUserId: null,
 
+    // Helper: Get YYYY-MM-DD in local time
+    formatDate: function (date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    },
+
     init: function () {
         // Setup listeners for auto-role detection
         const regEmail = document.getElementById('reg-email');
@@ -35,8 +43,8 @@ const app = {
         // Disable past dates in booking calendar
         const dateInput = document.getElementById('booking-date');
         if (dateInput) {
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.setAttribute('min', today);
+            const todayStr = this.formatDate(new Date());
+            dateInput.setAttribute('min', todayStr);
         }
 
         console.log("DentAssist Initialized with PHP Backend!");
@@ -170,7 +178,17 @@ const app = {
         this.showLoader('Authenticating...');
 
         try {
-            const formData = { email: emailInput, password: passwordInput };
+            const recaptchaResponse = grecaptcha.getResponse(0); // 0 is usually login if it's first
+            if (!recaptchaResponse) {
+                this.showToast("Please complete the reCAPTCHA.", "warning");
+                return;
+            }
+
+            const formData = { 
+                email: emailInput, 
+                password: passwordInput,
+                recaptcha_token: recaptchaResponse 
+            };
             const response = await fetch('api/auth/login.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -215,10 +233,12 @@ const app = {
                 }
                 this.showToast(`Welcome back, ${result.user.name}!`, "success");
             } else {
+                grecaptcha.reset(0);
                 this.showToast(result.message || "Invalid credentials", "error");
             }
         } catch (error) {
             console.error("Login Error:", error);
+            grecaptcha.reset(0);
             this.hideLoader();
             this.showToast("Failed to connect to backend server.", "error");
         }
@@ -243,6 +263,12 @@ const app = {
         this.showLoader("Creating secure account...");
 
         try {
+            const recaptchaResponse = grecaptcha.getResponse(1); // 1 is usually register
+            if (!recaptchaResponse) {
+                this.showToast("Please complete the reCAPTCHA.", "warning");
+                return;
+            }
+
             const formData = {
                 full_name: nameInput,
                 phone: phoneInput,
@@ -250,7 +276,8 @@ const app = {
                 password: passwordInput,
                 role: role,
                 professional_id: role !== 'patient' ? document.getElementById('reg-professional-id').value : '',
-                position: role !== 'patient' ? document.getElementById('reg-dentist-position').value : ''
+                position: role !== 'patient' ? document.getElementById('reg-dentist-position').value : '',
+                recaptcha_token: recaptchaResponse
             };
 
             const response = await fetch('api/auth/register.php', {
@@ -287,10 +314,12 @@ const app = {
                     this.switchScreen('admin-section');
                 }
             } else {
+                grecaptcha.reset(1);
                 this.showToast(result.message || "Registration failed", "error");
             }
         } catch (error) {
             console.error("Register Error:", error);
+            grecaptcha.reset(1);
             this.hideLoader();
             this.showToast("Failed to connect to backend server.", "error");
         }
@@ -2237,7 +2266,7 @@ const app = {
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `DentAssist_Clinic_Report_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute("download", `DentAssist_Clinic_Report_${this.formatDate(new Date())}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -2354,7 +2383,7 @@ const app = {
             const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
             const dayNum = date.getDate();
             const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-            const fullDate = date.toISOString().split('T')[0];
+            const fullDate = this.formatDate(date);
 
             html += `
                 <div class="date-card" data-date="${fullDate}" onclick="app.handleDateSelect(this, '${fullDate}')">
@@ -2368,7 +2397,7 @@ const app = {
 
         // Select today by default
         const firstCard = picker.querySelector('.date-card');
-        if (firstCard) this.handleDateSelect(firstCard, today.toISOString().split('T')[0]);
+        if (firstCard) this.handleDateSelect(firstCard, this.formatDate(today));
     },
 
     handleDateSelect: function (el, date) {
@@ -2444,7 +2473,7 @@ const app = {
             const currentDay = new Date(date.getFullYear(), date.getMonth(), i);
             const isToday = currentDay.getTime() === today.getTime();
             const isDisabled = currentDay < today;
-            const fullDate = currentDay.toISOString().split('T')[0];
+            const fullDate = this.formatDate(currentDay);
             const isSelected = document.getElementById('booking-date').value === fullDate;
 
             html += `
@@ -2979,7 +3008,7 @@ const app = {
     // ===================================================================
     openWalkinModal: async function () {
         // Default date to today
-        const today = new Date().toISOString().split('T')[0];
+        const today = this.formatDate(new Date());
         document.getElementById('walkin-date').value = today;
         document.getElementById('walkin-time').value = '08:00';
         document.getElementById('walkin-notes').value = '';

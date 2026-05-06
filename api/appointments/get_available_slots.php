@@ -46,10 +46,10 @@ if ($dentist_id > 0 && !empty($date)) {
 
     // 4. Generate slots
     $slots = [];
-    $current = strtotime($openTime);
-    $end = strtotime($closeTime);
-    $breakS = strtotime($breakStart);
-    $breakE = strtotime($breakEnd);
+    $current = strtotime($date . ' ' . $openTime);
+    $end = strtotime($date . ' ' . $closeTime);
+    $breakS = strtotime($date . ' ' . $breakStart);
+    $breakE = strtotime($date . ' ' . $breakEnd);
 
     $now = time();
     $isToday = ($date == date('Y-m-d'));

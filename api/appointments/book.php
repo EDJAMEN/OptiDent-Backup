@@ -42,12 +42,22 @@ if (!empty($data->patient_id) && !empty($data->service_id) && !empty($data->appo
         $end_timestamp = $start_timestamp + ($duration * 60);
         $end_time = date("H:i:s", $end_timestamp);
 
-        // 2. Validate Date (Cannot book in the past)
+        // 2. Validate Date & Time (Cannot book in the past)
         $today = date("Y-m-d");
         if ($appointment_date < $today) {
             http_response_code(400);
-            echo json_encode(["status" => "error", "message" => "Cannot book appointments in the past."]);
+            echo json_encode(["status" => "error", "message" => "Cannot book appointments for a past date."]);
             exit;
+        }
+        
+        if ($appointment_date == $today) {
+            $now = time();
+            $booking_timestamp = strtotime($appointment_date . ' ' . $start_time);
+            if ($booking_timestamp <= $now) {
+                http_response_code(400);
+                echo json_encode(["status" => "error", "message" => "This time slot has already passed for today. Please choose a future time."]);
+                exit;
+            }
         }
 
         // 3. Validate Clinic Hours (08:00 to 17:00)
