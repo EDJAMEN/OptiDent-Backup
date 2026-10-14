@@ -1,0 +1,3202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiDent - Front-Desk Receptionist Portal</title>
+    <!-- Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons: Boxicons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --rec-primary: #0EB1B1;
+            --rec-primary-dark: #0a8f8f;
+            --rec-primary-light: #F0FBFA;
+            --rec-accent: #0EB1B1;
+            --rec-emerald: #10b981;
+            --rec-bg: #F8FAFC;
+            --rec-surface: #ffffff;
+            --rec-border: #E2E8F0;
+            --rec-text: #0F172A;
+            --rec-text-muted: #64748B;
+        }
+
+        body[data-theme="dark"] {
+            --rec-bg: #020617;
+            --rec-surface: #0F172A;
+            --rec-border: #1E293B;
+            --rec-text: #F8FAFC;
+            --rec-text-muted: #94A3B8;
+            --rec-primary-light: rgba(14, 177, 177, 0.12);
+        }
+
+        body {
+            background-color: var(--rec-bg);
+            color: var(--rec-text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .portal-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── Sidebar ─────────────────────────────────────────────────── */
+        .rec-sidebar {
+            width: 270px;
+            background: var(--rec-surface);
+            border-right: 1px solid var(--rec-border);
+            display: flex;
+            flex-direction: column;
+            padding: 1.25rem 1rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            box-sizing: border-box;
+            z-index: 20;
+            overflow-y: auto;
+        }
+
+        .rec-profile-chip {
+            background: var(--rec-primary-light);
+            border: 1px solid rgba(14, 177, 177, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rec-avatar-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0EB1B1, #0a8f8f);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(14, 177, 177, 0.3);
+            flex-shrink: 0;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: var(--rec-text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+        }
+
+        .nav-item:hover {
+            background: var(--rec-primary-light);
+            color: var(--rec-primary);
+        }
+
+        .nav-item.active {
+            background: var(--rec-primary);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(14, 177, 177, 0.3);
+        }
+
+        /* ── Main workspace ──────────────────────────────────────────── */
+        .rec-main {
+            flex: 1;
+            padding: 1.75rem 2.25rem;
+            overflow-y: auto;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        .top-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        /* ── Metric cards ────────────────────────────────────────────── */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--rec-surface);
+            border: 1px solid var(--rec-border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.primary { background: rgba(14, 177, 177, 0.12); color: #0EB1B1; }
+        .stat-icon.warning { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+        .stat-icon.info { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
+        .stat-icon.success { background: rgba(16, 185, 129, 0.12); color: #059669; }
+
+        .stat-info h4 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--rec-text);
+        }
+
+        .stat-info p {
+            margin: 2px 0 0 0;
+            font-size: 12px;
+            color: var(--rec-text-muted);
+            font-weight: 500;
+        }
+
+        /* ── Tabs Content ────────────────────────────────────────────── */
+        .tab-section {
+            display: none;
+        }
+
+        .tab-section.active {
+            display: block;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .content-card {
+            background: var(--rec-surface);
+            border: 1px solid var(--rec-border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .card-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* ── Modern Table ────────────────────────────────────────────── */
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid var(--rec-border);
+            border-radius: 10px;
+        }
+
+        .rec-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .rec-table th {
+            background: var(--rec-primary-light);
+            padding: 12px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--rec-text-muted);
+            border-bottom: 1px solid var(--rec-border);
+        }
+
+        .rec-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--rec-border);
+            vertical-align: middle;
+        }
+
+        .rec-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .rec-table tr:hover td {
+            background-color: rgba(14, 177, 177, 0.03);
+        }
+
+        /* ── Status Badges ───────────────────────────────────────────── */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .status-pill.scheduled { background: #EEF2F6; color: #475569; }
+        .status-pill.checked_in { background: #FEF3C7; color: #B45309; }
+        .status-pill.waiting { background: #FEF3C7; color: #B45309; }
+        .status-pill.in_progress { background: #DBEAFE; color: #1D4ED8; animation: pulse 2s infinite; }
+        .status-pill.completed { background: #D1FAE5; color: #047857; }
+        .status-pill.cancelled { background: #FEE2E2; color: #B91C1C; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.75; }
+        }
+
+        /* ── Action Buttons ──────────────────────────────────────────── */
+        .btn-rec {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-rec-primary {
+            background: var(--rec-primary);
+            color: white;
+        }
+
+        .btn-rec-primary:hover {
+            background: var(--rec-primary-dark);
+            box-shadow: 0 4px 10px rgba(14, 177, 177, 0.3);
+        }
+
+        .btn-rec-secondary {
+            background: #F1F5F9;
+            color: #475569;
+            border: 1px solid var(--rec-border);
+        }
+
+        .btn-rec-secondary:hover {
+            background: #E2E8F0;
+        }
+
+        .btn-rec-sm {
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 6px;
+        }
+
+        /* ── Modals ──────────────────────────────────────────────────── */
+        .rec-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .rec-modal-content {
+            background: var(--rec-surface);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        /* ── Form Inputs ─────────────────────────────────────────────── */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--rec-text-muted);
+            margin-bottom: 4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--rec-border);
+            background: var(--rec-surface);
+            color: var(--rec-text);
+            font-size: 13px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--rec-primary);
+            box-shadow: 0 0 0 3px rgba(14, 177, 177, 0.15);
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* ── Notification Toast ──────────────────────────────────────── */
+        .toast-banner {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 200;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .toast-banner.success { background: #059669; }
+        .toast-banner.error { background: #DC2626; }
+        .toast-banner.info { background: #2563EB; }
+
+        /* ── Quick Chips & Walk-in Helpers ── */
+        .quick-chip {
+            background: #F1F5F9;
+            border: 1px solid #CBD5E1;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            cursor: pointer;
+            color: #475569;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+        .quick-chip:hover {
+            background: #E2E8F0;
+            color: #0F172A;
+            border-color: #94A3B8;
+        }
+        .quick-chip.active {
+            background: var(--rec-primary);
+            color: #ffffff;
+            border-color: var(--rec-primary);
+            box-shadow: 0 2px 6px rgba(14, 177, 177, 0.3);
+        }
+
+        /* ── R-004 Patient Search & Filter Toolbar Styles ── */
+        .search-box-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .search-box-wrapper input {
+            padding-left: 34px !important;
+            padding-right: 28px !important;
+        }
+        .search-box-wrapper .search-icon {
+            position: absolute;
+            left: 10px;
+            font-size: 16px;
+            color: var(--rec-text-muted);
+            pointer-events: none;
+        }
+        .search-box-wrapper .clear-icon {
+            position: absolute;
+            right: 8px;
+            font-size: 16px;
+            color: var(--rec-text-muted);
+            cursor: pointer;
+            display: none;
+        }
+        .search-box-wrapper .clear-icon:hover {
+            color: #DC2626;
+        }
+
+        .filter-pill {
+            background: var(--rec-surface);
+            border: 1px solid var(--rec-border);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 12px;
+            cursor: pointer;
+            color: var(--rec-text-muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .filter-pill:hover {
+            border-color: var(--rec-primary);
+            color: var(--rec-primary);
+        }
+        .filter-pill.active {
+            background: var(--rec-primary);
+            color: #ffffff;
+            border-color: var(--rec-primary);
+            box-shadow: 0 2px 8px rgba(14, 177, 177, 0.25);
+        }
+        .filter-pill .pill-count {
+            background: rgba(0, 0, 0, 0.08);
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+        }
+        .filter-pill.active .pill-count {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+    </style>
+</head>
+
+<body data-theme="light">
+    <div class="portal-layout">
+        <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+        <aside class="rec-sidebar">
+            <!-- Brand -->
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--rec-border);">
+                <img src="assets/lightmode_dentassist.png" alt="OptiDent" style="height: 38px;">
+                <div>
+                    <div style="font-weight: 800; font-size: 16px; color: var(--rec-primary); letter-spacing: -0.5px;">OptiDent</div>
+                    <div style="font-size: 9px; font-weight: 700; color: var(--rec-text-muted); text-transform: uppercase;">Front-Desk Portal</div>
+                </div>
+            </div>
+
+            <!-- Receptionist User Profile -->
+            <div class="rec-profile-chip">
+                <div class="rec-avatar-circle" id="sidebarAvatar">FD</div>
+                <div style="overflow: hidden;">
+                    <div id="sidebarName" style="font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Receptionist</div>
+                    <div id="sidebarPosition" style="font-size: 11px; color: var(--rec-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Front Desk Receptionist</div>
+                    <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #059669; font-weight: 600; margin-top: 2px;">
+                        <i class='bx bxs-circle' style="font-size: 8px;"></i> Online
+                    </span>
+                </div>
+            </div>
+
+            <!-- Assigned Role & Privileges Trigger Box (Pop-up Option) -->
+            <div class="sidebar-role-badge-box" onclick="openRolePermissionsModal()" style="cursor: pointer; background: var(--rec-primary-light); border: 1px solid rgba(14, 177, 177, 0.25); border-radius: 10px; padding: 8px 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s;" title="Click to view your assigned role and Super Admin granted permissions">
+                <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <i class='bx bx-shield-quarter' style="font-size: 18px; color: var(--rec-primary);"></i>
+                    <div style="min-width: 0;">
+                        <div style="font-size: 9px; font-weight: 800; color: var(--rec-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Assigned Role</div>
+                        <div id="sidebarAssignedRoleTitle" style="font-size: 11px; font-weight: 700; color: var(--rec-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Receptionist</div>
+                    </div>
+                </div>
+                <span style="font-size: 10px; font-weight: 700; background: var(--rec-primary); color: white; padding: 2px 7px; border-radius: 12px; white-space: nowrap; display: flex; align-items: center; gap: 3px;">
+                    <i class='bx bx-check-shield'></i> <span id="sidebarPermCountBadge">0</span> Perms
+                </span>
+            </div>
+
+            <!-- Nav Items (Governed by Super Admin Role Permissions) -->
+            <nav class="nav-menu" id="sidebarNavMenu">
+                <a href="#queue" class="nav-item active" data-perm="queue.view" onclick="switchTab('queue', this)">
+                    <i class='bx bx-list-check'></i>
+                    <span>Today's Queue</span>
+                </a>
+                <a href="#patients" class="nav-item" data-perm="users.view" onclick="switchTab('patients', this)">
+                    <i class='bx bx-user-pin'></i>
+                    <span>Patient Directory</span>
+                </a>
+                <a href="#appointments" class="nav-item" data-perm="appointments.view_all" onclick="switchTab('appointments', this)">
+                    <i class='bx bx-calendar-event'></i>
+                    <span>All Appointments</span>
+                </a>
+                <a href="#doctors" class="nav-item" data-perm="services.view" onclick="switchTab('doctors', this)">
+                    <i class='bx bx-shield-plus'></i>
+                    <span>Doctor Availability</span>
+                </a>
+
+                <!-- Dynamically Added Modules when granted by Super Admin -->
+                <a href="#billing" class="nav-item" id="navItemBilling" data-perm="billing.view" style="display: none;" onclick="switchTab('billing', this)">
+                    <i class='bx bx-receipt'></i>
+                    <span>Billing & Invoices</span>
+                    <span style="margin-left: auto; font-size: 9px; background: #EEF2FF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Granted</span>
+                </a>
+                <a href="#services" class="nav-item" id="navItemServices" data-perm="services.manage" style="display: none;" onclick="switchTab('services', this)">
+                    <i class='bx bx-folder-plus'></i>
+                    <span>Service Catalog</span>
+                    <span style="margin-left: auto; font-size: 9px; background: #EEF2FF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Granted</span>
+                </a>
+                <a href="#delegatedUsers" class="nav-item" id="navItemUsers" data-perm="users.create" style="display: none;" onclick="switchTab('delegatedUsers', this)">
+                    <i class='bx bx-user-check'></i>
+                    <span>Staff Directory</span>
+                    <span style="margin-left: auto; font-size: 9px; background: #EEF2FF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Delegated</span>
+                </a>
+
+                <a href="#profile" class="nav-item" onclick="switchTab('profile', this)">
+                    <i class='bx bx-cog'></i>
+                    <span>Account & Station</span>
+                </a>
+            </nav>
+
+            <!-- Bottom Actions -->
+            <div style="border-top: 1px solid var(--rec-border); padding-top: 1rem; display: flex; flex-direction: column; gap: 6px;">
+                <button type="button" class="nav-item" style="border: none; background: transparent; width: 100%;" onclick="toggleTheme()">
+                    <i class='bx bx-moon' id="themeIcon"></i>
+                    <span id="themeText">Dark Mode</span>
+                </button>
+                <button type="button" class="nav-item" style="border: none; background: transparent; width: 100%; color: #dc2626;" onclick="logout()">
+                    <i class='bx bx-log-out'></i>
+                    <span>Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ── MAIN WORKSPACE ──────────────────────────────────────── -->
+        <main class="rec-main">
+            <!-- Top Header Banner -->
+            <header class="top-banner">
+                <div>
+                    <h2 id="viewHeading" style="margin: 0; font-size: 22px; font-weight: 800; color: var(--rec-text);">Front Desk Reception Workspace</h2>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--rec-text-muted);" id="currentDateTime">Loading Philippine Standard Time...</p>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="btn-rec btn-rec-secondary" onclick="loadDashboardData()">
+                        <i class='bx bx-refresh'></i> Refresh
+                    </button>
+                    <button class="btn-rec btn-rec-secondary" onclick="openRegisterPatientModal(false)">
+                        <i class='bx bx-user-plus'></i> New Patient
+                    </button>
+                    <button class="btn-rec btn-rec-primary" onclick="openRegisterPatientModal(true)" style="background: linear-gradient(135deg, #0EB1B1, #088c8c);">
+                        <i class='bx bx-walk'></i> Quick Walk-in
+                    </button>
+                    <button class="btn-rec btn-rec-secondary" onclick="openModal('bookAppointmentModal')">
+                        <i class='bx bx-calendar-plus'></i> Book Appointment
+                    </button>
+                </div>
+            </header>
+
+            <!-- KPI Metric Cards -->
+            <section class="metrics-grid">
+                <div class="stat-card">
+                    <div class="stat-icon primary"><i class='bx bx-calendar-check'></i></div>
+                    <div class="stat-info">
+                        <h4 id="kpiTodayTotal">0</h4>
+                        <p>Total Today</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon warning"><i class='bx bx-time-five'></i></div>
+                    <div class="stat-info">
+                        <h4 id="kpiCheckedIn">0</h4>
+                        <p>Checked In / Waiting</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon info"><i class='bx bx-clinic'></i></div>
+                    <div class="stat-info">
+                        <h4 id="kpiInChair">0</h4>
+                        <p>In Operatory Chair</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon success"><i class='bx bx-check-double'></i></div>
+                    <div class="stat-info">
+                        <h4 id="kpiCompletedToday">0</h4>
+                        <p>Completed Visits</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── TAB 1: TODAY'S QUEUE & CHECK-IN ──────────────────── -->
+            <section id="tab-queue" class="tab-section active">
+                <div class="content-card">
+                    <div class="card-header-bar">
+                        <div>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 700;">Today's Patient Queue & Operatory Roster</h3>
+                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">Manage patient arrival, reception check-in, and transfer to operatory chairs.</p>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <input type="text" id="queueSearch" class="form-control" style="width: 200px;" placeholder="Search patient name..." oninput="filterQueueTable()">
+                            <select id="queueStatusFilter" class="form-control" style="width: 150px;" onchange="filterQueueTable()">
+                                <option value="all">All Statuses</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="checked_in">Checked In / Waiting</option>
+                                <option value="in_progress">In Operatory</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" onclick="openRegisterPatientModal(true)">
+                                <i class='bx bx-walk'></i> Add Walk-in
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="rec-table">
+                            <thead>
+                                <tr>
+                                    <th>Scheduled Time</th>
+                                    <th>Patient Information</th>
+                                    <th>Assigned Doctor</th>
+                                    <th>Procedure / Service</th>
+                                    <th>Operatory Station</th>
+                                    <th>Current Status</th>
+                                    <th style="text-align: right;">Front-Desk Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="queueTableBody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 2rem; color: var(--rec-text-muted);">
+                                        <i class='bx bx-loader-alt bx-spin' style="font-size: 24px; color: var(--rec-primary);"></i>
+                                        <p style="margin: 6px 0 0 0; font-size: 12px;">Loading today's appointment queue...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── TAB 2: PATIENT DIRECTORY ─────────────────────────── -->
+            <section id="tab-patients" class="tab-section">
+                <div class="content-card">
+                    <div class="card-header-bar" style="align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                <i class='bx bx-user-pin text-primary'></i> Patient Master Directory & Search
+                            </h3>
+                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">
+                                Instant lookup for returning and walk-in patients, medical alert verification, and rapid queue check-in.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <div class="search-box-wrapper">
+                                <i class='bx bx-search search-icon'></i>
+                                <input type="text" id="patientSearchInput" class="form-control" style="width: 280px;" placeholder="Search name, phone, email, allergy..." oninput="handlePatientSearchInput(this.value)">
+                                <i class='bx bx-x clear-icon' id="patientSearchClear" onclick="clearPatientSearch()" title="Clear search"></i>
+                            </div>
+                            <button class="btn-rec btn-rec-primary" onclick="openRegisterPatientModal(false)">
+                                <i class='bx bx-user-plus'></i> Quick Register Patient
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Fast Filter Toolbar -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin: 10px 0 14px 0; padding-bottom: 10px; border-bottom: 1px solid var(--rec-border);">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="patientFilterPills">
+                            <button type="button" class="filter-pill active" onclick="setPatientFilter('all', this)">
+                                <i class='bx bx-list-ul'></i> All Patients <span class="pill-count" id="countAllPatients">0</span>
+                            </button>
+                            <button type="button" class="filter-pill" onclick="setPatientFilter('alerts', this)">
+                                <i class='bx bx-error-circle'></i> With Medical Alerts <span class="pill-count" id="countAlertPatients">0</span>
+                            </button>
+                            <button type="button" class="filter-pill" onclick="setPatientFilter('returning', this)">
+                                <i class='bx bx-revision'></i> Returning Patients <span class="pill-count" id="countReturningPatients">0</span>
+                            </button>
+                            <button type="button" class="filter-pill" onclick="setPatientFilter('walkin', this)">
+                                <i class='bx bx-walk'></i> Walk-ins <span class="pill-count" id="countWalkinPatients">0</span>
+                            </button>
+                        </div>
+                        <div id="patientSearchStats" style="font-size: 11px; font-weight: 600; color: var(--rec-text-muted);">
+                            Showing all patients
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="rec-table">
+                            <thead>
+                                <tr>
+                                    <th>Patient Profile</th>
+                                    <th>Contact & Location</th>
+                                    <th>Demographics & Blood</th>
+                                    <th>Medical Alerts & Safety</th>
+                                    <th>Visit History</th>
+                                    <th style="text-align: right;">Front-Desk Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patientsTableBody">
+                                <tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--rec-text-muted);">Loading patient directory...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── TAB 3: ALL APPOINTMENTS ─────────────────────────── -->
+            <section id="tab-appointments" class="tab-section">
+                <div class="content-card">
+                    <div class="card-header-bar">
+                        <div>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 700;">Upcoming & All Booked Appointments</h3>
+                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">Clinic scheduling calendar, future consultations, and follow-ups.</p>
+                        </div>
+                        <button class="btn-rec btn-rec-primary" onclick="openModal('bookAppointmentModal')">
+                            <i class='bx bx-calendar-plus'></i> Book Appointment
+                        </button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="rec-table">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Patient</th>
+                                    <th>Attending Doctor</th>
+                                    <th>Service</th>
+                                    <th>Station</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointmentsTableBody">
+                                <tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--rec-text-muted);">Loading appointment bookings...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── TAB 4: DOCTORS ON DUTY ───────────────────────────── -->
+            <section id="tab-doctors" class="tab-section">
+                <div class="content-card">
+                    <div class="card-header-bar">
+                        <div>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 700;">Clinic Doctors & Clinical Schedules</h3>
+                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">Active healthcare providers, specialties, license credentials, and duty hours.</p>
+                        </div>
+                    </div>
+
+                    <div id="doctorsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── TAB 5: MY ACCOUNT / PROFILE ─────────────────────── -->
+            <section id="tab-profile" class="tab-section">
+                <div class="content-card" style="max-width: 680px;">
+                    <h3 style="margin: 0 0 1rem 0; font-size: 16px; font-weight: 700;">Receptionist Front-Desk Profile & Credentials</h3>
+                    
+                    <form id="form-receptionist-profile" onsubmit="updateProfile(event)">
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label>Legal Full Name</label>
+                                <input type="text" id="profFullName" class="form-control" disabled style="background: #f1f5f9;">
+                            </div>
+                            <div class="form-group">
+                                <label>Assigned Clinic Email</label>
+                                <input type="email" id="profEmail" class="form-control" disabled style="background: #f1f5f9;">
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label>Front-Desk Station / Position</label>
+                                <input type="text" id="profPosition" class="form-control" disabled style="background: #f1f5f9;">
+                            </div>
+                            <div class="form-group">
+                                <label>Contact Phone Number</label>
+                                <input type="tel" id="profPhone" class="form-control" placeholder="e.g. +63 917 123 4567">
+                            </div>
+                        </div>
+
+                        <div style="border-top: 1px solid var(--rec-border); margin: 1.25rem 0; padding-top: 1.25rem;">
+                            <h4 style="margin: 0 0 10px 0; font-size: 13px; font-weight: 700; color: var(--rec-primary);">Change Security Password</h4>
+                            
+                            <div class="form-group">
+                                <label>Current Password</label>
+                                <input type="password" id="profCurrentPass" class="form-control" placeholder="Required to set new password">
+                            </div>
+
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label>New Password</label>
+                                    <input type="password" id="profNewPass" class="form-control" placeholder="Min. 6 characters">
+                                </div>
+                                <div class="form-group">
+                                    <label>Confirm New Password</label>
+                                    <input type="password" id="profConfirmPass" class="form-control" placeholder="Re-type new password">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-rec btn-rec-primary" style="padding: 10px 20px;">
+                            <i class='bx bx-save'></i> Save Account Changes
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ── MODAL: QUICK PATIENT & WALK-IN REGISTRATION (R-003) ── -->
+    <div id="registerPatientModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 680px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-user-plus text-primary' style="font-size: 22px;"></i> Quick Patient & Walk-in Registration
+                    </h3>
+                    <p style="margin: 3px 0 0 0; font-size: 11px; color: var(--rec-text-muted);">
+                        Fast-track walk-in patient enrollment with immediate check-in and queue placement.
+                    </p>
+                </div>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('registerPatientModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-register-patient" onsubmit="submitRegisterPatient(event)">
+                <!-- Section 1: Demographics -->
+                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--rec-primary); letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 4px;">
+                    <i class='bx bx-id-card'></i> Patient Identification
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Patient Full Name *</label>
+                        <input type="text" id="regPatientName" class="form-control" placeholder="e.g. Maria Clara Santos" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Phone / Mobile *</label>
+                        <input type="tel" id="regPatientPhone" class="form-control" placeholder="0917 123 4567" required autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label style="margin-bottom: 0;">Email Address</label>
+                            <span style="font-size: 10px; font-weight: 700; color: #059669; background: #ecfdf5; padding: 1px 6px; border-radius: 4px; border: 1px solid #a7f3d0;">
+                                <i class='bx bx-mail-send'></i> Sends Online Portal Invite
+                            </span>
+                        </div>
+                        <input type="email" id="regPatientEmail" class="form-control" placeholder="patient@gmail.com (dispatches online portal invitation)">
+                    </div>
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label style="margin-bottom: 0;">Date of Birth</label>
+                            <span id="regPatientAgeBadge" style="font-size: 11px; font-weight: 700; color: var(--rec-primary); background: var(--rec-primary-light); padding: 1px 6px; border-radius: 4px;">Age: --</span>
+                        </div>
+                        <input type="date" id="regPatientDob" class="form-control" onchange="calculateAgeFromDob()" oninput="calculateAgeFromDob()">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select id="regPatientGender" class="form-control">
+                            <option value="Female">Female</option>
+                            <option value="Male">Male</option>
+                            <option value="Other">Other</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Residential City / Address</label>
+                        <input type="text" id="regPatientAddress" class="form-control" placeholder="e.g. Malaybalay City, Bukidnon">
+                    </div>
+                </div>
+
+                <!-- Section 3: Walk-in Appointment & Queue Assignment -->
+                <div class="walkin-fasttrack-box" style="background: var(--rec-primary-light); border: 1.5px solid rgba(14, 177, 177, 0.35); border-radius: 12px; padding: 12px 14px; margin: 16px 0 12px 0;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0; user-select: none;">
+                        <input type="checkbox" id="regAddToQueue" checked onchange="toggleWalkInQueueFields()" style="width: 18px; height: 18px; accent-color: var(--rec-primary); cursor: pointer;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 13px; color: var(--rec-primary); display: flex; align-items: center; gap: 6px;">
+                                <i class='bx bx-calendar-check'></i> Assign Appointment / Walk-in Schedule
+                            </div>
+                            <div style="font-size: 11px; color: var(--rec-text-muted); margin-top: 1px;">
+                                Schedule an appointment time & date matching patient and doctor availability, or immediately place in today's lobby queue.
+                            </div>
+                        </div>
+                    </label>
+
+                    <div id="walkInQueueFields" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(14, 177, 177, 0.2); display: block;">
+                        <div class="form-grid-2">
+                            <div class="form-group" style="margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                    <label style="margin-bottom: 0;">Attending Healthcare Provider</label>
+                                    <span id="regDoctorDutyBadge" style="font-size: 10px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 1px 6px; border-radius: 4px;">
+                                        <i class='bx bx-time'></i> Clinic Duty
+                                    </span>
+                                </div>
+                                <select id="regDoctorSelect" class="form-control" onchange="handleRegDoctorOrDateChange()">
+                                    <option value="First Available Doctor" data-schedule="Mon - Sat (8:30 AM - 5:00 PM)" data-spec="General Clinic Duty">First Available Doctor (Any On-Duty)</option>
+                                    <!-- Populated dynamically with clinic doctors -->
+                                </select>
+                                <div id="regDoctorScheduleInfo" style="font-size: 11px; color: var(--rec-primary); background: rgba(14, 177, 177, 0.08); border-radius: 6px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 5px;">
+                                    <i class='bx bx-calendar-event'></i> <span id="regDoctorScheduleText">Duty: Mon - Sat (8:30 AM - 5:00 PM)</span>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 8px;">
+                                <label>Initial Dental Service</label>
+                                <select id="regServiceSelect" class="form-control">
+                                    <option value="Dental Consultation">Dental Consultation & Oral Examination</option>
+                                    <option value="Emergency Relief / Toothache">Emergency Relief / Acute Toothache</option>
+                                    <option value="Oral Prophylaxis (Cleaning)">Oral Prophylaxis (Cleaning)</option>
+                                    <option value="Tooth Extraction">Simple / Urgent Tooth Extraction</option>
+                                    <option value="Composite Filling">Tooth Restoration (Filling)</option>
+                                    <option value="Orthodontic Checkup">Orthodontic Adjustment / Checkup</option>
+                                    <option value="Root Canal Treatment">Root Canal Therapy</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Date & Time Assignment Grid -->
+                        <div class="form-grid-2" style="margin-top: 4px;">
+                            <div class="form-group" style="margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                    <label style="margin-bottom: 0;">Appointment Date *</label>
+                                    <span id="regDateDayBadge" style="font-size: 10px; font-weight: 700; color: var(--rec-primary); background: white; padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(14,177,177,0.35);">
+                                        Today
+                                    </span>
+                                </div>
+                                <input type="date" id="regApptDate" class="form-control" onchange="handleRegDoctorOrDateChange()" oninput="handleRegDoctorOrDateChange()">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                    <label style="margin-bottom: 0;">Assigned Time Slot *</label>
+                                    <span id="regTimeModeBadge" style="font-size: 10px; font-weight: 700; color: #059669; background: #ecfdf5; padding: 1px 6px; border-radius: 4px;">
+                                        ⚡ Immediate Queue
+                                    </span>
+                                </div>
+                                <select id="regApptTime" class="form-control" onchange="handleRegDoctorOrDateChange()">
+                                    <option value="Immediate Queue">⚡ Immediate Walk-in Queue (Right Now)</option>
+                                    <option value="09:00 AM">09:00 AM - 10:00 AM (Morning Slot)</option>
+                                    <option value="10:00 AM">10:00 AM - 11:00 AM (Morning Slot)</option>
+                                    <option value="11:00 AM">11:00 AM - 12:00 PM (Morning Slot)</option>
+                                    <option value="01:00 PM">01:00 PM - 02:00 PM (Afternoon Slot)</option>
+                                    <option value="02:00 PM">02:00 PM - 03:00 PM (Afternoon Slot)</option>
+                                    <option value="03:00 PM">03:00 PM - 04:00 PM (Afternoon Slot)</option>
+                                    <option value="04:00 PM">04:00 PM - 05:00 PM (Afternoon Slot)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Doctor Availability Alert Banner -->
+                        <div id="regDoctorAvailAlert" style="display: none; font-size: 11px; padding: 6px 10px; border-radius: 6px; margin-bottom: 8px; align-items: center; gap: 6px;">
+                            <!-- Populated dynamically via handleRegDoctorOrDateChange() -->
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Operatory Station Chair</label>
+                                <select id="regOperatorySelect" class="form-control">
+                                    <option value="Operatory Chair 1">Operatory Chair 1 (General)</option>
+                                    <option value="Operatory Chair 2">Operatory Chair 2 (Surgical / Ortho)</option>
+                                    <option value="Operatory Chair 3">Operatory Chair 3 (Pediatric)</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Chief Complaint / Notes</label>
+                                <input type="text" id="regChiefComplaint" class="form-control" placeholder="e.g. Throbbing lower right molar pain">
+                            </div>
+                        </div>
+
+                        <!-- Immediate Lobby Check-in checkbox (shown only when date is today and a specific slot is chosen) -->
+                        <div id="regCheckinNowOption" style="display: none; margin-top: 8px; background: rgba(5, 150, 105, 0.08); border: 1px solid rgba(5, 150, 105, 0.25); border-radius: 6px; padding: 6px 10px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 11px; font-weight: 600; color: #065F46; user-select: none;">
+                                <input type="checkbox" id="regCheckinNow" checked onchange="handleRegDoctorOrDateChange()" style="accent-color: #059669; width: 15px; height: 15px;">
+                                <span>Patient is already in clinic lobby — check in to live queue now</span>
+                            </label>
+                        </div>
+
+                        <!-- Summary Bar -->
+                        <div id="regSummaryBar" style="margin-top: 8px; font-size: 11px; font-weight: 600; color: var(--rec-text-muted); display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed rgba(14, 177, 177, 0.3); padding-top: 6px;">
+                            <div><i class='bx bx-info-circle'></i> <span id="regSummaryText">Action: Fast-tracks patient immediately into today's waiting lobby queue.</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                    <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('registerPatientModal')">Cancel</button>
+                    <button type="button" id="btnRegisterOnly" class="btn-rec btn-rec-secondary" onclick="submitRegisterPatient(event, false)">
+                        <i class='bx bx-user-check'></i> Register Only
+                    </button>
+                    <button type="submit" id="btnSavePatient" class="btn-rec btn-rec-primary">
+                        <i class='bx bx-walk'></i> Register & Check-in Walk-in
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: BOOK APPOINTMENT ────────────────────────────────── -->
+    <div id="bookAppointmentModal" class="rec-modal-overlay">
+        <div class="rec-modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-calendar-plus text-primary'></i> Book Clinic Appointment
+                </h3>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('bookAppointmentModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-book-appointment" onsubmit="submitBookAppointment(event)">
+                <div class="form-group">
+                    <label>Patient Selection *</label>
+                    <select id="bookPatientSelect" class="form-control" required onchange="handlePatientSelectionChange()">
+                        <option value="">-- Choose Registered Patient --</option>
+                    </select>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Attending Healthcare Provider (Doctor) *</label>
+                        <select id="bookDoctorSelect" class="form-control" required>
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Dental Service / Treatment *</label>
+                        <select id="bookServiceSelect" class="form-control" required>
+                            <option value="Dental Consultation">Dental Consultation & Oral Examination</option>
+                            <option value="Oral Prophylaxis (Cleaning)">Oral Prophylaxis (Cleaning)</option>
+                            <option value="Composite Filling">Tooth Restoration (Filling)</option>
+                            <option value="Tooth Extraction">Simple / Surgical Extraction</option>
+                            <option value="Root Canal Treatment">Root Canal Therapy</option>
+                            <option value="Orthodontic Adjustment">Orthodontic Adjustment / Braces</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Appointment Date *</label>
+                        <input type="date" id="bookDate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Time Slot *</label>
+                        <select id="bookTime" class="form-control" required>
+                            <option value="09:00 AM">09:00 AM</option>
+                            <option value="10:00 AM">10:00 AM</option>
+                            <option value="11:00 AM">11:00 AM</option>
+                            <option value="01:00 PM">01:00 PM</option>
+                            <option value="02:00 PM">02:00 PM</option>
+                            <option value="03:00 PM">03:00 PM</option>
+                            <option value="04:00 PM">04:00 PM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Operatory Station</label>
+                    <select id="bookOperatory" class="form-control">
+                        <option value="Operatory Chair 1">Operatory Chair 1 (General)</option>
+                        <option value="Operatory Chair 2">Operatory Chair 2 (Surgical / Ortho)</option>
+                        <option value="Operatory Chair 3">Operatory Chair 3 (Pediatric)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Front-Desk Notes / Symptoms</label>
+                    <textarea id="bookNotes" class="form-control" rows="2" placeholder="e.g. Complains of mild toothache on lower right side"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                    <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('bookAppointmentModal')">Cancel</button>
+                    <button type="submit" id="btnSaveAppt" class="btn-rec btn-rec-primary">
+                        <i class='bx bx-calendar-check'></i> Confirm Booking
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: CANCEL APPOINTMENT ──────────────────────────────── -->
+    <div id="cancelAppointmentModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 480px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #dc2626; display: flex; align-items: center; gap: 8px;">
+                    <i class='bx bx-x-circle'></i> Cancel Clinic Appointment
+                </h3>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('cancelAppointmentModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-cancel-appointment" onsubmit="submitCancelAppointment(event)">
+                <input type="hidden" id="cancelApptId">
+
+                <div style="background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: #991B1B;">
+                    <div style="font-weight: 700; margin-bottom: 2px;">Are you sure you want to cancel this appointment?</div>
+                    <div>Patient: <strong id="cancelApptPatientName">Patient Name</strong></div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Reason for Cancellation *</label>
+                    <select id="cancelReasonSelect" class="form-control" onchange="handleCancelReasonSelect(this.value)">
+                        <option value="Patient requested cancellation">Patient requested cancellation</option>
+                        <option value="Patient feeling unwell / postponed">Patient feeling unwell / postponed</option>
+                        <option value="Doctor unavailable / schedule conflict">Doctor unavailable / schedule conflict</option>
+                        <option value="Patient did not show up (No-show)">Patient did not show up (No-show)</option>
+                        <option value="Emergency / personal circumstances">Emergency / personal circumstances</option>
+                        <option value="Duplicate appointment booking">Duplicate appointment booking</option>
+                        <option value="Other">Other reason (specify below)...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="cancelCustomReasonGroup" style="display: none; margin-bottom: 12px;">
+                    <label>Specify Custom Cancellation Reason *</label>
+                    <input type="text" id="cancelCustomReason" class="form-control" placeholder="Describe the reason for cancellation...">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                    <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('cancelAppointmentModal')">Keep Appointment</button>
+                    <button type="submit" id="btnConfirmCancelAppt" class="btn-rec" style="background: #dc2626; color: white;">
+                        <i class='bx bx-x-circle'></i> Confirm Cancellation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: PATIENT VISIT HISTORY & PROFILE (R-004) ────────── -->
+    <div id="patientHistoryModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 760px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-history text-primary' style="font-size: 22px;"></i> Patient Master Record & Visit History
+                    </h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--rec-text-muted);">
+                        Comprehensive clinical visit timeline, medical alert tracking, and returning patient status.
+                    </p>
+                </div>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('patientHistoryModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <!-- Patient Overview Card -->
+            <div style="background: var(--rec-primary-light); border: 1px solid rgba(14, 177, 177, 0.25); border-radius: 12px; padding: 12px 16px; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <div style="font-size: 18px; font-weight: 800; color: var(--rec-text);" id="histPatientName">Patient Full Name</div>
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--rec-text-muted); margin-top: 3px; flex-wrap: wrap;">
+                            <span><i class='bx bx-phone text-primary'></i> <strong id="histPatientPhone">0917 000 0000</strong></span>
+                            <span>&bull;</span>
+                            <span id="histPatientEmail"><i class='bx bx-envelope'></i> None</span>
+                            <span>&bull;</span>
+                            <span id="histPatientDemographics">Age: -- | Gender: --</span>
+                            <span>&bull;</span>
+                            <span id="histPatientBlood">Blood: --</span>
+                        </div>
+                    </div>
+                    <div id="histReturningBadgeContainer">
+                        <span style="background: #D1FAE5; color: #047857; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px;">
+                            <i class='bx bx-check-double'></i> Returning Patient
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Emergency contact & location -->
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(14, 177, 177, 0.2); font-size: 11px; color: var(--rec-text-muted); display: flex; gap: 16px; flex-wrap: wrap;">
+                    <div><i class='bx bx-map-pin text-primary'></i> Address: <span id="histPatientAddress" style="color: var(--rec-text); font-weight: 600;">Not specified</span></div>
+                    <div><i class='bx bx-user-voice text-primary'></i> Emergency: <span id="histPatientEmerg" style="color: var(--rec-text); font-weight: 600;">None recorded</span></div>
+                </div>
+            </div>
+
+            <!-- Medical Safety Alert Banner -->
+            <div id="histAlertBanner" style="display: none; background: #FEF2F2; border: 1.5px solid #F87171; border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class='bx bxs-error-circle' style="color: #DC2626; font-size: 20px; flex-shrink: 0;"></i>
+                    <div>
+                        <div style="font-size: 11px; font-weight: 800; color: #DC2626; text-transform: uppercase; letter-spacing: 0.5px;">Critical Medical Alerts & Clinical Warnings</div>
+                        <div id="histAlertText" style="font-size: 13px; font-weight: 700; color: #991B1B; margin-top: 1px;">Penicillin Allergy</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visit KPI Metrics -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem;">
+                <div style="background: white; border: 1px solid var(--rec-border); border-radius: 10px; padding: 10px; text-align: center;">
+                    <div style="font-size: 20px; font-weight: 800; color: var(--rec-primary);" id="histTotalVisits">0</div>
+                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--rec-text-muted);">Total Recorded Visits</div>
+                </div>
+                <div style="background: white; border: 1px solid var(--rec-border); border-radius: 10px; padding: 10px; text-align: center;">
+                    <div style="font-size: 20px; font-weight: 800; color: #059669;" id="histCompletedVisits">0</div>
+                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--rec-text-muted);">Completed Treatments</div>
+                </div>
+                <div style="background: white; border: 1px solid var(--rec-border); border-radius: 10px; padding: 10px; text-align: center;">
+                    <div style="font-size: 20px; font-weight: 800; color: #2563EB;" id="histUpcomingVisits">0</div>
+                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--rec-text-muted);">Upcoming / In Lobby</div>
+                </div>
+            </div>
+
+            <!-- Chronological Visit Table -->
+            <div style="margin-bottom: 1.25rem;">
+                <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--rec-text-muted); letter-spacing: 0.5px; margin-bottom: 8px;">
+                    Appointment & Clinical Treatment History
+                </div>
+                <div style="max-height: 240px; overflow-y: auto; border: 1px solid var(--rec-border); border-radius: 8px;">
+                    <table class="rec-table" style="margin: 0; font-size: 12px;">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Attending Doctor</th>
+                                <th>Procedure / Treatment</th>
+                                <th>Chair</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="histTableBody">
+                            <tr><td colspan="6" style="text-align: center; padding: 1.5rem; color: var(--rec-text-muted);">No past visits found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quick Action Footer -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--rec-border); padding-top: 1rem; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" id="histBtnEdit" onclick="openEditFromHistory()">
+                        <i class='bx bx-edit'></i> Edit Profile
+                    </button>
+                    <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" id="histBtnBook" onclick="bookFromHistory()">
+                        <i class='bx bx-calendar-plus'></i> Book Future Appt
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('patientHistoryModal')">Close</button>
+                    <button type="button" class="btn-rec btn-rec-primary" id="histBtnCheckIn" onclick="checkInFromHistory()">
+                        <i class='bx bx-walk'></i> Check-in to Today's Queue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: FAST CHECK-IN RETURNING PATIENT (R-004) ────────── -->
+    <div id="checkInReturningModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 580px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-walk text-primary' style="font-size: 20px;"></i> Fast Check-in: Returning Patient
+                    </h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--rec-text-muted);">
+                        Rapid queue placement for walk-in returning patient without re-entry.
+                    </p>
+                </div>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('checkInReturningModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <!-- Patient Quick Strip -->
+            <div style="background: var(--rec-primary-light); border: 1px solid rgba(14,177,177,0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div>
+                    <div style="font-size: 15px; font-weight: 800; color: var(--rec-text);" id="checkinPatientName">Patient Name</div>
+                    <div style="font-size: 11px; color: var(--rec-text-muted);" id="checkinPatientPhone">Phone: 0917 000 0000</div>
+                </div>
+                <div id="checkinAllergyBadge">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <form id="form-checkin-returning" onsubmit="submitCheckInReturning(event)">
+                <input type="hidden" id="checkinPatientId">
+                <input type="hidden" id="checkinPatientPhoneRaw">
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Attending Healthcare Provider</label>
+                        <select id="checkinDoctorSelect" class="form-control" required>
+                            <option value="First Available Doctor">First Available Doctor</option>
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Procedure / Dental Service</label>
+                        <select id="checkinServiceSelect" class="form-control" required>
+                            <option value="Dental Consultation">Dental Consultation & Oral Examination</option>
+                            <option value="Emergency Relief / Toothache">Emergency Relief / Acute Toothache</option>
+                            <option value="Oral Prophylaxis (Cleaning)">Oral Prophylaxis (Cleaning)</option>
+                            <option value="Tooth Extraction">Simple / Urgent Tooth Extraction</option>
+                            <option value="Composite Filling">Tooth Restoration (Filling)</option>
+                            <option value="Orthodontic Adjustment">Orthodontic Adjustment / Braces</option>
+                            <option value="Dental Follow-up">Post-Op / Follow-up Visit</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Operatory Station Chair</label>
+                        <select id="checkinOperatorySelect" class="form-control">
+                            <option value="Operatory Chair 1">Operatory Chair 1 (General)</option>
+                            <option value="Operatory Chair 2">Operatory Chair 2 (Surgical / Ortho)</option>
+                            <option value="Operatory Chair 3">Operatory Chair 3 (Pediatric)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Immediate Chief Complaint / Symptoms</label>
+                        <input type="text" id="checkinChiefComplaint" class="form-control" placeholder="e.g. Broken bracket, routine cleaning, toothache">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                    <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('checkInReturningModal')">Cancel</button>
+                    <button type="submit" id="btnConfirmCheckInReturning" class="btn-rec btn-rec-primary">
+                        <i class='bx bx-check-circle'></i> Check In to Today's Queue
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: EDIT PATIENT RECORD (R-004) ────────────────────── -->
+    <div id="editPatientModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 640px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-edit text-primary' style="font-size: 20px;"></i> Update Patient Information
+                    </h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--rec-text-muted);">
+                        Keep contact numbers, address, and medical alerts up-to-date for returning patients.
+                    </p>
+                </div>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('editPatientModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-edit-patient" onsubmit="submitEditPatient(event)">
+                <input type="hidden" id="editPatientId">
+
+                <div class="form-group">
+                    <label>Patient Full Name</label>
+                    <input type="text" id="editPatientName" class="form-control" disabled style="background: #F1F5F9; font-weight: 700;">
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Phone Number *</label>
+                        <input type="tel" id="editPatientPhone" class="form-control" required placeholder="0917 123 4567">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="editPatientEmail" class="form-control" placeholder="Optional patient email">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" id="editPatientDob" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select id="editPatientGender" class="form-control">
+                            <option value="Female">Female</option>
+                            <option value="Male">Male</option>
+                            <option value="Other">Other</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Blood Type</label>
+                        <select id="editPatientBlood" class="form-control">
+                            <option value="Unknown">Unknown / Unspecified</option>
+                            <option value="O+">O positive (O+)</option>
+                            <option value="A+">A positive (A+)</option>
+                            <option value="B+">B positive (B+)</option>
+                            <option value="AB+">AB positive (AB+)</option>
+                            <option value="O-">O negative (O-)</option>
+                            <option value="A-">A negative (A-)</option>
+                            <option value="B-">B negative (B-)</option>
+                            <option value="AB-">AB negative (AB-)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Residential City / Address</label>
+                        <input type="text" id="editPatientAddress" class="form-control" placeholder="e.g. Malaybalay City, Bukidnon">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Medical Alerts / Allergies / Safety Warnings</label>
+                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px;">
+                        <button type="button" class="quick-chip" onclick="toggleEditAllergyChip('Penicillin Allergy')">+ Penicillin</button>
+                        <button type="button" class="quick-chip" onclick="toggleEditAllergyChip('Latex Allergy')">+ Latex</button>
+                        <button type="button" class="quick-chip" onclick="toggleEditAllergyChip('Hypertension')">+ Hypertension</button>
+                        <button type="button" class="quick-chip" onclick="toggleEditAllergyChip('Diabetes')">+ Diabetes</button>
+                        <button type="button" class="quick-chip" onclick="toggleEditAllergyChip('Bleeding Tendency')">+ Bleeding History</button>
+                        <button type="button" class="quick-chip" onclick="toggleEditAllergyChip('Asthma')">+ Asthma</button>
+                        <button type="button" class="quick-chip" onclick="toggleEditAllergyChip('Pregnant')">+ Pregnant</button>
+                    </div>
+                    <input type="text" id="editPatientAlerts" class="form-control" placeholder="e.g. Penicillin Allergy, Hypertension">
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Emergency Contact Name</label>
+                        <input type="text" id="editPatientEmergName" class="form-control" placeholder="e.g. Juan Santos (Spouse)">
+                    </div>
+                    <div class="form-group">
+                        <label>Emergency Contact Phone</label>
+                        <input type="tel" id="editPatientEmergPhone" class="form-control" placeholder="e.g. 09181112233">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                    <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('editPatientModal')">Cancel</button>
+                    <button type="submit" id="btnSaveEditPatient" class="btn-rec btn-rec-primary">
+                        <i class='bx bx-save'></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: ASSIGNED ROLE & CLINIC PERMISSIONS ───────────── -->
+    <div id="rolePermissionsModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 640px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                        <i class='bx bx-shield-quarter text-primary' style="font-size: 20px;"></i> My Assigned Role & Clinic Permissions
+                    </h3>
+                    <p style="margin: 3px 0 0 0; font-size: 11px; color: var(--rec-text-muted);">
+                        Access governed by Super Admin Central RBAC Security Matrix
+                    </p>
+                </div>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('rolePermissionsModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <!-- Role Summary Card -->
+            <div style="background: var(--rec-primary-light); border: 1px solid rgba(14,177,177,0.25); border-radius: 12px; padding: 14px; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <div style="font-size: 10px; font-weight: 800; color: var(--rec-text-muted); text-transform: uppercase;">Active Assigned Role</div>
+                    <div style="font-size: 16px; font-weight: 800; color: var(--rec-primary);" id="modalRoleName">Front Desk Receptionist</div>
+                    <div style="font-size: 11px; color: var(--rec-text); margin-top: 2px;" id="modalRoleDesc">Front-desk operations for live patient queue, arrival check-in, appointments booking, and patient records.</div>
+                </div>
+                <div>
+                    <span style="background: #D1FAE5; color: #047857; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class='bx bxs-check-circle'></i> Enforced & Active
+                    </span>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <h4 style="margin: 0 0 8px 0; font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--rec-text-muted); letter-spacing: 0.5px;">
+                    Assigned Functional Privileges & Feature Access
+                </h4>
+                <div id="modalPermissionsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; padding-right: 4px;">
+                    <!-- Populated dynamically by JS -->
+                </div>
+            </div>
+
+            <div style="background: #F8FAFC; border: 1px dashed var(--rec-border); border-radius: 10px; padding: 10px 12px; font-size: 11px; color: var(--rec-text-muted); display: flex; align-items: flex-start; gap: 8px;">
+                <i class='bx bx-info-circle text-primary' style="font-size: 16px; flex-shrink: 0; margin-top: 1px;"></i>
+                <div>
+                    Your sidebar navigation options and capabilities are strictly governed by the permissions granted by the <strong>Super Admin</strong>. Any changes made in the Super Admin Role Management matrix update your workspace automatically.
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                <button type="button" class="btn-rec btn-rec-primary" onclick="closeModal('rolePermissionsModal')">Close Window</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toastBanner" class="toast-banner">
+        <i id="toastIcon" class='bx bx-check-circle' style="font-size: 20px;"></i>
+        <span id="toastMsg">Action completed successfully.</span>
+    </div>
+
+    <!-- ── JAVASCRIPT LOGIC ──────────────────────────────────────── -->
+    <script>
+        let cachedData = {
+            receptionist: {},
+            queue_today: [],
+            upcoming_appointments: [],
+            patients: [],
+            doctors: []
+        };
+
+        // Live clock updater
+        function updateClock() {
+            const now = new Date();
+            const options = {
+                timeZone: 'Asia/Manila',
+                weekday: 'long',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            };
+            const dateStr = now.toLocaleDateString('en-US', options);
+            document.getElementById('currentDateTime').textContent = dateStr + ' (PHT)';
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Initialize today's date picker defaults
+        const todayIso = new Date().toISOString().split('T')[0];
+        document.getElementById('bookDate').value = todayIso;
+
+        // Load Receptionist Dashboard
+        async function loadDashboardData() {
+            loadMyRolePermissions();
+            try {
+                const res = await fetch('api/receptionist/get_dashboard_data.php');
+                if (res.status === 401) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                const data = await res.json();
+                if (data.status === 'success') {
+                    cachedData = data;
+                    renderSidebarUser(data.receptionist);
+                    renderMetrics(data.metrics);
+                    renderQueue(data.queue_today);
+                    renderAppointments(data.upcoming_appointments, data.queue_today);
+                    renderDoctors(data.doctors);
+                    populateBookingDropdowns(data.patients, data.doctors, data.clinic_settings);
+                    populateProfileForm(data.receptionist);
+                    searchPatientsLive();
+                }
+            } catch (err) {
+                console.error("Error fetching receptionist dashboard:", err);
+                showToast('error', 'Unable to reach the server. Please check connection.');
+            }
+        }
+
+        let userPermissionsData = null;
+
+        async function loadMyRolePermissions() {
+            try {
+                const res = await fetch('api/auth/my_permissions.php');
+                if (res.status === 401) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                const data = await res.json();
+                if (data.status === 'success') {
+                    userPermissionsData = data;
+                    renderRolePermissionsUI(data);
+                }
+            } catch (err) {
+                console.error("Error loading role permissions:", err);
+            }
+        }
+
+        function renderRolePermissionsUI(data) {
+            const u = data.user || {};
+            const keys = data.permission_keys || [];
+
+            // Update sidebar role chip
+            const sidebarRole = document.getElementById('sidebarAssignedRoleTitle');
+            if (sidebarRole) sidebarRole.textContent = u.role_title || 'Receptionist';
+            const permBadge = document.getElementById('sidebarPermCountBadge');
+            if (permBadge) permBadge.textContent = keys.length;
+
+            // Modal Role Overview
+            const modalRole = document.getElementById('modalRoleName');
+            if (modalRole) modalRole.textContent = u.role_title || 'Receptionist';
+            const modalDesc = document.getElementById('modalRoleDesc');
+            if (modalDesc) modalDesc.textContent = u.role_description || '';
+
+            // Render Permissions List inside Modal
+            const listEl = document.getElementById('modalPermissionsList');
+            const modules = data.modules || {};
+            let html = '';
+
+            for (const [modName, perms] of Object.entries(modules)) {
+                html += `
+                    <div style="background: white; border: 1px solid var(--rec-border); border-radius: 8px; padding: 10px; margin-bottom: 6px;">
+                        <div style="font-size: 11px; font-weight: 800; color: var(--rec-primary); text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>${escapeHtml(modName)}</span>
+                            <span style="font-size: 10px; background: #D1FAE5; color: #047857; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Active &bull; Super Admin Granted</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            ${perms.map(p => `
+                                <div style="display: flex; align-items: flex-start; gap: 6px; font-size: 11px;">
+                                    <i class='bx bx-check-circle' style="color: #059669; font-size: 14px; margin-top: 1px; flex-shrink: 0;"></i>
+                                    <div>
+                                        <strong style="color: var(--rec-text);">${escapeHtml(p.name)}</strong>
+                                        <div style="color: var(--rec-text-muted); font-size: 10px;">${escapeHtml(p.description)}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (!html) {
+                html = '<div style="color: var(--rec-text-muted); font-size: 12px; padding: 1rem; text-align: center;">No specific permissions granted yet.</div>';
+            }
+            if (listEl) listEl.innerHTML = html;
+
+            // Dynamically manage sidebar navigation items
+            const billingNav = document.getElementById('navItemBilling');
+            if (billingNav) billingNav.style.display = keys.includes('billing.view') ? 'flex' : 'none';
+
+            const servicesNav = document.getElementById('navItemServices');
+            if (servicesNav) servicesNav.style.display = (keys.includes('services.manage') || keys.includes('services.view')) ? 'flex' : 'none';
+
+            const usersNav = document.getElementById('navItemUsers');
+            if (usersNav) usersNav.style.display = (keys.includes('users.create') || keys.includes('users.edit')) ? 'flex' : 'none';
+        }
+
+        function openRolePermissionsModal() {
+            if (!userPermissionsData) {
+                loadMyRolePermissions().then(() => {
+                    openModal('rolePermissionsModal');
+                });
+            } else {
+                openModal('rolePermissionsModal');
+            }
+        }
+
+        function renderSidebarUser(rec) {
+            document.getElementById('sidebarName').textContent = rec.full_name || 'Receptionist';
+            document.getElementById('sidebarPosition').textContent = rec.position || 'Front Desk Receptionist';
+            const names = (rec.full_name || 'Front Desk').split(' ');
+            const initials = names.map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('sidebarAvatar').textContent = initials;
+        }
+
+        function renderMetrics(m) {
+            document.getElementById('kpiTodayTotal').textContent = m.today_total || 0;
+            document.getElementById('kpiCheckedIn').textContent = m.checked_in || 0;
+            document.getElementById('kpiInChair').textContent = m.in_progress || 0;
+            document.getElementById('kpiCompletedToday').textContent = m.completed_today || 0;
+        }
+
+        function renderQueue(queue) {
+            const tbody = document.getElementById('queueTableBody');
+            if (!queue || queue.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);"><i class='bx bx-coffee' style="font-size: 32px; display: block; margin-bottom: 6px; color: var(--rec-primary);"></i>No appointments on schedule for today.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = queue.map(apt => {
+                const status = (apt.status || 'scheduled').toLowerCase();
+                let statusLabel = 'Scheduled';
+                let pillClass = 'scheduled';
+                let actionBtn = '';
+
+                if (status === 'scheduled') {
+                    statusLabel = 'Scheduled';
+                    pillClass = 'scheduled';
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" onclick="updateApptStatus('${apt._id}', 'checked_in')">
+                                <i class='bx bx-check-circle'></i> Check In
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel this appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
+                            </button>
+                        </div>
+                    `;
+                } else if (status === 'checked_in' || status === 'waiting') {
+                    statusLabel = 'In Waiting Lobby';
+                    pillClass = 'waiting';
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" style="background: #2563eb;" onclick="updateApptStatus('${apt._id}', 'in_progress')">
+                                <i class='bx bx-chair'></i> Call to Chair
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel / Remove from queue" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
+                            </button>
+                        </div>
+                    `;
+                } else if (status === 'in_progress') {
+                    statusLabel = 'In Operatory Chair';
+                    pillClass = 'in_progress';
+                    actionBtn = `
+                        <button class="btn-rec btn-rec-primary btn-rec-sm" style="background: #059669;" onclick="updateApptStatus('${apt._id}', 'completed')">
+                            <i class='bx bx-check-double'></i> Complete
+                        </button>
+                    `;
+                } else if (status === 'completed') {
+                    statusLabel = 'Visit Completed';
+                    pillClass = 'completed';
+                    actionBtn = `<span style="font-size: 11px; color: #059669; font-weight: 600;"><i class='bx bx-badge-check'></i> Done</span>`;
+                } else if (status === 'cancelled') {
+                    statusLabel = 'Cancelled';
+                    pillClass = 'cancelled';
+                    actionBtn = `<span style="font-size: 11px; color: #94a3b8; font-style: italic;"><i class='bx bx-x-circle'></i> Cancelled</span>`;
+                }
+
+                const isWalkin = !!apt.is_walkin;
+                const queueBadge = apt.queue_number 
+                    ? `<span style="background: var(--rec-primary); color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-right: 4px;">${escapeHtml(apt.queue_number)}</span>` 
+                    : '';
+                const walkinBadge = isWalkin 
+                    ? `<span style="background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 4px; display: inline-flex; align-items: center; gap: 2px;"><i class='bx bx-walk'></i> Walk-in</span>` 
+                    : '';
+
+                return `
+                    <tr>
+                        <td style="font-weight: 700; color: var(--rec-primary); white-space: nowrap;">
+                            ${queueBadge}<i class='bx bx-time mr-1'></i> ${escapeHtml(apt.time_slot || apt.appointment_time || '09:00 AM')}
+                        </td>
+                        <td>
+                            <div style="font-weight: 700; font-size: 13px; display: flex; align-items: center; flex-wrap: wrap;">
+                                ${escapeHtml(apt.patient_name || 'Patient')}
+                                ${walkinBadge}
+                            </div>
+                            <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(apt.patient_phone || 'No phone')}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 12px; color: var(--rec-text);">${escapeHtml(apt.doctor_name || 'Dr. Assigned')}</div>
+                        </td>
+                        <td>
+                            <div style="font-size: 12px;">${escapeHtml(apt.service_name || 'Dental Consultation')}</div>
+                        </td>
+                        <td>
+                            <span style="font-size: 11px; background: rgba(14, 177, 177, 0.08); padding: 3px 8px; border-radius: 6px; font-weight: 600;">
+                                ${escapeHtml(apt.operatory_chair || 'Operatory Chair 1')}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-pill ${pillClass}">
+                                <i class='bx bxs-circle' style="font-size: 7px;"></i> ${statusLabel}
+                            </span>
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            ${actionBtn}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderPatients(patients) {
+            const tbody = document.getElementById('patientsTableBody');
+            if (!tbody) return;
+
+            if (!patients || patients.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2.5rem 1rem; color: var(--rec-text-muted);">
+                            <i class='bx bx-user-x' style="font-size: 32px; display: block; margin-bottom: 6px; opacity: 0.5;"></i>
+                            No patient records matched your search or active filter.
+                            <div style="margin-top: 8px;">
+                                <button class="btn-rec btn-rec-primary btn-rec-sm" onclick="openRegisterPatientModal(false)">
+                                    <i class='bx bx-user-plus'></i> Register New Patient
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = patients.map(p => {
+                const initials = (p.full_name || 'P').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+                const hasAlert = p.has_alert || (p.medical_alerts && p.medical_alerts !== 'None' && p.medical_alerts !== 'None recorded');
+                
+                const alertTag = hasAlert 
+                    ? `<div style="background: #FEE2E2; border: 1px solid #FCA5A5; color: #DC2626; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;" title="${escapeHtml(p.medical_alerts)}">
+                         <i class='bx bxs-error-circle'></i> <span style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(p.medical_alerts)}</span>
+                       </div>`
+                    : `<span style="font-size: 11px; color: var(--rec-text-muted);"><i class='bx bx-check-circle' style="color: #10B981;"></i> None recorded</span>`;
+
+                const returnBadge = (p.total_visits >= 2 || p.is_returning)
+                    ? `<span style="background: #E0F2FE; color: #0369A1; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;"><i class='bx bx-revision'></i> Returning (${p.total_visits})</span>`
+                    : `<span style="background: #F1F5F9; color: #475569; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px;">New Patient</span>`;
+
+                const todayTag = p.today_appointment
+                    ? `<div style="margin-top: 4px;">
+                         <span style="background: #DCFCE7; color: #15803D; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;">
+                           <i class='bx bx-time'></i> Today: ${escapeHtml(p.today_appointment.queue_number || (p.today_appointment.status || '').toUpperCase())}
+                         </span>
+                       </div>`
+                    : '';
+
+                const safeId = escapeHtml(p._id || '');
+                const safeName = escapeHtml(p.full_name || '');
+                const safePhone = escapeHtml(p.phone || '');
+                const safeAlerts = escapeHtml(p.medical_alerts || '');
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="rec-avatar-circle" style="width: 36px; height: 36px; font-size: 13px; border-radius: 8px; flex-shrink: 0;">
+                                    ${escapeHtml(initials)}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 13px; color: var(--rec-text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                        <span>${safeName}</span>
+                                        ${returnBadge}
+                                    </div>
+                                    <div style="font-size: 11px; color: var(--rec-text-muted);">
+                                        ${p.email ? escapeHtml(p.email) : (p.is_walkin ? '<span style="color: #0EB1B1; font-weight: 600;">Walk-in Registered</span>' : 'No email')}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 12px; color: var(--rec-text);">
+                                <i class='bx bx-phone text-primary'></i> ${safePhone || 'N/A'}
+                            </div>
+                            <div style="font-size: 11px; color: var(--rec-text-muted); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(p.address || '')}">
+                                <i class='bx bx-map-pin'></i> ${escapeHtml(p.address || 'Address unlisted')}
+                            </div>
+                        </td>
+                        <td style="font-size: 12px;">
+                            <div><strong>${p.age ? p.age + ' yrs' : (p.dob || '--')}</strong> <span style="color: var(--rec-text-muted); font-size: 11px;">(${escapeHtml(p.gender || 'N/A')})</span></div>
+                            <div style="font-size: 10px; color: var(--rec-text-muted); margin-top: 2px;">
+                                Blood: <span style="background: rgba(14,177,177,0.12); color: #0a8f8f; padding: 1px 5px; border-radius: 4px; font-weight: 700;">${escapeHtml(p.blood_type || 'Unknown')}</span>
+                            </div>
+                        </td>
+                        <td>
+                            ${alertTag}
+                        </td>
+                        <td>
+                            <div style="font-weight: 700; font-size: 12px; color: var(--rec-text);">
+                                ${p.total_visits} ${p.total_visits === 1 ? 'Visit' : 'Visits'}
+                            </div>
+                            <div style="font-size: 11px; color: var(--rec-text-muted);">
+                                ${p.last_visit_date ? 'Last: ' + escapeHtml(p.last_visit_date) : 'No past visits'}
+                            </div>
+                            ${todayTag}
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <div style="display: inline-flex; gap: 4px;">
+                                <button class="btn-rec btn-rec-primary btn-rec-sm" title="Fast Check-in to Today's Queue" onclick="openCheckInReturningModal('${safeId}', '${safeName}', '${safePhone}', '${safeAlerts}')">
+                                    <i class='bx bx-walk'></i> Check-in
+                                </button>
+                                <button class="btn-rec btn-rec-secondary btn-rec-sm" title="View Full Visit History & Medical Alerts" onclick="openPatientHistoryModal('${safeId}')">
+                                    <i class='bx bx-history'></i> History
+                                </button>
+                                <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Schedule Appointment" onclick="quickBookForPatient('${safeName}')">
+                                    <i class='bx bx-calendar-plus'></i> Book
+                                </button>
+                                <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Update Contact / Medical Details" onclick="openEditPatientModal('${safeId}')">
+                                    <i class='bx bx-edit'></i> Edit
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderAppointments(upcoming, todayQueue) {
+            const tbody = document.getElementById('appointmentsTableBody');
+            const all = [...todayQueue, ...upcoming];
+
+            if (all.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--rec-text-muted);">No appointment records found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = all.map(apt => {
+                const date = apt.appointment_date || apt.date || 'TBD';
+                const time = apt.time_slot || apt.appointment_time || '09:00 AM';
+                const status = (apt.status || 'scheduled').toLowerCase();
+
+                let actionBtn = '';
+                if (status === 'scheduled') {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" title="Check In to Today's Queue" onclick="updateApptStatus('${apt._id}', 'checked_in')">
+                                <i class='bx bx-check-circle'></i> Check In
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel this appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
+                            </button>
+                        </div>
+                    `;
+                } else if (status === 'checked_in' || status === 'waiting') {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel this appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
+                            </button>
+                        </div>
+                    `;
+                } else if (status === 'in_progress') {
+                    actionBtn = `<span style="font-size: 11px; color: #2563eb; font-weight: 600;"><i class='bx bx-chair'></i> In Chair</span>`;
+                } else if (status === 'completed') {
+                    actionBtn = `<span style="font-size: 11px; color: #059669; font-weight: 600;"><i class='bx bx-check'></i> Done</span>`;
+                } else if (status === 'cancelled') {
+                    actionBtn = `<span style="font-size: 11px; color: #94a3b8; font-style: italic;"><i class='bx bx-x-circle'></i> Cancelled</span>`;
+                }
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700; font-size: 12px;">${escapeHtml(date)}</div>
+                            <div style="font-size: 11px; color: var(--rec-primary); font-weight: 600;">${escapeHtml(time)}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 13px;">${escapeHtml(apt.patient_name || 'Patient')}</div>
+                            <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(apt.patient_phone || '')}</div>
+                        </td>
+                        <td style="font-size: 12px;">${escapeHtml(apt.doctor_name || 'Attending Doctor')}</td>
+                        <td style="font-size: 12px;">${escapeHtml(apt.service_name || 'Consultation')}</td>
+                        <td style="font-size: 12px;">${escapeHtml(apt.operatory_chair || 'Operatory Chair 1')}</td>
+                        <td>
+                            <span class="status-pill ${status}">
+                                <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
+                            </span>
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            ${actionBtn}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderDoctors(doctors) {
+            const grid = document.getElementById('doctorsGrid');
+            if (!doctors || doctors.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--rec-text-muted);">No doctors on record.</div>`;
+                return;
+            }
+
+            grid.innerHTML = doctors.map(doc => `
+                <div style="background: var(--rec-surface); border: 1px solid var(--rec-border); border-radius: 12px; padding: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(14, 177, 177, 0.12); color: var(--rec-primary); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                            <i class='bx bx-user-voice'></i>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0; font-size: 14px; font-weight: 700;">${escapeHtml(doc.full_name)}</h4>
+                            <span style="font-size: 11px; color: var(--rec-primary); font-weight: 600;">${escapeHtml(doc.specialization)}</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 12px; color: var(--rec-text-muted); display: flex; flex-direction: column; gap: 6px;">
+                        <div><i class='bx bx-id-card mr-1'></i> License: <strong>${escapeHtml(doc.professional_id || 'PRC-VERIFIED')}</strong></div>
+                        <div><i class='bx bx-time mr-1'></i> Duty: <strong>${escapeHtml(doc.schedule_days || 'Mon - Fri (9:00 AM - 5:00 PM)')}</strong></div>
+                        <div><i class='bx bx-phone mr-1'></i> Contact: ${escapeHtml(doc.phone || 'Clinic line')}</div>
+                    </div>
+                    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--rec-border); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #059669; font-weight: 700;">
+                            <i class='bx bxs-circle' style="font-size: 7px;"></i> Available on Duty
+                        </span>
+                        <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="bookWithDoctor('${escapeHtml(doc.full_name)}')">
+                            <i class='bx bx-calendar-plus'></i> Schedule
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getSlotEndTime(slotStr) {
+            if (!slotStr) return '';
+            const parts = slotStr.trim().split(' ');
+            const timeParts = parts[0].split(':');
+            let h = parseInt(timeParts[0], 10);
+            let m = timeParts[1] || '00';
+            let meridiem = (parts[1] || 'AM').toUpperCase();
+            if (meridiem === 'PM' && h !== 12) h += 12;
+            if (meridiem === 'AM' && h === 12) h = 0;
+            h += 1;
+            const endMeridiem = h >= 12 ? 'PM' : 'AM';
+            const endH = (h % 12 === 0 ? 12 : h % 12).toString().padStart(2, '0');
+            return `${endH}:${m} ${endMeridiem}`;
+        }
+
+        function populateBookingDropdowns(patients, doctors, clinicSettings) {
+            const patientSel = document.getElementById('bookPatientSelect');
+            if (patientSel) {
+                patientSel.innerHTML = '<option value="">-- Choose Registered Patient --</option>' +
+                    patients.map(p => `<option value="${escapeHtml(p.full_name)}" data-email="${escapeHtml(p.email)}" data-phone="${escapeHtml(p.phone)}">${escapeHtml(p.full_name)} (${escapeHtml(p.phone || 'No phone')})</option>`).join('');
+            }
+
+            const docSel = document.getElementById('bookDoctorSelect');
+            if (docSel) {
+                docSel.innerHTML = doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
+            }
+
+            const regDocSel = document.getElementById('regDoctorSelect');
+            if (regDocSel) {
+                regDocSel.innerHTML = '<option value="First Available Doctor" data-schedule="Mon - Sat (8:30 AM - 5:00 PM)" data-spec="General Clinic Duty">First Available Doctor (Any On-Duty)</option>' +
+                    doctors.map(d => `<option value="${escapeHtml(d.full_name)}" data-schedule="${escapeHtml(d.schedule_days || 'Mon - Fri (9:00 AM - 5:00 PM)')}" data-spec="${escapeHtml(d.specialization || 'General Dentistry')}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
+            }
+
+            const checkinDocSel = document.getElementById('checkinDoctorSelect');
+            if (checkinDocSel && doctors) {
+                checkinDocSel.innerHTML = '<option value="First Available Doctor">First Available Doctor</option>' +
+                    doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
+            }
+
+            // System-wide Master Operating Hours Time Slots
+            const masterSlots = (clinicSettings && clinicSettings.time_slots && clinicSettings.time_slots.length > 0)
+                ? clinicSettings.time_slots
+                : ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
+
+            // 1. Populate Book Appointment Modal Time Slot dropdown
+            const bookTimeSel = document.getElementById('bookTime');
+            if (bookTimeSel) {
+                const prevVal = bookTimeSel.value;
+                bookTimeSel.innerHTML = masterSlots.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+                if (masterSlots.includes(prevVal)) {
+                    bookTimeSel.value = prevVal;
+                }
+            }
+
+            // 2. Populate Quick Walk-in Modal Time Slot dropdown
+            const regTimeSel = document.getElementById('regApptTime');
+            if (regTimeSel) {
+                const prevVal = regTimeSel.value;
+                const slotOptions = masterSlots.map(s => {
+                    const end = getSlotEndTime(s);
+                    const isMorning = s.includes('AM');
+                    return `<option value="${escapeHtml(s)}">${escapeHtml(s)} - ${escapeHtml(end)} (${isMorning ? 'Morning Slot' : 'Afternoon Slot'})</option>`;
+                }).join('');
+
+                regTimeSel.innerHTML = '<option value="Immediate Queue">⚡ Immediate Walk-in Queue (Right Now)</option>' + slotOptions;
+                if (prevVal && (prevVal === 'Immediate Queue' || masterSlots.includes(prevVal))) {
+                    regTimeSel.value = prevVal;
+                }
+            }
+        }
+
+        function populateProfileForm(rec) {
+            document.getElementById('profFullName').value = rec.full_name || '';
+            document.getElementById('profEmail').value = rec.email || '';
+            document.getElementById('profPosition').value = rec.position || 'Front Desk Receptionist';
+            document.getElementById('profPhone').value = rec.phone || '';
+        }
+
+        // Tab Switching
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            const targetSection = document.getElementById(`tab-${tabId}`);
+            if (targetSection) targetSection.classList.add('active');
+            if (el) el.classList.add('active');
+
+            const headings = {
+                'queue': "Front Desk Reception Workspace",
+                'patients': "Patient Master Directory",
+                'appointments': "All Booked Appointments",
+                'doctors': "Clinic Doctor Schedules",
+                'profile': "Front Desk Account & Settings"
+            };
+            document.getElementById('viewHeading').textContent = headings[tabId] || "Receptionist Workspace";
+        }
+
+        // Filter today's queue
+        function filterQueueTable() {
+            const q = document.getElementById('queueSearch').value.toLowerCase();
+            const filter = document.getElementById('queueStatusFilter').value;
+
+            const filtered = cachedData.queue_today.filter(apt => {
+                const name = (apt.patient_name || '').toLowerCase();
+                const status = (apt.status || 'scheduled').toLowerCase();
+                const matchesText = name.includes(q);
+                const matchesStatus = filter === 'all' || (filter === 'checked_in' && (status === 'checked_in' || status === 'waiting')) || status === filter;
+                return matchesText && matchesStatus;
+            });
+
+            renderQueue(filtered);
+        }
+
+        // ── R-004: Patient Search, History & Fast Returning Patient Handlers ──
+        let currentPatientFilter = 'all';
+        let currentPatientSearchQuery = '';
+        let patientSearchDebounce = null;
+        let currentHistoryPatient = null;
+        let cachedPatientsSearchResults = [];
+
+        function handlePatientSearchInput(val) {
+            currentPatientSearchQuery = (val || '').trim();
+            const clearBtn = document.getElementById('patientSearchClear');
+            if (clearBtn) {
+                clearBtn.style.display = currentPatientSearchQuery ? 'block' : 'none';
+            }
+            clearTimeout(patientSearchDebounce);
+            patientSearchDebounce = setTimeout(() => {
+                searchPatientsLive();
+            }, 250);
+        }
+
+        function clearPatientSearch() {
+            const input = document.getElementById('patientSearchInput');
+            if (input) input.value = '';
+            const clearBtn = document.getElementById('patientSearchClear');
+            if (clearBtn) clearBtn.style.display = 'none';
+            currentPatientSearchQuery = '';
+            searchPatientsLive();
+        }
+
+        function setPatientFilter(filterName, btnEl) {
+            currentPatientFilter = filterName;
+            document.querySelectorAll('#patientFilterPills .filter-pill').forEach(btn => btn.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            searchPatientsLive();
+        }
+
+        async function searchPatientsLive() {
+            const tbody = document.getElementById('patientsTableBody');
+            const statsEl = document.getElementById('patientSearchStats');
+
+            try {
+                const url = `api/receptionist/search_patients.php?q=${encodeURIComponent(currentPatientSearchQuery)}&filter=${encodeURIComponent(currentPatientFilter)}`;
+                const res = await fetch(url);
+                if (res.status === 401) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                const data = await res.json();
+                if (data.status === 'success') {
+                    cachedPatientsSearchResults = data.patients || [];
+
+                    // Update filter pill counts if returned
+                    if (data.counts) {
+                        if (document.getElementById('countAllPatients')) document.getElementById('countAllPatients').textContent = data.counts.all ?? 0;
+                        if (document.getElementById('countAlertPatients')) document.getElementById('countAlertPatients').textContent = data.counts.alerts ?? 0;
+                        if (document.getElementById('countReturningPatients')) document.getElementById('countReturningPatients').textContent = data.counts.returning ?? 0;
+                        if (document.getElementById('countWalkinPatients')) document.getElementById('countWalkinPatients').textContent = data.counts.walkin ?? 0;
+                    }
+
+                    // Update stats text
+                    if (statsEl) {
+                        const filterLabel = {
+                            'all': 'All Patients',
+                            'alerts': 'Patients with Medical Alerts',
+                            'returning': 'Returning Patients (2+ visits)',
+                            'walkin': 'Walk-in Patients'
+                        }[currentPatientFilter] || 'Patients';
+
+                        if (currentPatientSearchQuery) {
+                            statsEl.textContent = `Found ${data.total} record(s) matching "${currentPatientSearchQuery}" in ${filterLabel}`;
+                        } else {
+                            statsEl.textContent = `Showing ${data.total} records in ${filterLabel}`;
+                        }
+                    }
+
+                    renderPatients(data.patients);
+                } else {
+                    if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #DC2626;">${escapeHtml(data.message || 'Error searching patients.')}</td></tr>`;
+                }
+            } catch (err) {
+                console.error("Patient search error:", err);
+                if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #DC2626;">Network error during patient search.</td></tr>`;
+            }
+        }
+
+        // Backward compatibility
+        function filterPatientTable() {
+            searchPatientsLive();
+        }
+
+        // ── R-004: Patient History Modal ──
+        async function openPatientHistoryModal(patientId) {
+            if (!patientId) return;
+            openModal('patientHistoryModal');
+
+            // Reset fields to loading state
+            document.getElementById('histPatientName').textContent = 'Loading patient record...';
+            document.getElementById('histPatientPhone').textContent = '...';
+            document.getElementById('histPatientEmail').textContent = '...';
+            document.getElementById('histPatientDemographics').textContent = '...';
+            document.getElementById('histPatientBlood').textContent = '...';
+            document.getElementById('histPatientAddress').textContent = '...';
+            document.getElementById('histPatientEmerg').textContent = '...';
+            document.getElementById('histAlertBanner').style.display = 'none';
+            document.getElementById('histTotalVisits').textContent = '...';
+            document.getElementById('histCompletedVisits').textContent = '...';
+            document.getElementById('histUpcomingVisits').textContent = '...';
+            document.getElementById('histTableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 1.5rem; color: var(--rec-text-muted);"><i class="bx bx-loader-alt bx-spin"></i> Loading visit timeline...</td></tr>';
+
+            try {
+                const res = await fetch(`api/receptionist/get_patient_details.php?id=${encodeURIComponent(patientId)}`);
+                const data = await res.json();
+
+                if (data.status === 'success' && data.patient) {
+                    const p = data.patient;
+                    const stats = data.stats || {};
+                    const history = data.history || [];
+                    currentHistoryPatient = p;
+
+                    document.getElementById('histPatientName').textContent = p.full_name || 'Patient';
+                    document.getElementById('histPatientPhone').textContent = p.phone || 'None';
+                    document.getElementById('histPatientEmail').innerHTML = `<i class='bx bx-envelope'></i> ${p.email || 'None'}`;
+
+                    const ageStr = p.age ? `${p.age} yrs` : (p.dob ? p.dob : 'Age unspecified');
+                    document.getElementById('histPatientDemographics').textContent = `Age: ${ageStr} | Gender: ${p.gender || 'Not specified'}`;
+                    document.getElementById('histPatientBlood').textContent = `Blood: ${p.blood_type || 'Unknown'}`;
+                    document.getElementById('histPatientAddress').textContent = p.address || 'Address not listed';
+
+                    const emergStr = (p.emergency_contact_name || p.emergency_contact_phone)
+                        ? `${p.emergency_contact_name || ''} ${p.emergency_contact_phone ? '(' + p.emergency_contact_phone + ')' : ''}`
+                        : 'None recorded';
+                    document.getElementById('histPatientEmerg').textContent = emergStr;
+
+                    // Returning badge
+                    const isReturning = (stats.total_visits >= 2);
+                    document.getElementById('histReturningBadgeContainer').innerHTML = isReturning
+                        ? `<span style="background: #D1FAE5; color: #047857; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px;">
+                             <i class='bx bx-check-double'></i> Returning Patient (${stats.total_visits} Visits)
+                           </span>`
+                        : `<span style="background: #F1F5F9; color: #475569; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px;">
+                             New Patient (${stats.total_visits} Visit)
+                           </span>`;
+
+                    // Medical alerts
+                    const hasAlert = p.has_alert || (p.medical_alerts && p.medical_alerts !== 'None' && p.medical_alerts !== 'None recorded');
+                    if (hasAlert) {
+                        document.getElementById('histAlertBanner').style.display = 'block';
+                        document.getElementById('histAlertText').textContent = p.medical_alerts;
+                    } else {
+                        document.getElementById('histAlertBanner').style.display = 'none';
+                    }
+
+                    // Counters
+                    document.getElementById('histTotalVisits').textContent = stats.total_visits || 0;
+                    document.getElementById('histCompletedVisits').textContent = stats.completed_visits || 0;
+                    document.getElementById('histUpcomingVisits').textContent = stats.upcoming_visits || 0;
+
+                    // Table history
+                    if (history.length === 0) {
+                        document.getElementById('histTableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 1.5rem; color: var(--rec-text-muted);">No recorded clinic visits yet.</td></tr>';
+                    } else {
+                        document.getElementById('histTableBody').innerHTML = history.map(h => {
+                            const statusClass = (h.status || 'scheduled').toLowerCase();
+                            return `
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 700;">${escapeHtml(h.date)}</div>
+                                        <div style="font-size: 11px; color: var(--rec-primary); font-weight: 600;">${escapeHtml(h.time)}</div>
+                                    </td>
+                                    <td>${escapeHtml(h.doctor_name || 'Clinic Doctor')}</td>
+                                    <td>${escapeHtml(h.service_name || 'Consultation')}</td>
+                                    <td>${escapeHtml(h.operatory_chair || '--')}</td>
+                                    <td>
+                                        <span class="status-pill ${statusClass}" style="font-size: 10px; padding: 2px 8px;">
+                                            ${escapeHtml(statusClass.replace('_', ' ').toUpperCase())}
+                                        </span>
+                                    </td>
+                                    <td style="color: var(--rec-text-muted); font-size: 11px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(h.notes || '')}">
+                                        ${escapeHtml(h.notes || '--')}
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                } else {
+                    showToast('error', data.message || 'Failed to retrieve patient record.');
+                    closeModal('patientHistoryModal');
+                }
+            } catch (err) {
+                console.error("Error loading patient history:", err);
+                showToast('error', 'Network error fetching patient details.');
+                closeModal('patientHistoryModal');
+            }
+        }
+
+        function checkInFromHistory() {
+            if (!currentHistoryPatient) return;
+            closeModal('patientHistoryModal');
+            openCheckInReturningModal(
+                currentHistoryPatient._id,
+                currentHistoryPatient.full_name,
+                currentHistoryPatient.phone,
+                currentHistoryPatient.medical_alerts
+            );
+        }
+
+        function bookFromHistory() {
+            if (!currentHistoryPatient) return;
+            closeModal('patientHistoryModal');
+            quickBookForPatient(currentHistoryPatient.full_name);
+        }
+
+        function openEditFromHistory() {
+            if (!currentHistoryPatient) return;
+            closeModal('patientHistoryModal');
+            openEditPatientModal(currentHistoryPatient._id);
+        }
+
+        // ── R-004: Fast Returning Patient Check-in ──
+        function openCheckInReturningModal(patientId, name, phone, alerts) {
+            document.getElementById('checkinPatientId').value = patientId || '';
+            document.getElementById('checkinPatientPhoneRaw').value = phone || '';
+            document.getElementById('checkinPatientName').textContent = name || 'Patient';
+            document.getElementById('checkinPatientPhone').textContent = `Phone: ${phone || 'No phone recorded'}`;
+
+            const alertBox = document.getElementById('checkinAllergyBadge');
+            if (alerts && alerts !== 'None' && alerts !== 'None recorded') {
+                alertBox.innerHTML = `<span style="background: #FEE2E2; border: 1px solid #F87171; color: #DC2626; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class='bx bxs-error-circle'></i> Alert: ${escapeHtml(alerts)}
+                </span>`;
+            } else {
+                alertBox.innerHTML = `<span style="font-size: 11px; color: var(--rec-text-muted);"><i class='bx bx-check-circle' style="color: #10B981;"></i> No Safety Alerts</span>`;
+            }
+
+            document.getElementById('checkinChiefComplaint').value = '';
+
+            if (cachedData && cachedData.doctors) {
+                const docSel = document.getElementById('checkinDoctorSelect');
+                if (docSel && docSel.options.length <= 1) {
+                    docSel.innerHTML = '<option value="First Available Doctor">First Available Doctor</option>' +
+                        cachedData.doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
+                }
+            }
+
+            openModal('checkInReturningModal');
+        }
+
+        async function submitCheckInReturning(e) {
+            if (e && e.preventDefault) e.preventDefault();
+
+            const btn = document.getElementById('btnConfirmCheckInReturning');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Placing in Queue...";
+            }
+
+            const payload = {
+                patient_id: document.getElementById('checkinPatientId').value,
+                phone: document.getElementById('checkinPatientPhoneRaw').value,
+                doctor_name: document.getElementById('checkinDoctorSelect').value,
+                service_name: document.getElementById('checkinServiceSelect').value,
+                operatory_chair: document.getElementById('checkinOperatorySelect').value,
+                chief_complaint: document.getElementById('checkinChiefComplaint').value.trim()
+            };
+
+            try {
+                const res = await fetch('api/receptionist/checkin_returning_patient.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    closeModal('checkInReturningModal');
+                    showToast('success', data.message || `Checked into queue as ${data.appointment?.queue_number || ''}`);
+                    await loadDashboardData();
+
+                    // Switch to queue view to show returning patient in the active queue
+                    const queueNav = document.querySelector('a[href="#queue"]');
+                    switchTab('queue', queueNav);
+                } else if (res.status === 409) {
+                    showToast('info', data.message || 'Patient already checked in today.');
+                } else {
+                    showToast('error', data.message || 'Check-in failed.');
+                }
+            } catch (err) {
+                console.error("Check-in error:", err);
+                showToast('error', 'Network error during returning patient check-in.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        // ── R-004: Edit Patient Record ──
+        function populateEditForm(p) {
+            if (!p) return;
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.value = val ?? '';
+            };
+
+            setVal('editPatientId', p._id || '');
+            setVal('editPatientName', p.full_name || 'Patient');
+            setVal('editPatientPhone', p.phone || '');
+            
+            const email = p.email || p.raw_email || '';
+            setVal('editPatientEmail', (email && !email.includes('@clinic.local')) ? email : '');
+            setVal('editPatientDob', p.dob || '');
+            setVal('editPatientGender', p.gender || 'Female');
+            setVal('editPatientBlood', p.blood_type || 'Unknown');
+            setVal('editPatientAddress', p.address || '');
+
+            const alerts = (p.medical_alerts && p.medical_alerts !== 'None recorded' && p.medical_alerts !== 'None') 
+                ? p.medical_alerts 
+                : (p.allergies && p.allergies !== 'None recorded' && p.allergies !== 'None' ? p.allergies : '');
+            setVal('editPatientAlerts', alerts);
+
+            setVal('editPatientEmergName', p.emergency_contact_name || '');
+            setVal('editPatientEmergPhone', p.emergency_contact_phone || '');
+
+            // Set chip states in edit modal
+            const alertVal = (alerts || '').toLowerCase();
+            document.querySelectorAll('#editPatientModal .quick-chip').forEach(chip => {
+                const txt = chip.textContent.replace('+', '').trim().toLowerCase();
+                if (alertVal && alertVal.includes(txt)) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+        }
+
+        async function openEditPatientModal(patientId) {
+            if (!patientId) return;
+
+            // 1. Immediately open modal so user sees instant pop-up
+            openModal('editPatientModal');
+
+            // 2. Try to populate from cached memory first
+            const idStr = String(patientId);
+            let p = (cachedPatientsSearchResults && cachedPatientsSearchResults.find(x => String(x._id) === idStr))
+                 || (cachedData && cachedData.patients && cachedData.patients.find(x => String(x._id) === idStr));
+
+            if (p) {
+                populateEditForm(p);
+            } else {
+                document.getElementById('editPatientId').value = idStr;
+                document.getElementById('editPatientName').value = 'Loading patient details...';
+            }
+
+            // 3. Fetch latest full details from server
+            try {
+                const res = await fetch(`api/receptionist/get_patient_details.php?id=${encodeURIComponent(idStr)}`);
+                const data = await res.json();
+                if (data.status === 'success' && data.patient) {
+                    populateEditForm(data.patient);
+                } else if (!p) {
+                    showToast('error', data.message || 'Unable to load patient record.');
+                }
+            } catch (err) {
+                console.error("Error loading patient for edit:", err);
+            }
+        }
+
+        function toggleEditAllergyChip(chipText, chipBtn = null) {
+            const input = document.getElementById('editPatientAlerts');
+            if (!input) return;
+            let current = input.value.trim();
+            let items = current ? current.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+            const idx = items.findIndex(i => i.toLowerCase() === chipText.toLowerCase());
+            if (idx >= 0) {
+                items.splice(idx, 1);
+                if (chipBtn) chipBtn.classList.remove('active');
+            } else {
+                items.push(chipText);
+                if (chipBtn) chipBtn.classList.add('active');
+            }
+            input.value = items.join(', ');
+        }
+
+        async function submitEditPatient(e) {
+            if (e && e.preventDefault) e.preventDefault();
+
+            const btn = document.getElementById('btnSaveEditPatient');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Saving...";
+            }
+
+            const payload = {
+                patient_id: document.getElementById('editPatientId').value,
+                phone: document.getElementById('editPatientPhone').value.trim(),
+                email: document.getElementById('editPatientEmail').value.trim(),
+                dob: document.getElementById('editPatientDob').value,
+                gender: document.getElementById('editPatientGender').value,
+                blood_type: document.getElementById('editPatientBlood').value,
+                address: document.getElementById('editPatientAddress').value.trim(),
+                allergies: document.getElementById('editPatientAlerts').value.trim(),
+                emergency_contact_name: document.getElementById('editPatientEmergName').value.trim(),
+                emergency_contact_phone: document.getElementById('editPatientEmergPhone').value.trim()
+            };
+
+            try {
+                const res = await fetch('api/receptionist/update_patient.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    closeModal('editPatientModal');
+                    showToast('success', data.message || 'Patient record updated successfully.');
+                    await loadDashboardData();
+                    searchPatientsLive();
+                } else {
+                    showToast('error', data.message || 'Failed to update patient record.');
+                }
+            } catch (err) {
+                console.error("Update patient error:", err);
+                showToast('error', 'Network error updating patient.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        // Status update for appointment
+        async function updateApptStatus(appointmentId, newStatus) {
+            try {
+                const res = await fetch('api/receptionist/update_appointment_status.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ appointment_id: appointmentId, status: newStatus })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('success', data.message || 'Status successfully updated.');
+                    loadDashboardData();
+                } else {
+                    showToast('error', data.message || 'Failed to update status.');
+                }
+            } catch (err) {
+                showToast('error', 'Network error updating status.');
+            }
+        }
+
+        // ── Appointment Cancellation Handlers ──
+        function openCancelModal(appointmentId, patientName) {
+            const idInput = document.getElementById('cancelApptId');
+            const nameEl = document.getElementById('cancelApptPatientName');
+            const reasonSel = document.getElementById('cancelReasonSelect');
+            const customGroup = document.getElementById('cancelCustomReasonGroup');
+            const customInput = document.getElementById('cancelCustomReason');
+
+            if (idInput) idInput.value = appointmentId || '';
+            if (nameEl) nameEl.textContent = patientName || 'Patient';
+            if (reasonSel) reasonSel.value = 'Patient requested cancellation';
+            if (customInput) customInput.value = '';
+            if (customGroup) customGroup.style.display = 'none';
+
+            openModal('cancelAppointmentModal');
+        }
+
+        function handleCancelReasonSelect(val) {
+            const customGroup = document.getElementById('cancelCustomReasonGroup');
+            const customInput = document.getElementById('cancelCustomReason');
+            if (customGroup) {
+                const isOther = (val === 'Other');
+                customGroup.style.display = isOther ? 'block' : 'none';
+                if (isOther && customInput) {
+                    customInput.focus();
+                }
+            }
+        }
+
+        async function submitCancelAppointment(e) {
+            if (e && e.preventDefault) e.preventDefault();
+
+            const apptId = document.getElementById('cancelApptId')?.value;
+            if (!apptId) {
+                showToast('error', 'No appointment selected.');
+                return;
+            }
+
+            const reasonSel = document.getElementById('cancelReasonSelect')?.value || '';
+            let finalReason = reasonSel;
+            if (reasonSel === 'Other') {
+                const customVal = document.getElementById('cancelCustomReason')?.value.trim();
+                finalReason = customVal || 'Other reason (unspecified)';
+            }
+
+            const btn = document.getElementById('btnConfirmCancelAppt');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Cancelling...";
+            }
+
+            try {
+                const res = await fetch('api/receptionist/cancel_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        appointment_id: apptId,
+                        reason: finalReason
+                    })
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    closeModal('cancelAppointmentModal');
+                    showToast('success', data.message || 'Appointment has been cancelled.');
+                    await loadDashboardData();
+                } else {
+                    showToast('error', data.message || 'Failed to cancel appointment.');
+                }
+            } catch (err) {
+                console.error("Cancellation error:", err);
+                showToast('error', 'Network error while cancelling appointment.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        // ── R-003 Quick Patient & Walk-in Registration Helpers ──
+        function openRegisterPatientModal(isWalkIn = true) {
+            const form = document.getElementById('form-register-patient');
+            if (form) form.reset();
+            clearAllergies();
+            
+            const dobEl = document.getElementById('regPatientDob');
+            if (dobEl) dobEl.value = '';
+            calculateAgeFromDob();
+
+            const checkEl = document.getElementById('regAddToQueue');
+            if (checkEl) checkEl.checked = isWalkIn;
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('regApptDate');
+            if (dateInput) {
+                dateInput.value = todayStr;
+                dateInput.min = todayStr;
+            }
+            const timeSelect = document.getElementById('regApptTime');
+            if (timeSelect) {
+                timeSelect.value = 'Immediate Queue';
+            }
+            const checkinNow = document.getElementById('regCheckinNow');
+            if (checkinNow) {
+                checkinNow.checked = true;
+            }
+
+            toggleWalkInQueueFields();
+            openModal('registerPatientModal');
+
+            setTimeout(() => {
+                const nameInput = document.getElementById('regPatientName');
+                if (nameInput) nameInput.focus();
+            }, 100);
+        }
+
+        function toggleWalkInQueueFields() {
+            const checkEl = document.getElementById('regAddToQueue');
+            const fieldsEl = document.getElementById('walkInQueueFields');
+            const isChecked = checkEl ? checkEl.checked : false;
+
+            if (fieldsEl) {
+                fieldsEl.style.display = isChecked ? 'block' : 'none';
+            }
+            handleRegDoctorOrDateChange();
+        }
+
+        function handleRegDoctorOrDateChange() {
+            const docSel = document.getElementById('regDoctorSelect');
+            const dateInput = document.getElementById('regApptDate');
+            const timeSel = document.getElementById('regApptTime');
+            const schedInfo = document.getElementById('regDoctorScheduleText');
+            const dateBadge = document.getElementById('regDateDayBadge');
+            const timeBadge = document.getElementById('regTimeModeBadge');
+            const availAlert = document.getElementById('regDoctorAvailAlert');
+            const checkinNowBox = document.getElementById('regCheckinNowOption');
+            const checkinNowInput = document.getElementById('regCheckinNow');
+            const summaryText = document.getElementById('regSummaryText');
+            const saveBtn = document.getElementById('btnSavePatient');
+            const queueCheck = document.getElementById('regAddToQueue');
+
+            if (!docSel || !dateInput || !timeSel) return;
+
+            const selectedDocName = docSel.value;
+            const selectedOpt = docSel.selectedOptions[0];
+            const scheduleDays = selectedOpt ? (selectedOpt.getAttribute('data-schedule') || 'Mon - Fri (9:00 AM - 5:00 PM)') : 'Mon - Fri (9:00 AM - 5:00 PM)';
+            const specialization = selectedOpt ? (selectedOpt.getAttribute('data-spec') || '') : '';
+
+            // 1. Update Doctor Schedule badge text
+            if (schedInfo) {
+                schedInfo.textContent = `Duty: ${scheduleDays}${specialization ? ' • ' + specialization : ''}`;
+            }
+
+            // 2. Evaluate Date
+            const todayStr = new Date().toISOString().split('T')[0];
+            const chosenDate = dateInput.value || todayStr;
+            const isToday = (chosenDate === todayStr);
+
+            // Compute Day of Week
+            let dayName = 'Today';
+            try {
+                const parts = chosenDate.split('-');
+                if (parts.length === 3) {
+                    const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    dayName = dayNames[d.getDay()];
+                }
+            } catch (e) {
+                dayName = 'Today';
+            }
+
+            if (dateBadge) {
+                dateBadge.textContent = isToday ? `Today (${dayName})` : dayName;
+            }
+
+            // 3. Evaluate Time Slot & Mode
+            const chosenTime = timeSel.value;
+            const isImmediate = (chosenTime === 'Immediate Queue');
+
+            if (timeBadge) {
+                if (isImmediate) {
+                    timeBadge.textContent = '⚡ Immediate Queue';
+                    timeBadge.style.color = '#059669';
+                    timeBadge.style.background = '#ECFDF5';
+                } else {
+                    timeBadge.textContent = chosenTime;
+                    timeBadge.style.color = '#0284C7';
+                    timeBadge.style.background = '#E0F2FE';
+                }
+            }
+
+            // 4. Check Doctor Availability Match against selected Day
+            if (availAlert) {
+                availAlert.style.display = 'flex';
+                const schedUpper = scheduleDays.toUpperCase();
+                const dayUpper = dayName.toUpperCase();
+
+                let isDoctorAvailable = true;
+                let warningReason = '';
+
+                if (selectedDocName !== 'First Available Doctor') {
+                    if (schedUpper.includes('MON - FRI') && (dayUpper === 'SATURDAY' || dayUpper === 'SUNDAY')) {
+                        isDoctorAvailable = false;
+                        warningReason = `${selectedDocName} is scheduled on duty Mon - Fri. ${dayName} is an off-clinic day.`;
+                    } else if (schedUpper.includes('MON - SAT') && dayUpper === 'SUNDAY') {
+                        isDoctorAvailable = false;
+                        warningReason = `${selectedDocName} is scheduled on duty Mon - Sat. Sunday is an off-clinic day.`;
+                    } else if (!schedUpper.includes(dayUpper.substring(0, 3)) && !schedUpper.includes('MON - FRI') && !schedUpper.includes('MON - SAT') && !schedUpper.includes('DAILY')) {
+                        isDoctorAvailable = false;
+                        warningReason = `${selectedDocName} duty days are listed as "${scheduleDays}". Please confirm ${dayName} availability.`;
+                    }
+                }
+
+                if (!isDoctorAvailable) {
+                    availAlert.style.background = '#FFFBEB';
+                    availAlert.style.border = '1px solid #FCD34D';
+                    availAlert.style.color = '#92400E';
+                    availAlert.innerHTML = `<i class='bx bx-error-circle' style="font-size: 16px; color: #D97706; flex-shrink: 0;"></i> <span><strong>Schedule Note:</strong> ${escapeHtml(warningReason)} Front desk override permitted if pre-arranged.</span>`;
+                } else {
+                    availAlert.style.background = '#ECFDF5';
+                    availAlert.style.border = '1px solid #A7F3D0';
+                    availAlert.style.color = '#065F46';
+                    availAlert.innerHTML = `<i class='bx bx-check-circle' style="font-size: 16px; color: #059669; flex-shrink: 0;"></i> <span><strong>Available:</strong> ${escapeHtml(selectedDocName)} is on duty on ${dayName} (${escapeHtml(scheduleDays)}).</span>`;
+                }
+            }
+
+            // 5. Check-in Now Option (only relevant if date is today and a specific slot is chosen)
+            if (checkinNowBox) {
+                if (isToday && !isImmediate) {
+                    checkinNowBox.style.display = 'block';
+                } else {
+                    checkinNowBox.style.display = 'none';
+                }
+            }
+
+            // 6. Summary text & Save button state
+            const shouldCheckInNow = isToday && (isImmediate || (checkinNowInput && checkinNowInput.checked));
+
+            if (summaryText) {
+                if (!queueCheck || !queueCheck.checked) {
+                    summaryText.textContent = "Action: Register patient profile into clinic directory only (no appointment / queue).";
+                } else if (shouldCheckInNow) {
+                    summaryText.textContent = `Action: Fast-tracks patient directly into Today's Live Lobby Queue with ${selectedDocName}.`;
+                } else {
+                    const formattedDate = new Date(chosenDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    summaryText.textContent = `Action: Confirms scheduled appointment on ${formattedDate} at ${chosenTime} with ${selectedDocName}.`;
+                }
+            }
+
+            if (saveBtn) {
+                if (!queueCheck || !queueCheck.checked) {
+                    saveBtn.innerHTML = "<i class='bx bx-check'></i> Register Patient";
+                } else if (shouldCheckInNow) {
+                    saveBtn.innerHTML = "<i class='bx bx-walk'></i> Register & Check-in Walk-in";
+                } else {
+                    saveBtn.innerHTML = "<i class='bx bx-calendar-check'></i> Register & Schedule Appointment";
+                }
+            }
+        }
+
+        function calculateAgeFromDob() {
+            const dobVal = document.getElementById('regPatientDob').value;
+            const badge = document.getElementById('regPatientAgeBadge');
+            if (!dobVal) {
+                if (badge) badge.textContent = 'Age: --';
+                return;
+            }
+            const dob = new Date(dobVal);
+            const now = new Date();
+            let age = now.getFullYear() - dob.getFullYear();
+            const m = now.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) {
+                age--;
+            }
+            if (badge) {
+                badge.textContent = (age >= 0 && !isNaN(age)) ? `Age: ${age} yrs` : 'Age: --';
+            }
+        }
+
+        function toggleAllergyChip(chipText, chipBtn = null) {
+            const input = document.getElementById('regPatientAlerts');
+            if (!input) return;
+            let current = input.value.trim();
+            let items = current ? current.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+            const idx = items.findIndex(i => i.toLowerCase() === chipText.toLowerCase());
+            if (idx >= 0) {
+                items.splice(idx, 1);
+                if (chipBtn) chipBtn.classList.remove('active');
+            } else {
+                items.push(chipText);
+                if (chipBtn) chipBtn.classList.add('active');
+            }
+            input.value = items.join(', ');
+        }
+
+        function clearAllergies() {
+            const input = document.getElementById('regPatientAlerts');
+            if (input) input.value = '';
+            document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('active'));
+        }
+
+        // Register Patient (R-003 Handler)
+        async function submitRegisterPatient(e, forceQueue = null) {
+            if (e && e.preventDefault) e.preventDefault();
+
+            const isWalkinQueue = forceQueue !== null 
+                ? forceQueue 
+                : (document.getElementById('regAddToQueue') ? document.getElementById('regAddToQueue').checked : false);
+
+            const btn = document.getElementById('btnSavePatient');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Processing...";
+            }
+
+            const fullName = document.getElementById('regPatientName').value.trim();
+            const phone = document.getElementById('regPatientPhone').value.trim();
+
+            if (!fullName || !phone) {
+                showToast('error', 'Patient Full Name and Phone Number are required.');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+                return;
+            }
+
+            const apptDate = document.getElementById('regApptDate')?.value || '';
+            const apptTime = document.getElementById('regApptTime')?.value || 'Immediate Queue';
+            const checkinNow = document.getElementById('regCheckinNow')?.checked ?? true;
+
+            const payload = {
+                full_name: fullName,
+                phone: phone,
+                email: document.getElementById('regPatientEmail').value.trim(),
+                dob: document.getElementById('regPatientDob').value,
+                gender: document.getElementById('regPatientGender').value,
+                address: document.getElementById('regPatientAddress') ? document.getElementById('regPatientAddress').value.trim() : '',
+                blood_type: document.getElementById('regPatientBlood')?.value || 'Unknown',
+                allergies: document.getElementById('regPatientAlerts')?.value?.trim() || 'None recorded',
+                emergency_contact_name: document.getElementById('regPatientEmergContact')?.value?.trim() || '',
+                add_to_queue: isWalkinQueue,
+                appointment_date: apptDate,
+                time_slot: apptTime,
+                checkin_now: checkinNow,
+                doctor_name: document.getElementById('regDoctorSelect') ? document.getElementById('regDoctorSelect').value : 'First Available Doctor',
+                service_name: document.getElementById('regServiceSelect') ? document.getElementById('regServiceSelect').value : 'Dental Consultation',
+                operatory_chair: document.getElementById('regOperatorySelect') ? document.getElementById('regOperatorySelect').value : 'Operatory Chair 1',
+                chief_complaint: document.getElementById('regChiefComplaint') ? document.getElementById('regChiefComplaint').value.trim() : ''
+            };
+
+            try {
+                const res = await fetch('api/receptionist/register_patient.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('success', data.message || 'Patient successfully registered!');
+                    closeModal('registerPatientModal');
+                    document.getElementById('form-register-patient').reset();
+                    clearAllergies();
+                    await loadDashboardData();
+
+                    // Navigate to appropriate tab to show results
+                    if (data.queue && data.queue.status === 'checked_in') {
+                        const queueNav = document.querySelector('a[href="#queue"]');
+                        switchTab('queue', queueNav);
+                    } else if (data.queue && data.queue.status === 'scheduled') {
+                        const apptNav = document.querySelector('a[href="#appointments"]');
+                        switchTab('appointments', apptNav);
+                    } else {
+                        const patNav = document.querySelector('a[href="#patients"]');
+                        switchTab('patients', patNav);
+                    }
+                } else if (res.status === 409) {
+                    // Duplicate found
+                    showToast('info', data.message || 'Patient already exists in directory.');
+                } else {
+                    showToast('error', data.message || 'Registration failed.');
+                }
+            } catch (err) {
+                console.error("Registration error:", err);
+                showToast('error', 'Network error. Please try again.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml || "<i class='bx bx-check'></i> Register Patient";
+                }
+            }
+        }
+
+        // Book Appointment
+        async function submitBookAppointment(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSaveAppt');
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Booking...";
+
+            const patientSel = document.getElementById('bookPatientSelect');
+            const selectedOpt = patientSel.options[patientSel.selectedIndex];
+
+            const payload = {
+                patient_name: patientSel.value,
+                patient_email: selectedOpt ? selectedOpt.getAttribute('data-email') : '',
+                patient_phone: selectedOpt ? selectedOpt.getAttribute('data-phone') : '',
+                doctor_name: document.getElementById('bookDoctorSelect').value,
+                service_name: document.getElementById('bookServiceSelect').value,
+                appointment_date: document.getElementById('bookDate').value,
+                time_slot: document.getElementById('bookTime').value,
+                operatory_chair: document.getElementById('bookOperatory').value,
+                notes: document.getElementById('bookNotes').value.trim()
+            };
+
+            try {
+                const res = await fetch('api/receptionist/create_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('success', data.message || 'Appointment confirmed!');
+                    closeModal('bookAppointmentModal');
+                    document.getElementById('form-book-appointment').reset();
+                    loadDashboardData();
+                } else {
+                    showToast('error', data.message || 'Booking failed.');
+                }
+            } catch (err) {
+                showToast('error', 'Network error while booking appointment.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "<i class='bx bx-calendar-check'></i> Confirm Booking";
+            }
+        }
+
+        function quickBookForPatient(patientName) {
+            openModal('bookAppointmentModal');
+            document.getElementById('bookPatientSelect').value = patientName;
+        }
+
+        function bookWithDoctor(doctorName) {
+            openModal('bookAppointmentModal');
+            document.getElementById('bookDoctorSelect').value = doctorName;
+        }
+
+        // Profile update
+        async function updateProfile(e) {
+            e.preventDefault();
+            const currentPass = document.getElementById('profCurrentPass').value;
+            const newPass = document.getElementById('profNewPass').value;
+            const confirmPass = document.getElementById('profConfirmPass').value;
+            const phone = document.getElementById('profPhone').value.trim();
+
+            if (newPass && newPass !== confirmPass) {
+                showToast('error', 'New passwords do not match.');
+                return;
+            }
+
+            try {
+                const res = await fetch('api/receptionist/change_password.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        current_password: currentPass,
+                        new_password: newPass,
+                        phone: phone
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('success', data.message || 'Profile saved successfully.');
+                    document.getElementById('profCurrentPass').value = '';
+                    document.getElementById('profNewPass').value = '';
+                    document.getElementById('profConfirmPass').value = '';
+                } else {
+                    showToast('error', data.message || 'Failed to update profile.');
+                }
+            } catch (err) {
+                showToast('error', 'Network error saving profile.');
+            }
+        }
+
+        // UI Modals
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme') || 'light';
+            const next = current === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', next);
+            document.getElementById('themeIcon').className = next === 'dark' ? 'bx bx-sun' : 'bx bx-moon';
+            document.getElementById('themeText').textContent = next === 'dark' ? 'Light Mode' : 'Dark Mode';
+        }
+
+        // Logout
+        async function logout() {
+            try {
+                await fetch('api/auth/logout.php', { method: 'POST' });
+            } catch (_) {}
+            window.location.href = 'index.html';
+        }
+
+        // Toast notifications
+        function showToast(type, msg) {
+            const t = document.getElementById('toastBanner');
+            const icon = document.getElementById('toastIcon');
+            const txt = document.getElementById('toastMsg');
+
+            t.className = `toast-banner ${type}`;
+            txt.textContent = msg;
+            icon.className = type === 'success' ? 'bx bx-check-circle' : 'bx bx-error-circle';
+            t.style.display = 'flex';
+
+            setTimeout(() => {
+                t.style.display = 'none';
+            }, 3500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, m => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            })[m]);
+        }
+
+        // ── Session Role Guard ─────────────────────────────────────────
+        const ALLOWED_ROLES_THIS_DASHBOARD = ['receptionist', 'staff'];
+
+        async function verifySessionRole() {
+            try {
+                const res = await fetch('api/auth/me.php');
+                const data = await res.json();
+                if (data.status !== 'authenticated') {
+                    window.location.replace('index.html');
+                    return false;
+                }
+                const role = (data.role || '').toLowerCase();
+                if (!ALLOWED_ROLES_THIS_DASHBOARD.includes(role)) {
+                    const redirectMap = {
+                        'super_admin': 'admin_dashboard.html',
+                        'admin': 'admin_dashboard.html',
+                        'doctor': 'doctor_dashboard.html',
+                        'patient': 'client_dashboard.html',
+                        'client': 'client_dashboard.html'
+                    };
+                    window.location.replace(redirectMap[role] || 'index.html');
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                return true; // network error — don't kick out
+            }
+        }
+
+        // Re-check when user switches back to this tab
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                verifySessionRole();
+            }
+        });
+
+        // Initial Load (with role guard)
+        (async () => {
+            const ok = await verifySessionRole();
+            if (ok) loadDashboardData();
+        })();
+    </script>
+</body>
+
+</html>

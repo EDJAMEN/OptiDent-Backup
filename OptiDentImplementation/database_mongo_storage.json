@@ -1,0 +1,128 @@
+{
+    "users": [
+        {
+            "full_name": "Dr. Super Admin",
+            "email": "superadmin@optident.com",
+            "phone": "09171234567",
+            "password_hash": "$2y$10$D81MOtqjh9ekmp8.tg\/iEOOhqrG2qjc7yaMdgXRwdnRv.0xtK1OKO",
+            "role": "super_admin",
+            "status": "active",
+            "is_master": true,
+            "is_active": true,
+            "professional_id": "SA-001-LICENSE",
+            "position": "Chief Executive Dental Officer",
+            "dob": "1985-05-15",
+            "emergency_contact_name": "Clinic Hotline",
+            "emergency_contact_phone": "09179998888",
+            "allergies": "None",
+            "medications": "None",
+            "reward_points": 0,
+            "created_at": "2026-09-22 17:48:41",
+            "_id": "e14d4e6d5e1396385745c1bf"
+        }
+    ],
+    "services": [],
+    "appointments": [
+        {
+            "patient_name": "Maria Clara Dela Cruz",
+            "patient_email": "patient.test_1790428074@optident.local",
+            "patient_phone": "09170428074",
+            "patient_id": "6ab7c3b507319bd6d9becd62",
+            "doctor_name": "Dr. Maria Santos",
+            "service_name": "Dental Consultation & Oral Examination",
+            "appointment_date": "2026-09-28",
+            "date": "2026-09-28",
+            "time_slot": "10:30 AM",
+            "appointment_time": "10:30 AM",
+            "operatory_chair": "Operatory Chair 1",
+            "status": "scheduled",
+            "is_walkin": false,
+            "notes": "Routine annual dental cleaning and checkup.",
+            "is_deleted": false,
+            "is_archived": false,
+            "created_at": "2026-09-26 21:08:57",
+            "booked_by": "patient.test_1790428074@optident.local",
+            "_id": "e9b51600775795bbcd421003"
+        }
+    ],
+    "rewards": [],
+    "invoices": [],
+    "reward_logs": [],
+    "system_settings": [
+        {
+            "setting_type": "clinic_profile",
+            "clinic_name": "OptiDent Dental Clinic",
+            "tagline": "Advanced Digital Dental Care & Management",
+            "contact_email": "admin@optident.com",
+            "contact_phone": "+63 (032) 412-8899",
+            "address": "Malaybalay, City, Bukidnon",
+            "operating_hours": "Mon - Sat: 8:00 AM - 6:00 PM | Sun: Closed",
+            "timezone": "Asia\/Manila",
+            "maintenance_mode": false,
+            "session_timeout_minutes": 60,
+            "max_login_attempts": 5,
+            "password_min_length": 8,
+            "system_version": "1.5.0-PROD",
+            "database_engine": "MongoDB 7.x Native",
+            "updated_at": "2026-09-25 22:42:11",
+            "updated_by": "superadmin@optident.com",
+            "created_at": "2026-09-25 21:52:12",
+            "_id": "93b43fff8633c2cc6360fa1b"
+        }
+    ],
+    "audit_logs": [
+        {
+            "actor_id": "system",
+            "actor_name": "System Core",
+            "actor_email": "system@optident.com",
+            "actor_role": "system",
+            "action": "SYSTEM_INIT",
+            "target": "system:clinic_profile",
+            "details": {
+                "message": "Master Administrator initialized system settings and security policies."
+            },
+            "status": "SUCCESS",
+            "ip_address": "127.0.0.1",
+            "user_agent": "CLI\/Internal",
+            "created_at": "2026-09-25 21:52:13",
+            "_id": "769f98ed3c56f94341f83a1c"
+        },
+        {
+            "actor_id": "system",
+            "actor_name": "System Core",
+            "actor_email": "system@optident.com",
+            "actor_role": "system",
+            "action": "SYSTEM_INIT",
+            "target": "system:clinic_profile",
+            "details": {
+                "message": "Master Administrator initialized system settings and security policies."
+            },
+            "status": "SUCCESS",
+            "ip_address": "127.0.0.1",
+            "user_agent": "CLI\/Internal",
+            "created_at": "2026-09-25 22:10:13",
+            "_id": "86e696ec0f0d5b1a3b89ca06"
+        },
+        {
+            "actor_id": "6ab7c3b507319bd6d9becd62",
+            "actor_name": "patient",
+            "actor_email": "patient.test_1790428074@optident.local",
+            "actor_role": "patient",
+            "action": "CLIENT_BOOKED_APPOINTMENT",
+            "target": "appointments:e9b51600775795bbcd421003",
+            "details": {
+                "appointment_id": "e9b51600775795bbcd421003",
+                "patient_name": "Maria Clara Dela Cruz",
+                "doctor_name": "Dr. Maria Santos",
+                "service_name": "Dental Consultation & Oral Examination",
+                "date": "2026-09-28",
+                "time_slot": "10:30 AM"
+            },
+            "status": "SUCCESS",
+            "ip_address": "127.0.0.1",
+            "user_agent": "CLI\/Internal",
+            "created_at": "2026-09-26 21:08:59",
+            "_id": "b1d765c9e199aee56a17c0ce"
+        }
+    ]
+}

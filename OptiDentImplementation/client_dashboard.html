@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiDent — Patient Portal | My Dental Records & Appointments</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --pat-primary: #0EB1B1;
+            --pat-primary-dark: #0a8f8f;
+            --pat-primary-light: #F0FBFA;
+            --pat-bg: #F8FAFC;
+            --pat-surface: #ffffff;
+            --pat-border: #E2E8F0;
+            --pat-text: #0F172A;
+            --pat-text-muted: #64748B;
+        }
+
+        body[data-theme="dark"] {
+            --pat-bg: #020617;
+            --pat-surface: #0F172A;
+            --pat-border: #1E293B;
+            --pat-text: #F8FAFC;
+            --pat-text-muted: #94A3B8;
+            --pat-primary-light: rgba(14, 177, 177, 0.12);
+        }
+
+        body {
+            background-color: var(--pat-bg);
+            color: var(--pat-text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ── Top Navigation Bar ───────────────────────────────────────── */
+        .pat-header {
+            background: var(--pat-surface);
+            border-bottom: 1px solid var(--pat-border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .pat-nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0.85rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .pat-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .portal-tag {
+            background: rgba(14, 177, 177, 0.12);
+            color: #0EB1B1;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pat-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pat-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0EB1B1, #0a8f8f);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        /* ── Main Layout ──────────────────────────────────────────────── */
+        .pat-container {
+            max-width: 1200px;
+            margin: 1.75rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .welcome-hero {
+            background: linear-gradient(135deg, rgba(14, 177, 177, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%);
+            border: 1px solid rgba(14, 177, 177, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem 1.75rem;
+            margin-bottom: 1.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        /* ── KPI Metrics Grid ─────────────────────────────────────────── */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .metric-card {
+            background: var(--pat-surface);
+            border: 1px solid var(--pat-border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .metric-icon.teal { background: rgba(14, 177, 177, 0.12); color: #0EB1B1; }
+        .metric-icon.blue { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
+        .metric-icon.emerald { background: rgba(16, 185, 129, 0.12); color: #059669; }
+        .metric-icon.amber { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+
+        /* ── Alert Banner ─────────────────────────────────────────────── */
+        .clinical-alert-box {
+            background: #FEF2F2;
+            border: 1.5px solid #F87171;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 1.75rem;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* ── Tabs ─────────────────────────────────────────────────────── */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--pat-border);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--pat-text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .tab-btn:hover {
+            color: var(--pat-primary);
+        }
+        .tab-btn.active {
+            color: var(--pat-primary-dark);
+            border-bottom-color: var(--pat-primary);
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Cards & Tables ───────────────────────────────────────────── */
+        .content-card {
+            background: var(--pat-surface);
+            border: 1px solid var(--pat-border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border: 1px solid var(--pat-border);
+            border-radius: 10px;
+        }
+
+        .pat-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+        .pat-table th {
+            background: rgba(14, 177, 177, 0.05);
+            padding: 12px 14px;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--pat-text-muted);
+            border-bottom: 1px solid var(--pat-border);
+        }
+        .pat-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--pat-border);
+            vertical-align: middle;
+        }
+        .pat-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ── Status Pills ─────────────────────────────────────────────── */
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+        }
+        .status-badge.scheduled { background: #E0F2FE; color: #0369A1; }
+        .status-badge.checked_in { background: #FEF3C7; color: #B45309; }
+        .status-badge.in_progress { background: #EDE9FE; color: #6D28D9; }
+        .status-badge.completed { background: #D1FAE5; color: #047857; }
+        .status-badge.cancelled { background: #FEE2E2; color: #DC2626; }
+
+        /* ── Modals ───────────────────────────────────────────────────── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-dialog {
+            background: var(--pat-surface);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        .btn-pat-primary {
+            background: var(--pat-primary);
+            color: #ffffff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-pat-primary:hover {
+            background: var(--pat-primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-pat-secondary {
+            background: var(--pat-surface);
+            color: var(--pat-text);
+            border: 1px solid var(--pat-border);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-pat-secondary:hover {
+            background: rgba(14, 177, 177, 0.08);
+            border-color: var(--pat-primary);
+        }
+
+        .toast-banner {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .toast-banner.success { background: #10B981; color: white; }
+        .toast-banner.error { background: #EF4444; color: white; }
+        .toast-banner.info { background: #0EB1B1; color: white; }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation Header -->
+    <header class="pat-header">
+        <div class="pat-nav-container">
+            <div class="pat-brand">
+                <img src="assets/lightmode_dentassist.png" alt="OptiDent Logo" style="height: 38px;">
+                <div>
+                    <div style="font-weight: 800; font-size: 16px; letter-spacing: -0.3px;">
+                        <span style="color: #0EB1B1;">Opti</span><span style="color: #0F172A;">Dent</span>
+                    </div>
+                    <div style="font-size: 10px; color: var(--pat-text-muted); font-weight: 600;">PATIENT PORTAL</div>
+                </div>
+                <span class="portal-tag"><i class='bx bx-check-shield'></i> Verified Patient</span>
+            </div>
+
+            <div class="pat-header-actions">
+                <button class="btn-pat-primary" onclick="openBookModal()">
+                    <i class='bx bx-calendar-plus'></i> Book Appointment
+                </button>
+                <div style="display: flex; align-items: center; gap: 8px; padding-left: 8px; border-left: 1px solid var(--pat-border);">
+                    <div class="pat-avatar" id="navAvatar">P</div>
+                    <div style="text-align: left; line-height: 1.2;">
+                        <div style="font-size: 13px; font-weight: 700;" id="navPatientName">Loading...</div>
+                        <div style="font-size: 11px; color: var(--pat-text-muted);" id="navPatientPhone">Patient</div>
+                    </div>
+                    <button class="btn-pat-secondary btn-sm" onclick="toggleTheme()" title="Toggle Dark/Light Mode" style="padding: 6px 10px; margin-left: 6px;">
+                        <i class='bx bx-moon' id="themeIcon"></i>
+                    </button>
+                    <button class="btn-pat-secondary btn-sm" onclick="logoutClient()" title="Sign Out" style="padding: 6px 10px; color: #DC2626;">
+                        <i class='bx bx-log-out'></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="pat-container">
+        <!-- Welcome Hero -->
+        <div class="welcome-hero">
+            <div>
+                <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--pat-text);" id="heroGreeting">
+                    Welcome to your Patient Portal!
+                </h2>
+                <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--pat-text-muted);">
+                    Manage your upcoming clinic visits, review clinical treatment history, and schedule your next oral care appointments.
+                </p>
+            </div>
+            <div>
+                <button class="btn-pat-primary" onclick="openBookModal()" style="box-shadow: 0 4px 14px rgba(14, 177, 177, 0.3);">
+                    <i class='bx bx-plus-circle'></i> Schedule New Appointment
+                </button>
+            </div>
+        </div>
+
+        <!-- Medical Warning Alert Banner (Visible if patient has recorded allergies/warnings) -->
+        <div id="patientAlertBox" class="clinical-alert-box">
+            <i class='bx bxs-error-circle' style="color: #DC2626; font-size: 24px; flex-shrink: 0;"></i>
+            <div>
+                <div style="font-size: 11px; font-weight: 800; color: #DC2626; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Active Medical Safety Alerts &amp; Clinical Warnings
+                </div>
+                <div id="patientAlertText" style="font-size: 13px; font-weight: 700; color: #991B1B; margin-top: 1px;">
+                    None recorded
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Metrics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon teal"><i class='bx bx-calendar-event'></i></div>
+                <div>
+                    <h3 style="margin: 0; font-size: 22px; font-weight: 800;" id="kpiUpcoming">0</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--pat-text-muted); font-weight: 600; text-transform: uppercase;">Upcoming Visits</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon emerald"><i class='bx bx-check-double'></i></div>
+                <div>
+                    <h3 style="margin: 0; font-size: 22px; font-weight: 800;" id="kpiCompleted">0</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--pat-text-muted); font-weight: 600; text-transform: uppercase;">Completed Visits</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon blue"><i class='bx bx-history'></i></div>
+                <div>
+                    <h3 style="margin: 0; font-size: 22px; font-weight: 800;" id="kpiTotal">0</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--pat-text-muted); font-weight: 600; text-transform: uppercase;">Total Clinic Visits</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon amber"><i class='bx bx-award'></i></div>
+                <div>
+                    <h3 style="margin: 0; font-size: 22px; font-weight: 800;" id="kpiPoints">0</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--pat-text-muted); font-weight: 600; text-transform: uppercase;">Loyalty Points</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchClientTab('upcoming', this)">
+                <i class='bx bx-calendar-check'></i> Upcoming Appointments
+            </button>
+            <button class="tab-btn" onclick="switchClientTab('history', this)">
+                <i class='bx bx-file'></i> Treatment &amp; Visit History
+            </button>
+            <button class="tab-btn" onclick="switchClientTab('profile', this)">
+                <i class='bx bx-user-pin'></i> My Medical Profile &amp; Contact
+            </button>
+        </div>
+
+        <!-- TAB 1: Upcoming Appointments -->
+        <section id="tab-upcoming" class="tab-pane active">
+            <div class="content-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800;">My Scheduled Clinic Appointments</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--pat-text-muted);">
+                            Active dental appointments, operatory assignments, and daily lobby queue tickets.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="pat-table">
+                        <thead>
+                            <tr>
+                                <th>Appointment Date &amp; Time</th>
+                                <th>Attending Doctor</th>
+                                <th>Dental Procedure / Treatment</th>
+                                <th>Operatory Station</th>
+                                <th>Status / Queue Number</th>
+                                <th>Front-Desk Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="upcomingTableBody">
+                            <tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--pat-text-muted);">Loading appointments...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: Past Visit History -->
+        <section id="tab-history" class="tab-pane">
+            <div class="content-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800;">Past Dental Treatments &amp; Clinical Visits</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--pat-text-muted);">
+                            Complete chronological record of all completed consultations, cleanings, and procedures.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="pat-table">
+                        <thead>
+                            <tr>
+                                <th>Visit Date</th>
+                                <th>Healthcare Provider</th>
+                                <th>Treatment / Service Rendered</th>
+                                <th>Operatory</th>
+                                <th>Clinical Outcome</th>
+                                <th>Doctor / Charting Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pastTableBody">
+                            <tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--pat-text-muted);">Loading treatment history...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: My Medical Profile & Safety Info -->
+        <section id="tab-profile" class="tab-pane">
+            <div class="content-card">
+                <h3 style="margin: 0 0 1.25rem 0; font-size: 16px; font-weight: 800;">Registered Patient Demographics &amp; Health Record</h3>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                    <!-- Personal Info Card -->
+                    <div style="background: var(--pat-bg); border: 1px solid var(--pat-border); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 800; color: var(--pat-primary-dark); text-transform: uppercase;">
+                            <i class='bx bx-id-card mr-1'></i> Personal Identification
+                        </h4>
+                        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Full Legal Name</span> <strong id="profName">--</strong></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Email Address</span> <span id="profEmail">--</span></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Mobile Phone</span> <strong id="profPhone">--</strong></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Residential Address</span> <span id="profAddress">--</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Medical Details Card -->
+                    <div style="background: var(--pat-bg); border: 1px solid var(--pat-border); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 800; color: var(--pat-primary-dark); text-transform: uppercase;">
+                            <i class='bx bx-plus-medical mr-1'></i> Clinical Health Details
+                        </h4>
+                        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Date of Birth &amp; Age</span> <span id="profDob">--</span></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Gender</span> <span id="profGender">--</span></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Blood Type</span> <strong id="profBlood">--</strong></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Medical Safety Alerts &amp; Allergies</span> <span id="profAlerts" style="font-weight: 700; color: #DC2626;">None recorded</span></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Emergency Contact</span> <span id="profEmerg">--</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ── MODAL: BOOK APPOINTMENT (CLIENT SELF-SERVICE) ───────────── -->
+    <div id="bookModal" class="modal-overlay">
+        <div class="modal-dialog">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--pat-border); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-calendar-plus text-primary'></i> Schedule Dental Appointment
+                </h3>
+                <button type="button" class="btn-pat-secondary btn-sm" onclick="closeBookModal()"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-client-book" onsubmit="submitClientBooking(event)">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Dental Service / Procedure *</label>
+                    <select id="bookServiceSelect" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Attending Healthcare Provider (Doctor) *</label>
+                    <select id="bookDoctorSelect" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                        <option value="First Available Doctor">First Available Doctor</option>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Appointment Date *</label>
+                        <input type="date" id="bookDateInput" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                    </div>
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 0;">Time Slot *</label>
+                            <span id="bookClinicHoursNote" style="font-size: 10px; color: #0284c7; background: #e0f2fe; padding: 1px 6px; border-radius: 4px; font-weight: 600;">Mon - Sat: 08:00 AM - 05:00 PM</span>
+                        </div>
+                        <select id="bookTimeSelect" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                            <!-- Populated dynamically based on Master Operating Hours -->
+                            <option value="08:00 AM">08:00 AM</option>
+                            <option value="09:00 AM">09:00 AM</option>
+                            <option value="10:00 AM">10:00 AM</option>
+                            <option value="11:00 AM">11:00 AM</option>
+                            <option value="01:00 PM">01:00 PM</option>
+                            <option value="02:00 PM">02:00 PM</option>
+                            <option value="03:00 PM">03:00 PM</option>
+                            <option value="04:00 PM">04:00 PM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Chief Complaint / Reason for Visit</label>
+                    <textarea id="bookNotesInput" class="form-control" rows="2" placeholder="e.g. Routine cleaning, mild tooth sensitivity on upper molar" style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--pat-border); padding-top: 1rem;">
+                    <button type="button" class="btn-pat-secondary" onclick="closeBookModal()">Cancel</button>
+                    <button type="submit" id="btnConfirmBook" class="btn-pat-primary">
+                        <i class='bx bx-calendar-check'></i> Confirm Appointment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toastBanner" class="toast-banner">
+        <i id="toastIcon" class='bx bx-check-circle' style="font-size: 18px;"></i>
+        <span id="toastMsg">Notification message</span>
+    </div>
+
+    <script>
+        let clientData = null;
+
+        // Set date picker minimum to today
+        const todayIso = new Date().toISOString().split('T')[0];
+        document.getElementById('bookDateInput').min = todayIso;
+        document.getElementById('bookDateInput').value = todayIso;
+
+        // Load Client Dashboard Data
+        async function loadClientDashboard() {
+            try {
+                const res = await fetch('api/client/get_dashboard_data.php');
+                if (res.status === 401) {
+                    window.location.href = 'client_login.html';
+                    return;
+                }
+                const data = await res.json();
+                if (data.status === 'success') {
+                    clientData = data;
+                    renderClientProfile(data.patient);
+                    renderMetrics(data.metrics);
+                    renderUpcomingAppointments(data.upcoming_appointments);
+                    renderPastAppointments(data.past_appointments);
+                    populateBookingDropdowns(data.doctors, data.services, data.clinic_settings);
+                } else {
+                    showToast('error', data.message || 'Unable to load client data.');
+                }
+            } catch (err) {
+                console.error("Dashboard error:", err);
+                showToast('error', 'Network error. Please check your connection.');
+            }
+        }
+
+        function renderClientProfile(p) {
+            if (!p) return;
+            const firstName = (p.full_name || 'Patient').split(' ')[0];
+            document.getElementById('heroGreeting').textContent = `Welcome back, ${firstName}!`;
+            document.getElementById('navPatientName').textContent = p.full_name || 'Patient';
+            document.getElementById('navPatientPhone').textContent = p.phone || 'Verified Patient';
+
+            const initials = (p.full_name || 'P').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+            document.getElementById('navAvatar').textContent = initials;
+
+            // Profile Tab
+            document.getElementById('profName').textContent = p.full_name || '--';
+            document.getElementById('profEmail').textContent = p.email || '--';
+            document.getElementById('profPhone').textContent = p.phone || '--';
+            document.getElementById('profAddress').textContent = p.address || 'Address unlisted';
+            document.getElementById('profDob').textContent = `${p.dob || 'Unspecified'} (${p.age ? p.age + ' years old' : 'Age unspecified'})`;
+            document.getElementById('profGender').textContent = p.gender || 'Not specified';
+            document.getElementById('profBlood').textContent = p.blood_type || 'Unknown';
+
+            const emergStr = (p.emergency_contact_name || p.emergency_contact_phone)
+                ? `${p.emergency_contact_name || ''} ${p.emergency_contact_phone ? '(' + p.emergency_contact_phone + ')' : ''}`
+                : 'None recorded';
+            document.getElementById('profEmerg').textContent = emergStr;
+
+            // Medical alerts banner
+            const alertBox = document.getElementById('patientAlertBox');
+            const alertTxt = document.getElementById('patientAlertText');
+            if (p.has_alert) {
+                alertBox.style.display = 'flex';
+                alertTxt.textContent = p.medical_alerts;
+                document.getElementById('profAlerts').textContent = p.medical_alerts;
+            } else {
+                alertBox.style.display = 'none';
+                document.getElementById('profAlerts').textContent = 'None on record';
+                document.getElementById('profAlerts').style.color = '#059669';
+            }
+        }
+
+        function renderMetrics(m) {
+            if (!m) return;
+            document.getElementById('kpiUpcoming').textContent = m.upcoming_appointments ?? 0;
+            document.getElementById('kpiCompleted').textContent = m.completed_visits ?? 0;
+            document.getElementById('kpiTotal').textContent = m.total_appointments ?? 0;
+            document.getElementById('kpiPoints').textContent = m.reward_points ?? 0;
+        }
+
+        function renderUpcomingAppointments(list) {
+            const tbody = document.getElementById('upcomingTableBody');
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2.5rem 1rem; color: var(--pat-text-muted);">
+                            <i class='bx bx-calendar-x' style="font-size: 32px; display: block; margin-bottom: 6px; opacity: 0.5;"></i>
+                            You have no upcoming dental appointments scheduled.
+                            <div style="margin-top: 8px;">
+                                <button class="btn-pat-primary" onclick="openBookModal()">
+                                    <i class='bx bx-calendar-plus'></i> Schedule an Appointment
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(apt => {
+                const statusClass = (apt.status || 'scheduled').toLowerCase();
+                const queueBadge = apt.queue_number 
+                    ? `<span style="background: #FEF3C7; color: #B45309; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; margin-left: 6px;"><i class='bx bx-walk'></i> Queue #${escapeHtml(apt.queue_number)}</span>`
+                    : '';
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700; font-size: 13px;">${escapeHtml(apt.date)}</div>
+                            <div style="font-size: 11px; color: var(--pat-primary); font-weight: 600;">${escapeHtml(apt.time)}</div>
+                        </td>
+                        <td style="font-weight: 600;">${escapeHtml(apt.doctor_name || 'First Available Doctor')}</td>
+                        <td>${escapeHtml(apt.service_name || 'Dental Consultation')}</td>
+                        <td>${escapeHtml(apt.operatory_chair || '--')}</td>
+                        <td>
+                            <span class="status-badge ${statusClass}">
+                                <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(statusClass.replace('_', ' ').toUpperCase())}
+                            </span>
+                            ${queueBadge}
+                        </td>
+                        <td style="font-size: 12px; color: var(--pat-text-muted);">${escapeHtml(apt.notes || '--')}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderPastAppointments(list) {
+            const tbody = document.getElementById('pastTableBody');
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--pat-text-muted);">No completed clinical visits recorded yet.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(apt => {
+                const statusClass = (apt.status || 'completed').toLowerCase();
+                return `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700;">${escapeHtml(apt.date)}</div>
+                            <div style="font-size: 11px; color: var(--pat-text-muted);">${escapeHtml(apt.time)}</div>
+                        </td>
+                        <td>${escapeHtml(apt.doctor_name || 'Clinic Doctor')}</td>
+                        <td>${escapeHtml(apt.service_name || 'Consultation')}</td>
+                        <td>${escapeHtml(apt.operatory_chair || '--')}</td>
+                        <td>
+                            <span class="status-badge ${statusClass}">
+                                ${escapeHtml(statusClass.toUpperCase())}
+                            </span>
+                        </td>
+                        <td style="font-size: 12px; color: var(--pat-text-muted);">${escapeHtml(apt.notes || 'Procedure successfully completed')}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function populateBookingDropdowns(doctors, services, clinicSettings) {
+            const docSel = document.getElementById('bookDoctorSelect');
+            if (docSel && doctors) {
+                docSel.innerHTML = '<option value="First Available Doctor">First Available Doctor</option>' +
+                    doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
+            }
+
+            const servSel = document.getElementById('bookServiceSelect');
+            if (servSel && services) {
+                servSel.innerHTML = services.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.duration)})</option>`).join('');
+            }
+
+            // Populate system-wide Master Operating Hours Time Slots
+            const timeSel = document.getElementById('bookTimeSelect');
+            if (timeSel) {
+                const masterSlots = (clinicSettings && clinicSettings.time_slots && clinicSettings.time_slots.length > 0)
+                    ? clinicSettings.time_slots
+                    : ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
+
+                const prevVal = timeSel.value;
+                timeSel.innerHTML = masterSlots.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+                if (masterSlots.includes(prevVal)) {
+                    timeSel.value = prevVal;
+                }
+            }
+
+            // Update Operating Hours Badge Notice in modal
+            const noteBadge = document.getElementById('bookClinicHoursNote');
+            if (noteBadge && clinicSettings && clinicSettings.operating_hours) {
+                noteBadge.textContent = clinicSettings.operating_hours.split('|')[0].trim();
+            }
+        }
+
+        async function submitClientBooking(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnConfirmBook');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Scheduling...";
+
+            const payload = {
+                doctor_name: document.getElementById('bookDoctorSelect').value,
+                service_name: document.getElementById('bookServiceSelect').value,
+                appointment_date: document.getElementById('bookDateInput').value,
+                time_slot: document.getElementById('bookTimeSelect').value,
+                notes: document.getElementById('bookNotesInput').value.trim()
+            };
+
+            try {
+                const res = await fetch('api/client/book_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.status === 201 && data.status === 'success') {
+                    showToast('success', data.message || 'Appointment confirmed!');
+                    closeBookModal();
+                    document.getElementById('form-client-book').reset();
+                    loadClientDashboard();
+                } else {
+                    showToast('error', data.message || 'Booking failed.');
+                }
+            } catch (err) {
+                showToast('error', 'Network error while booking appointment.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        function openBookModal() {
+            document.getElementById('bookModal').style.display = 'flex';
+        }
+
+        function closeBookModal() {
+            document.getElementById('bookModal').style.display = 'none';
+        }
+
+        function switchClientTab(tabId, btn) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.add('active');
+            if (btn) btn.classList.add('active');
+        }
+
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme') || 'light';
+            const next = current === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', next);
+            document.getElementById('themeIcon').className = next === 'dark' ? 'bx bx-sun' : 'bx bx-moon';
+        }
+
+        async function logoutClient() {
+            try {
+                await fetch('api/auth/logout.php', { method: 'POST' });
+            } catch (_) {}
+            window.location.href = 'client_login.html';
+        }
+
+        function showToast(type, msg) {
+            const t = document.getElementById('toastBanner');
+            const icon = document.getElementById('toastIcon');
+            const txt = document.getElementById('toastMsg');
+            t.className = `toast-banner ${type}`;
+            txt.textContent = msg;
+            icon.className = type === 'success' ? 'bx bx-check-circle' : 'bx bx-error-circle';
+            t.style.display = 'flex';
+            setTimeout(() => { t.style.display = 'none'; }, 3500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, m => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            })[m]);
+        }
+
+        // ── Session Role Guard ─────────────────────────────────────────
+        const ALLOWED_ROLES_THIS_DASHBOARD = ['patient', 'client'];
+
+        async function verifySessionRole() {
+            try {
+                const res = await fetch('api/auth/me.php');
+                const data = await res.json();
+                if (data.status !== 'authenticated') {
+                    window.location.replace('index.html');
+                    return false;
+                }
+                const role = (data.role || '').toLowerCase();
+                if (!ALLOWED_ROLES_THIS_DASHBOARD.includes(role)) {
+                    const redirectMap = {
+                        'super_admin': 'admin_dashboard.html',
+                        'admin': 'admin_dashboard.html',
+                        'doctor': 'doctor_dashboard.html',
+                        'receptionist': 'receptionist_dashboard.html',
+                        'staff': 'receptionist_dashboard.html'
+                    };
+                    window.location.replace(redirectMap[role] || 'index.html');
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                return true; // network error — don't kick out
+            }
+        }
+
+        // Re-check when user switches back to this tab
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                verifySessionRole();
+            }
+        });
+
+        // Initial Load (with role guard)
+        (async () => {
+            const ok = await verifySessionRole();
+            if (ok) loadClientDashboard();
+        })();
+    </script>
+</body>
+</html>

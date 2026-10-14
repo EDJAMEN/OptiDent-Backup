@@ -1,0 +1,11 @@
+# MongoDB raw database storage (large binary files)
+mongodb_data/
+*.wt
+diagnostic.data/
+
+# Local temporary / session cookies
+cookie.txt
+OptiDentImplementation/cookie.txt
+*.log
+.DS_Store
+Thumbs.db

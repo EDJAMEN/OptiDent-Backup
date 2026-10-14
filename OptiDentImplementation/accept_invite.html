@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiDent - Professional Onboarding & Account Setup</title>
+    <!-- Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons: Boxicons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <!-- DentAssist System CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1.5rem;
+        }
+        .auth-box {
+            width: 100%;
+            max-width: 520px;
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            background: #ffffff;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+        .role-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #F0FBFA;
+            color: #0EB1B1;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 14px;
+            border-radius: 30px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 8px;
+            border: 1px solid rgba(14, 177, 177, 0.3);
+        }
+        .role-pill.doctor {
+            background: #F0FBFA;
+            color: #0EB1B1;
+            border-color: rgba(14, 177, 177, 0.35);
+        }
+        .banner {
+            display: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 18px;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        .banner.error {
+            display: flex;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+        .banner.success {
+            display: flex;
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .field-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+        .doctor-card-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+        .password-strength-bar {
+            height: 4px;
+            width: 100%;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .password-strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="bg-noise"></div>
+
+    <main class="app-container">
+        <section class="screen active auth-wrapper flex-center">
+            <div class="auth-box card bg-white">
+                <div class="auth-header text-center mb-2">
+                    <div class="logo logo-large flex-center">
+                        <div class="logo-icon">
+                            <img src="assets/lightmode_dentassist.png" alt="OptiDent Logo" class="logo-img" style="max-height: 48px;">
+                        </div>
+                        <div class="logo-text">
+                            <div class="logo-main"><span class="logo-dent">Opti</span><span class="logo-assist">Dent</span></div>
+                            <div class="logo-subtext">CLINICAL MANAGEMENT SYSTEM</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span id="rolePill" class="role-pill">
+                            <i class='bx bx-loader-alt bx-spin'></i> Verifying Token...
+                        </span>
+                    </div>
+                    <h3 id="portalSubtitle" class="font-bold text-lg mt-1" style="color: #0f172a;">Staff Account Activation</h3>
+                    <p class="text-dim text-xs mt-1" id="portalDesc">Complete your details to activate secure access to your clinic workspace.</p>
+                </div>
+
+                <div id="statusBanner" class="banner" role="alert">
+                    <i id="bannerIcon" class='bx bx-info-circle' style="font-size: 18px;"></i>
+                    <span id="bannerText"></span>
+                </div>
+
+                <div id="loadingState" class="text-center py-3 text-dim">
+                    <i class='bx bx-loader-alt bx-spin' style="font-size: 28px; color: var(--primary);"></i>
+                    <p class="text-xs mt-1 font-medium">Validating invitation credentials in MongoDB...</p>
+                </div>
+
+                <form id="form-accept" class="auth-form" style="display: none;">
+                    
+                    <!-- Account Credentials Section -->
+                    <div class="mb-2">
+                        <label class="field-label">Invited Clinic Email (Verified)</label>
+                        <div class="input-group">
+                            <i class='bx bx-envelope'></i>
+                            <input type="email" id="inviteEmail" disabled style="opacity: 0.85; background: #f1f5f9; font-weight: 600; color: #334155;">
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="field-label" id="nameLabel">Doctor Legal Full Name & Title</label>
+                        <div class="input-group">
+                            <i class='bx bx-user-pin'></i>
+                            <input type="text" id="staffFullName" placeholder="e.g. Dr. Roberto Mendoza, DMD" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="field-label">Mobile Contact Number</label>
+                        <div class="input-group">
+                            <i class='bx bx-phone'></i>
+                            <input type="tel" id="staffPhone" placeholder="e.g. +63 917 123 4567" required>
+                        </div>
+                    </div>
+
+                    <!-- Receptionist / Front Desk Credentials (R-001) -->
+                    <div id="receptionistExtraFields" class="doctor-card-box" style="display: none; background: #f8fafc; border-color: #cbd5e1;">
+                        <div class="flex items-center gap-1 mb-1">
+                            <i class='bx bx-headphone' style="color: #4f46e5; font-size: 16px;"></i>
+                            <span class="text-xs font-bold" style="color: #0f172a;">Reception & Front Desk Details</span>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="field-label" style="font-size: 10px;">Assigned Position / Desk Title</label>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <i class='bx bx-briefcase'></i>
+                                <input type="text" id="receptionistPosition" value="Front Desk Receptionist" placeholder="e.g. Front Desk Receptionist">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Doctor Specific Professional Credentials (D-001) -->
+                    <div id="doctorExtraFields" class="doctor-card-box">
+                        <div class="flex items-center gap-1 mb-1">
+                            <i class='bx bxs-badge-check' style="color: #059669; font-size: 16px;"></i>
+                            <span class="text-xs font-bold" style="color: #0f172a;">Professional Medical Credentials</span>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="field-label" style="font-size: 10px;">PRC Dental License Number</label>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <i class='bx bx-id-card'></i>
+                                <input type="text" id="professionalId" placeholder="e.g. PRC-DMD-0082914">
+                            </div>
+                            <span class="text-xs text-dim" style="font-size: 10px; display: block; margin-top: 3px;">Required by clinic compliance regulations.</span>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="field-label" style="font-size: 10px;">Dental Specialty / Field of Practice</label>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <i class='bx bx-shield-plus'></i>
+                                <select id="doctorSpecialization" class="custom-input" style="height: auto; padding: 0.65rem 2.5rem; background: white; border-radius: 8px; font-size: 13px;">
+                                    <option value="General Dentistry" selected>General Dentistry</option>
+                                    <option value="Orthodontics">Orthodontics (Braces & Aligners)</option>
+                                    <option value="Pediatric Dentistry">Pediatric Dentistry</option>
+                                    <option value="Endodontics">Endodontics (Root Canal)</option>
+                                    <option value="Periodontics">Periodontics (Gum Care)</option>
+                                    <option value="Prosthodontics">Prosthodontics (Crowns & Dentures)</option>
+                                    <option value="Oral & Maxillofacial Surgery">Oral & Maxillofacial Surgery</option>
+                                    <option value="Cosmetic Dentistry">Cosmetic Dentistry</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-1">
+                            <label class="field-label" style="font-size: 10px;">Default Consultation Schedule</label>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <i class='bx bx-calendar-event'></i>
+                                <select id="doctorSchedule" class="custom-input" style="height: auto; padding: 0.65rem 2.5rem; background: white; border-radius: 8px; font-size: 13px;">
+                                    <option value="Mon - Fri (9:00 AM - 5:00 PM)" selected>Mon - Fri (9:00 AM - 5:00 PM)</option>
+                                    <option value="Mon - Sat (8:00 AM - 4:00 PM)">Mon - Sat (8:00 AM - 4:00 PM)</option>
+                                    <option value="Tue, Thu, Sat (10:00 AM - 6:00 PM)">Tue, Thu, Sat (10:00 AM - 6:00 PM)</option>
+                                    <option value="Weekends Only (8:00 AM - 5:00 PM)">Weekends Only (8:00 AM - 5:00 PM)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Creation -->
+                    <div class="mb-2">
+                        <label class="field-label">Create Secure Password</label>
+                        <div class="input-group" style="margin-bottom: 4px;">
+                            <i class='bx bx-lock-alt'></i>
+                            <input type="password" id="staffPassword" placeholder="Min. 6 characters (Letters & Numbers)" required minlength="6" oninput="checkPasswordStrength(this.value)">
+                            <button type="button" class="password-toggle" onclick="togglePassVisibility('staffPassword', 'passEye')">
+                                <i class='bx bx-hide' id="passEye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength-bar">
+                            <div id="strengthFill" class="password-strength-fill"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="field-label">Confirm Password</label>
+                        <div class="input-group">
+                            <i class='bx bx-check-shield'></i>
+                            <input type="password" id="confirmPassword" placeholder="Re-type your password" required minlength="6">
+                            <button type="button" class="password-toggle" onclick="togglePassVisibility('confirmPassword', 'confirmEye')">
+                                <i class='bx bx-hide' id="confirmEye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="activateBtn" class="btn-primary w-full shadow-hover mt-1" style="padding: 12px; font-size: 14px; font-weight: 700; border-radius: 10px;">
+                        <i class='bx bx-check-shield mr-1'></i> Complete Registration & Activate Portal
+                    </button>
+                </form>
+
+                <div id="successState" class="text-center py-2" style="display: none;">
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background: #dcfce7; color: #16a34a; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                        <i class='bx bx-check-double' style="font-size: 36px;"></i>
+                    </div>
+                    <h3 class="font-bold text-xl" style="color: #0f172a;" id="successTitle">Account Activated!</h3>
+                    <p class="text-dim text-xs mt-1" id="successSubtext">Your account has been activated. You are now signed in.</p>
+
+                    <div class="mt-3">
+                        <a id="portalDirectBtn" href="index.html" class="btn-primary w-full shadow-hover" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; padding: 12px; border-radius: 10px; font-weight: 700;">
+                            <i class='bx bx-layout mr-1'></i> Enter Your Portal
+                        </a>
+                    </div>
+                    <p class="text-dim text-xs mt-2">Auto-redirecting in <span id="countdownText" class="font-bold text-primary">3</span> seconds...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        const loadingState = document.getElementById('loadingState');
+        const formAccept = document.getElementById('form-accept');
+        const rolePill = document.getElementById('rolePill');
+        const emailInput = document.getElementById('inviteEmail');
+        const doctorExtraFields = document.getElementById('doctorExtraFields');
+        const banner = document.getElementById('statusBanner');
+        const bannerText = document.getElementById('bannerText');
+        let invitedRole = 'doctor';
+
+        function togglePassVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bx bx-show';
+            } else {
+                input.type = 'password';
+                icon.className = 'bx bx-hide';
+            }
+        }
+
+        function checkPasswordStrength(val) {
+            const fill = document.getElementById('strengthFill');
+            let score = 0;
+            if (val.length >= 6) score += 25;
+            if (val.length >= 10) score += 25;
+            if (/[0-9]/.test(val)) score += 25;
+            if (/[^A-Za-z0-9]/.test(val)) score += 25;
+
+            fill.style.width = score + '%';
+            if (score <= 25) fill.style.background = '#ef4444';
+            else if (score <= 50) fill.style.background = '#f59e0b';
+            else if (score <= 75) fill.style.background = '#0EB1B1';
+            else fill.style.background = '#10b981';
+        }
+
+        if (!token) {
+            loadingState.style.display = 'none';
+            showBanner('error', 'Invitation token is missing from your link.');
+            rolePill.innerHTML = "<i class='bx bx-error-circle'></i> Missing Token";
+            rolePill.className = "role-pill";
+        } else {
+            // Validate token with backend
+            fetch(`api/auth/validate_invite.php?token=${encodeURIComponent(token)}`)
+                .then(res => res.json())
+                .then(data => {
+                    loadingState.style.display = 'none';
+                    if (data.status === 'valid') {
+                        emailInput.value = data.email;
+                        invitedRole = (data.role || 'doctor').toLowerCase();
+                        const receptionistFields = document.getElementById('receptionistExtraFields');
+
+                        if (invitedRole === 'doctor') {
+                            rolePill.className = 'role-pill doctor';
+                            rolePill.innerHTML = `<i class='bx bxs-user-check'></i> Inviting: DOCTOR (DMD / DDS)`;
+                            doctorExtraFields.style.display = 'block';
+                            receptionistFields.style.display = 'none';
+                            document.getElementById('portalSubtitle').textContent = 'Doctor Account Activation (D-001)';
+                            document.getElementById('portalDesc').textContent = 'Complete your professional credentials to activate secure access to your clinical workspace.';
+                            document.getElementById('nameLabel').textContent = 'Doctor Legal Full Name & Title';
+                            document.getElementById('staffFullName').placeholder = 'e.g. Dr. Roberto Mendoza, DMD';
+                            if (data.full_name) {
+                                document.getElementById('staffFullName').value = data.full_name.startsWith('Dr.') ? data.full_name : `Dr. ${data.full_name}`;
+                            } else {
+                                document.getElementById('staffFullName').value = 'Dr. ';
+                            }
+                        } else if (invitedRole === 'receptionist' || invitedRole === 'staff') {
+                            rolePill.className = 'role-pill';
+                            rolePill.innerHTML = `<i class='bx bx-headphone'></i> Inviting: RECEPTIONIST`;
+                            rolePill.style.cssText += '; background:#EEF2FF; color:#4F46E5; border-color:rgba(79,70,229,0.3);';
+                            doctorExtraFields.style.display = 'none';
+                            receptionistFields.style.display = 'block';
+                            document.getElementById('portalSubtitle').textContent = 'Receptionist Account Activation (R-001)';
+                            document.getElementById('portalDesc').textContent = 'Complete your details to activate your front desk access to the OptiDent clinic system.';
+                            document.getElementById('nameLabel').textContent = 'Full Legal Name';
+                            document.getElementById('staffFullName').placeholder = 'e.g. Maria dela Cruz';
+                            if (data.full_name) document.getElementById('staffFullName').value = data.full_name;
+                        } else if (invitedRole === 'patient' || invitedRole === 'client') {
+                            rolePill.className = 'role-pill';
+                            rolePill.innerHTML = `<i class='bx bx-user-check'></i> Inviting: PATIENT PORTAL`;
+                            rolePill.style.cssText += '; background:#F0FBFA; color:#0EB1B1; border-color:rgba(14,177,177,0.35);';
+                            doctorExtraFields.style.display = 'none';
+                            receptionistFields.style.display = 'none';
+                            document.getElementById('portalSubtitle').textContent = 'Patient Account Activation';
+                            document.getElementById('portalDesc').textContent = 'Set up your secure password to access your dental records and schedule future appointments online.';
+                            document.getElementById('nameLabel').textContent = 'Patient Legal Full Name';
+                            document.getElementById('staffFullName').placeholder = 'e.g. Maria Clara Santos';
+                            if (data.full_name) document.getElementById('staffFullName').value = data.full_name;
+                            const activateBtn = document.getElementById('activateBtn');
+                            if (activateBtn) activateBtn.innerHTML = "<i class='bx bx-check-shield mr-1'></i> Activate Patient Account &amp; Log In";
+                        } else {
+                            rolePill.className = 'role-pill';
+                            rolePill.innerHTML = `<i class='bx bx-badge-check'></i> Inviting: ${invitedRole.toUpperCase()}`;
+                            doctorExtraFields.style.display = 'none';
+                            receptionistFields.style.display = 'none';
+                            document.getElementById('portalSubtitle').textContent = 'Staff Account Setup';
+                            if (data.full_name) document.getElementById('staffFullName').value = data.full_name;
+                        }
+
+                        formAccept.style.display = 'block';
+                    } else {
+                        showBanner('error', data.message || 'Invitation is invalid or has expired.');
+                        rolePill.innerHTML = "<i class='bx bx-x-circle'></i> Invalid Invitation";
+                    }
+                })
+                .catch(() => {
+                    loadingState.style.display = 'none';
+                    showBanner('error', 'Unable to connect to server to verify invitation.');
+                });
+        }
+
+        formAccept.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const activateBtn = document.getElementById('activateBtn');
+            const fullName = document.getElementById('staffFullName').value.trim();
+            const phone = document.getElementById('staffPhone').value.trim();
+            const password = document.getElementById('staffPassword').value.trim();
+            const confirmPass = document.getElementById('confirmPassword').value.trim();
+            const professionalId = document.getElementById('professionalId') ? document.getElementById('professionalId').value.trim() : '';
+            const specialization = document.getElementById('doctorSpecialization') ? document.getElementById('doctorSpecialization').value : '';
+            const scheduleDays = document.getElementById('doctorSchedule') ? document.getElementById('doctorSchedule').value : '';
+            const receptionistPosition = document.getElementById('receptionistPosition') ? document.getElementById('receptionistPosition').value : '';
+
+            if (!fullName || !password) {
+                showBanner('error', 'Please complete your full name and password.');
+                return;
+            }
+
+            if (password !== confirmPass) {
+                showBanner('error', 'Password confirmation does not match. Please re-enter.');
+                return;
+            }
+
+            if (invitedRole === 'doctor' && !professionalId) {
+                showBanner('error', 'PRC Dental License Number is required for Doctor accounts.');
+                return;
+            }
+
+            activateBtn.disabled = true;
+            activateBtn.innerHTML = `<i class='bx bx-loader-alt bx-spin mr-1'></i> Activating ${invitedRole === 'doctor' ? 'Doctor' : 'Receptionist'} Account...`;
+
+            try {
+                const res = await fetch('api/auth/accept_invite.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        token: token,
+                        full_name: fullName,
+                        phone: phone,
+                        password: password,
+                        professional_id: professionalId,
+                        specialization: specialization,
+                        schedule_days: scheduleDays,
+                        position: receptionistPosition
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.status === 'success') {
+                    formAccept.style.display = 'none';
+                    banner.style.display = 'none';
+                    document.getElementById('successState').style.display = 'block';
+
+                    const isDoctor = invitedRole === 'doctor';
+                    const isReceptionist = ['receptionist', 'staff'].includes(invitedRole);
+                    const isPatient = ['patient', 'client'].includes(invitedRole);
+
+                    document.getElementById('successTitle').textContent = isDoctor 
+                        ? 'Doctor Account Activated!' 
+                        : (isReceptionist ? 'Receptionist Account Activated!' : 'Patient Account Activated!');
+                    document.getElementById('successSubtext').textContent = isDoctor
+                        ? 'Your professional doctor profile is active. You are automatically signed in.'
+                        : (isReceptionist
+                            ? 'Your front-desk receptionist account is active. Welcome to OptiDent!'
+                            : 'Welcome to OptiDent! Your personal patient account is active and you can now schedule appointments online.');
+                    document.getElementById('portalDirectBtn').innerHTML = isDoctor
+                        ? `<i class='bx bx-clinic mr-1'></i> Enter Doctor Portal Workspace`
+                        : (isReceptionist 
+                            ? `<i class='bx bx-layout mr-1'></i> Enter Receptionist Portal`
+                            : `<i class='bx bx-calendar-plus mr-1'></i> Enter Patient Portal`);
+
+                    const redirectUrl = data.redirect || (isDoctor ? 'doctor_dashboard.html' : isReceptionist ? 'receptionist_dashboard.html' : 'client_dashboard.html');
+                    document.getElementById('portalDirectBtn').href = redirectUrl;
+
+                    let seconds = 3;
+                    const interval = setInterval(() => {
+                        seconds--;
+                        document.getElementById('countdownText').textContent = seconds;
+                        if (seconds <= 0) {
+                            clearInterval(interval);
+                            window.location.href = redirectUrl;
+                        }
+                    }, 1000);
+                } else {
+                    showBanner('error', data.message || 'Activation failed.');
+                    activateBtn.disabled = false;
+                    activateBtn.innerHTML = "<i class='bx bx-check-shield mr-1'></i> Complete Registration &amp; Activate Portal";
+                }
+            } catch (err) {
+                showBanner('error', 'Network error. Please try again.');
+                activateBtn.disabled = false;
+                activateBtn.innerHTML = "<i class='bx bx-check-shield mr-1'></i> Complete Registration &amp; Activate Portal";
+            }
+        });
+
+        function showBanner(type, msg) {
+            banner.className = `banner ${type}`;
+            bannerText.textContent = msg;
+            document.getElementById('bannerIcon').className = type === 'success' ? 'bx bx-check-circle' : 'bx bx-error-circle';
+        }
+    </script>
+</body>
+</html>
