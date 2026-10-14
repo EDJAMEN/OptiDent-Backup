@@ -1,99 +1,98 @@
-# DentAssist Installation & Setup Manual
+# OptiDent System - Setup & Running Guide (New PC Installation)
 
-Welcome to the **DentAssist** installation guide. This document provides step-by-step instructions to set up the clinic management system on your local machine or a live server.
-
----
-
-## 1. System Requirements
-
-To run DentAssist, ensure your environment meets the following specifications:
-
-*   **Web Server:** Apache (via XAMPP, WAMP, or Laragon)
-*   **PHP Version:** 7.4 or higher
-*   **Database:** MySQL 5.7+ or MariaDB 10.4+
-*   **Web Browser:** Chrome, Firefox, Edge, or Safari (Latest versions)
+This guide provides simple, step-by-step instructions to clone, set up the MongoDB database, configure PHP, and run OptiDent on any Windows PC.
 
 ---
 
-## 2. Local Environment Setup (XAMPP)
+## 1. Prerequisites (Install on the New PC)
 
-1.  **Download and Install XAMPP:**
-    Download XAMPP from [apachefriends.org](https://www.apachefriends.org/) and install it.
-2.  **Clone or Copy Project:**
-    Place the `DentAssist_System1` folder into your XAMPP's root directory:
-    `C:\xampp\htdocs\DentAssist_System1`
-3.  **Start Services:**
-    Open the **XAMPP Control Panel** and start **Apache** and **MySQL**.
+Ensure the following tools are installed:
 
----
-
-## 3. Database Configuration
-
-1.  **Access phpMyAdmin:**
-    Open your browser and go to `http://localhost/phpmyadmin`.
-2.  **Create Database:**
-    Create a new database named `dental_clinic_db`.
-3.  **Import Schema:**
-    *   Select `dental_clinic_db` from the sidebar.
-    *   Click on the **Import** tab.
-    *   Choose the file located at: `database/schema.sql`.
-    *   Click **Go** at the bottom of the page.
-    *   *(Alternatively, copy the content of `database/schema.sql` and paste it into the **SQL** tab).*
+1. **Git for Windows**:
+   - Download & install from: [https://git-scm.com/download/win](https://git-scm.com/download/win)
+2. **PHP 8.2 or 8.3**:
+   - Can be installed via **Windows Winget**:
+     ```powershell
+     winget install PHP.PHP.8.3
+     ```
+   - Or download standard PHP zip from [windows.php.net](https://windows.php.net/download/) and extract to `C:\php`.
+3. **MongoDB Community Server**:
+   - Download & install from: [https://www.mongodb.com/try/download/community](https://www.mongodb.com/try/download/community)
+   - During installation, keep **"Install MongoDB as a Service"** checked so it starts automatically in the background on port `27017`.
+4. **PHP MongoDB Extension (`php_mongodb.dll`)**:
+   - Download `php_mongodb.dll` matching your PHP version (Thread Safe, x64) from PECL:
+     [https://pecl.php.net/package/mongodb](https://pecl.php.net/package/mongodb)
+   - Place `php_mongodb.dll` into your PHP `ext\` folder (e.g., `C:\php\ext\` or your PHP installation folder).
 
 ---
 
-## 4. Application Configuration
+## 2. Clone the Repository
 
-### 4.1 Database Connection
-Navigate to `api/config/database.php` and ensure the credentials match your local setup:
+Open **PowerShell** or **Command Prompt** and run:
 
-```php
-// api/config/database.php
-$conn = new mysqli("127.0.0.1", "root", "", "dental_clinic_db");
+```bash
+git clone https://github.com/EDJAMEN/OptiDent-Backup.git
+cd OptiDent-Backup\OptiDentImplementation
 ```
 
-*   **Host:** `127.0.0.1` or `localhost`
-*   **User:** `root` (Default for XAMPP)
-*   **Password:** `""` (Empty by default)
-*   **Database:** `dental_clinic_db`
+---
 
-### 4.2 ReCAPTCHA (Optional)
-The system currently uses Google's Test Keys for ReCAPTCHA. For production use, update the keys in:
-*   `index.html` (Site Key)
-*   `api/auth/recaptcha_verify.php` (Secret Key)
+## 3. Verify Database Connection
+
+Make sure MongoDB service is active. You can verify in PowerShell:
+```powershell
+Get-Service MongoDB
+```
+If not running as a service, start it manually:
+```powershell
+mongod --dbpath="C:\data\db"
+```
 
 ---
 
-## 5. Launching the Application
+## 4. One-Time Database Seeder Initialization
 
-Once the database is imported and configured:
-1.  Open your browser.
-2.  Navigate to: `http://localhost/DentAssist_System1/`
-3.  The system should load the main login/landing page.
+Inside the `OptiDentImplementation` folder, run the automated seeders to create initial Super Admin credentials, RBAC permissions, and clinic operating settings:
 
----
-
-## 6. Default Credentials
-
-The following accounts are pre-seeded in the database for testing purposes:
-
-| Role | Email | Password |
-| :--- | :--- | :--- |
-| **Admin** | `admin@dentassist.com` | `123456` |
-| **Dentist** | `ana@dentassist.com` | `123456` |
-| **Patient** | `maria@gmail.com` | `123456` |
-
-> [!WARNING]
-> **Security Note:** These passwords are in plain text for prototype testing. In a production environment, please use the registration system to create secure, hashed accounts.
+```powershell
+php -c php.ini api/config/seed_superadmin.php
+php -c php.ini api/config/seed_rbac.php
+php -c php.ini api/config/seed_system_settings.php
+```
 
 ---
 
-## 7. Troubleshooting
+## 5. Start the System Locally
 
-*   **Database Connection Error:** Verify that MySQL is running in XAMPP and that the credentials in `api/config/database.php` are correct.
-*   **Page Not Found (404):** Ensure the folder name in `htdocs` exactly matches the URL path.
-*   **Permission Denied:** Ensure your local server has read/write permissions for the project folder.
+Run PHP's built-in web server:
+
+```powershell
+php -c php.ini -S 127.0.0.1:8080
+```
 
 ---
 
-*Manual generated for DentAssist v1.0*
+## 6. Accessing the System in Your Web Browser
+
+Open your browser and navigate to:
+- **Main Portal / Landing Page**: [http://127.0.0.1:8080/index.html](http://127.0.0.1:8080/index.html)
+
+### Default Login Accounts:
+
+| Role | Login URL | Email | Password |
+| :--- | :--- | :--- | :--- |
+| **Super Admin** | `http://127.0.0.1:8080/index.html` (Master Login) | `superadmin@optident.com` | `Admin123!` |
+| **Doctor / Dentist** | `http://127.0.0.1:8080/doctor_login.html` | Doctor account created via Admin / Invite | Assigned password |
+| **Receptionist** | `http://127.0.0.1:8080/receptionist_login.html` | Receptionist account created via Admin / Invite | Assigned password |
+| **Client / Patient** | `http://127.0.0.1:8080/client_login.html` | Self-registered or Walk-in invited patient | Registered password |
+
+---
+
+## 7. Quick Troubleshooting
+
+- **"Class 'MongoDB\Driver\Manager' not found"**:
+  Make sure `php_mongodb.dll` is located in your PHP `ext\` directory and enabled in `php.ini`.
+- **Database Connection Error**:
+  Ensure MongoDB service is running on `127.0.0.1:27017`.
+- **Port 8080 in use**:
+  Run on an alternate port: `php -c php.ini -S 127.0.0.1:8000`.
