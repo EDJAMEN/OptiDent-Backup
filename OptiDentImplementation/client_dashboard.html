@@ -803,11 +803,11 @@
 
             // Populate system-wide Master Operating Hours Time Slots
             const timeSel = document.getElementById('bookTimeSelect');
-            if (timeSel) {
-                const masterSlots = (clinicSettings && clinicSettings.time_slots && clinicSettings.time_slots.length > 0)
-                    ? clinicSettings.time_slots
-                    : ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
+            const masterSlots = (clinicSettings && clinicSettings.time_slots && clinicSettings.time_slots.length > 0)
+                ? clinicSettings.time_slots
+                : ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
 
+            if (timeSel) {
                 const prevVal = timeSel.value;
                 timeSel.innerHTML = masterSlots.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
                 if (masterSlots.includes(prevVal)) {
@@ -820,6 +820,83 @@
             if (noteBadge && clinicSettings && clinicSettings.operating_hours) {
                 noteBadge.textContent = clinicSettings.operating_hours.split('|')[0].trim();
             }
+
+            // D-006: Doctor Schedule Enforcement for Client Self-Booking
+            if (docSel) {
+                const updateDoctorSlots = function () {
+                    const chosen = docSel.value;
+                    const docObj = (doctors || []).find(d => d.full_name === chosen);
+                    
+                    let slots = (docObj && docObj.time_slots && docObj.time_slots.length > 0)
+                        ? docObj.time_slots
+                        : null;
+
+                    // Fallback: parse from schedule_days or opening_time if time_slots wasn't pre-populated
+                    if (!slots && docObj) {
+                        let start = docObj.opening_time || '08:00 AM';
+                        let end = docObj.closing_time || '05:00 PM';
+                        if (docObj.schedule_days) {
+                            const m = docObj.schedule_days.match(/\((.*?)\s*-\s*(.*?)\)/);
+                            if (m) { start = m[1].trim(); end = m[2].trim(); }
+                        }
+                        slots = calculateSlotsFromRangeClient(start, end, docObj.lunch_break !== false && docObj.lunch_break !== 'no');
+                    }
+
+                    if (!slots || slots.length === 0) {
+                        slots = masterSlots;
+                    }
+
+                    if (timeSel) {
+                        const cur = timeSel.value;
+                        timeSel.innerHTML = slots.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+                        if (slots.includes(cur)) timeSel.value = cur;
+                    }
+                    if (noteBadge) {
+                        if (docObj && docObj.schedule_days) {
+                            noteBadge.textContent = `${docObj.full_name} Duty: ${docObj.schedule_days}`;
+                        } else if (clinicSettings && clinicSettings.operating_hours) {
+                            noteBadge.textContent = clinicSettings.operating_hours.split('|')[0].trim();
+                        }
+                    }
+                };
+
+                docSel.onchange = updateDoctorSlots;
+                if (docSel.value && docSel.value !== 'First Available Doctor') {
+                    updateDoctorSlots();
+                }
+            }
+        }
+
+        function parseClientTimeStrToMinutes(timeStr) {
+            if (!timeStr) return 480;
+            const parts = timeStr.trim().split(' ');
+            const meridiem = (parts[1] || 'AM').toUpperCase();
+            const timeParts = (parts[0] || '08:00').split(':');
+            let hours = parseInt(timeParts[0], 10) || 8;
+            const minutes = parseInt(timeParts[1], 10) || 0;
+            if (meridiem === 'PM' && hours !== 12) hours += 12;
+            if (meridiem === 'AM' && hours === 12) hours = 0;
+            return hours * 60 + minutes;
+        }
+
+        function calculateSlotsFromRangeClient(startStr, endStr, lunchBreak = true) {
+            const startMin = parseClientTimeStrToMinutes(startStr);
+            const endMin = parseClientTimeStrToMinutes(endStr);
+            const slots = [];
+            let current = startMin;
+            while (current < endMin) {
+                if (lunchBreak && current >= 720 && current < 780) {
+                    current += 60;
+                    continue;
+                }
+                let h = Math.floor(current / 60);
+                const m = current % 60;
+                const meridiem = h >= 12 ? 'PM' : 'AM';
+                const displayH = h % 12 === 0 ? 12 : h % 12;
+                slots.push(`${displayH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${meridiem}`);
+                current += 60;
+            }
+            return slots;
         }
 
         async function submitClientBooking(e) {
@@ -862,6 +939,10 @@
         }
 
         function openBookModal() {
+            const docSel = document.getElementById('bookDoctorSelect');
+            if (docSel && typeof docSel.onchange === 'function') {
+                docSel.onchange();
+            }
             document.getElementById('bookModal').style.display = 'flex';
         }
 

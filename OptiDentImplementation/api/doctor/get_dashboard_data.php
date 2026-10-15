@@ -12,6 +12,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/clinic_hours_helper.php';
 
 // Verify session authentication
 $userEmail = $_SESSION['email'] ?? '';
@@ -144,19 +145,27 @@ usort($completedList, function($a, $b) {
 
 $patientsList = array_values($patientsMap);
 
-echo json_encode([
-    "status" => "success",
-    "doctor" => [
-        "id" => (string)($doctor['_id'] ?? ''),
-        "full_name" => $doctor['full_name'] ?? 'Dr. Specialist',
-        "email" => $doctor['email'] ?? '',
-        "role" => "doctor",
-        "specialization" => $doctor['specialization'] ?? 'General Dentistry',
-        "professional_id" => $doctor['professional_id'] ?? 'PRC-VERIFIED',
-        "schedule_days" => $doctor['schedule_days'] ?? 'Mon - Fri (9:00 AM - 5:00 PM)',
-        "phone" => $doctor['phone'] ?? '',
-        "bio" => $doctor['bio'] ?? ''
-    ],
+    $docSched = ClinicHoursHelper::resolveDoctorSchedule($doctor);
+
+    echo json_encode([
+        "status" => "success",
+        "doctor" => [
+            "id" => (string)($doctor['_id'] ?? ''),
+            "full_name" => $doctor['full_name'] ?? 'Dr. Specialist',
+            "email" => $doctor['email'] ?? '',
+            "role" => "doctor",
+            "specialization" => $doctor['specialization'] ?? 'General Dentistry',
+            "professional_id" => $doctor['professional_id'] ?? 'PRC-VERIFIED',
+            "schedule_days" => $docSched['schedule_days'],
+            "working_days" => $docSched['working_days'],
+            "opening_time" => $docSched['opening_time'],
+            "closing_time" => $docSched['closing_time'],
+            "lunch_break" => $docSched['lunch_break'],
+            "time_slots" => $docSched['time_slots'],
+            "timezone" => $docSched['timezone'],
+            "phone" => $doctor['phone'] ?? '',
+            "bio" => $doctor['bio'] ?? ''
+        ],
     "metrics" => [
         "today_total" => $todayCount,
         "in_progress" => $inProgressCount,

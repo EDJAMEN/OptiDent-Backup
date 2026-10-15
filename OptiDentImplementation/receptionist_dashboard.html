@@ -2099,6 +2099,21 @@
                 }
             }
 
+            if (docSel) {
+                docSel.onchange = function () {
+                    const chosen = this.value;
+                    const docObj = (doctors || []).find(d => d.full_name === chosen);
+                    const slots = (docObj && docObj.time_slots && docObj.time_slots.length > 0)
+                        ? docObj.time_slots
+                        : masterSlots;
+                    if (bookTimeSel) {
+                        const cur = bookTimeSel.value;
+                        bookTimeSel.innerHTML = slots.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+                        if (slots.includes(cur)) bookTimeSel.value = cur;
+                    }
+                };
+            }
+
             // 2. Populate Quick Walk-in Modal Time Slot dropdown
             const regTimeSel = document.getElementById('regApptTime');
             if (regTimeSel) {
@@ -2766,6 +2781,31 @@
             // 1. Update Doctor Schedule badge text
             if (schedInfo) {
                 schedInfo.textContent = `Duty: ${scheduleDays}${specialization ? ' • ' + specialization : ''}`;
+            }
+
+            // Dynamically update walk-in appointment slots based on chosen doctor
+            const docObj = (cachedData?.doctors || []).find(d => d.full_name === selectedDocName);
+            const activeSlots = (docObj && docObj.time_slots && docObj.time_slots.length > 0)
+                ? docObj.time_slots
+                : ((cachedData?.clinic_settings?.time_slots && cachedData.clinic_settings.time_slots.length > 0)
+                    ? cachedData.clinic_settings.time_slots
+                    : ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM']);
+
+            const prevSlotVal = timeSel.value;
+            const currentOptionsCount = timeSel.options.length;
+            // Only rebuild options if doctor changed or slot count differs
+            const targetCount = activeSlots.length + 1;
+            if (currentOptionsCount !== targetCount || timeSel.getAttribute('data-last-doc') !== selectedDocName) {
+                timeSel.setAttribute('data-last-doc', selectedDocName);
+                const slotOptions = activeSlots.map(s => {
+                    const end = getSlotEndTime(s);
+                    const isMorning = s.includes('AM');
+                    return `<option value="${escapeHtml(s)}">${escapeHtml(s)} - ${escapeHtml(end)} (${isMorning ? 'Morning Slot' : 'Afternoon Slot'})</option>`;
+                }).join('');
+                timeSel.innerHTML = '<option value="Immediate Queue">⚡ Immediate Walk-in Queue (Right Now)</option>' + slotOptions;
+                if (prevSlotVal && (prevSlotVal === 'Immediate Queue' || activeSlots.includes(prevSlotVal))) {
+                    timeSel.value = prevSlotVal;
+                }
             }
 
             // 2. Evaluate Date

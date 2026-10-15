@@ -29,6 +29,60 @@ class ClinicHoursHelper {
     }
 
     /**
+     * Resolves and standardizes a doctor's schedule, ensuring working days, hours, and slots are 100% in sync
+     */
+    public static function resolveDoctorSchedule($userDoc) {
+        $workingDays = $userDoc['working_days'] ?? 'Mon - Fri';
+        $openingTime = $userDoc['opening_time'] ?? '';
+        $closingTime = $userDoc['closing_time'] ?? '';
+        $scheduleDays = $userDoc['schedule_days'] ?? '';
+
+        // If opening_time or closing_time is empty, or if schedule_days has a specific format like "Mon - Fri (7:00 AM - 4:00 PM)", parse it:
+        if (preg_match('/^(.*?)\s*\(\s*(.*?)\s*-\s*(.*?)\s*\)$/i', $scheduleDays, $m)) {
+            $parsedDays = trim($m[1]);
+            if (!empty($parsedDays)) $workingDays = $parsedDays;
+            $startStr = trim($m[2]);
+            $endStr   = trim($m[3]);
+            $sTime = strtotime("2026-01-01 " . $startStr);
+            $eTime = strtotime("2026-01-01 " . $endStr);
+            if ($sTime && $eTime) {
+                if (empty($openingTime)) $openingTime = date('h:i A', $sTime);
+                if (empty($closingTime)) $closingTime = date('h:i A', $eTime);
+            }
+        }
+
+        if (empty($openingTime)) $openingTime = '08:00 AM';
+        if (empty($closingTime)) $closingTime = '05:00 PM';
+        
+        // Standardize format: e.g. "7:00 AM" -> "07:00 AM"
+        $openingTime = date('h:i A', strtotime("2026-01-01 " . $openingTime));
+        $closingTime = date('h:i A', strtotime("2026-01-01 " . $closingTime));
+
+        $lunchBreak = true;
+        if (isset($userDoc['lunch_break'])) {
+            $lb = $userDoc['lunch_break'];
+            $lunchBreak = ($lb === true || $lb === 'yes' || $lb === 'true' || $lb === 1 || $lb === '1');
+        }
+
+        $compiledSchedule = "{$workingDays} ({$openingTime} - {$closingTime})";
+
+        // Generate time slots based on opening time, closing time, and lunch break
+        $timeSlots = (!empty($userDoc['time_slots']) && is_array($userDoc['time_slots']) && count($userDoc['time_slots']) > 0 && ($userDoc['opening_time'] ?? '') === $openingTime && ($userDoc['closing_time'] ?? '') === $closingTime)
+            ? array_values($userDoc['time_slots'])
+            : self::generateSlots($openingTime, $closingTime, $lunchBreak);
+
+        return [
+            'working_days'  => $workingDays,
+            'opening_time'  => $openingTime,
+            'closing_time'  => $closingTime,
+            'lunch_break'   => $lunchBreak,
+            'schedule_days' => $compiledSchedule,
+            'time_slots'    => array_values($timeSlots),
+            'timezone'      => $userDoc['timezone'] ?? 'Asia/Manila'
+        ];
+    }
+
+    /**
      * Formats a human-readable operating hours string for badges and reports
      */
     public static function compileHoursText($operatingDays, $openingTime, $closingTime) {

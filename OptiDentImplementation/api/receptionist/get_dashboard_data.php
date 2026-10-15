@@ -96,6 +96,8 @@ foreach ($allUsers as $u) {
             'created_at' => $u['created_at'] ?? ''
         ];
     } elseif ($uRole === 'doctor') {
+        $docSched = ClinicHoursHelper::resolveDoctorSchedule($u);
+            
         $doctors[] = [
             '_id' => (string) $u['_id'],
             'full_name' => $u['full_name'] ?? 'Doctor',
@@ -103,7 +105,13 @@ foreach ($allUsers as $u) {
             'phone' => $u['phone'] ?? '',
             'specialization' => $u['specialization'] ?? 'General Dentistry',
             'professional_id' => $u['professional_id'] ?? 'PRC-VERIFIED',
-            'schedule_days' => $u['schedule_days'] ?? 'Mon - Fri (9:00 AM - 5:00 PM)'
+            'schedule_days' => $docSched['schedule_days'],
+            'working_days' => $docSched['working_days'],
+            'opening_time' => $docSched['opening_time'],
+            'closing_time' => $docSched['closing_time'],
+            'lunch_break' => $docSched['lunch_break'],
+            'time_slots' => $docSched['time_slots'],
+            'timezone' => $docSched['timezone']
         ];
     }
 }

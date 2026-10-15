@@ -511,6 +511,64 @@
             color: #ffffff;
         }
 
+        /* ── D-007 Status Dropdown Selector ────────────────────────── */
+        .doc-status-select-wrap {
+            display: inline-flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .doc-status-select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 6px 26px 6px 10px;
+            font-size: 11.5px;
+            font-weight: 700;
+            border-radius: 20px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .doc-status-select.status-scheduled {
+            background-color: rgba(14, 177, 177, 0.12);
+            color: #0a8f8f;
+            border: 1.5px solid rgba(14, 177, 177, 0.35);
+        }
+
+        .doc-status-select.status-in_progress {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            border: 1.5px solid #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.18);
+        }
+
+        .doc-status-select.status-completed {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #065f46;
+            border: 1.5px solid #059669;
+        }
+
+        .doc-status-select.status-cancelled {
+            background-color: rgba(239, 68, 68, 0.12);
+            color: #b91c1c;
+            border: 1.5px solid rgba(239, 68, 68, 0.35);
+        }
+
+        .doc-status-select:hover {
+            filter: brightness(0.95);
+        }
+
+        .doc-status-arrow {
+            position: absolute;
+            right: 8px;
+            pointer-events: none;
+            font-size: 14px;
+            font-weight: 800;
+            color: inherit;
+        }
+
         /* ── Modals ──────────────────────────────────────────────────── */
         .doc-modal-overlay {
             position: fixed;
@@ -624,6 +682,14 @@
                         <i class='bx bx-user-check'></i>
                         <span>Staff Directory</span>
                         <span style="margin-left: auto; font-size: 9px; background: #EEF2FF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Delegated</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="nav-item" id="nav-schedule" onclick="switchDocTab('schedule')">
+                        <i class='bx bx-calendar-check'></i>
+                        <span>Duty Schedule</span>
+                        <span style="margin-left: auto; font-size: 9px; background: rgba(14, 177, 177, 0.15); color: var(--doctor-primary-dark); padding: 2px 6px; border-radius: 4px; font-weight: 700;">D-006</span>
                     </a>
                 </li>
 
@@ -760,12 +826,13 @@
                         <table class="table-custom w-full">
                             <thead>
                                 <tr>
-                                    <th style="width: 150px;">Date & Time</th>
+                                    <th style="width: 150px;">Date &amp; Time</th>
                                     <th style="width: 180px;">Patient Name</th>
                                     <th style="width: 150px;">Contact</th>
                                     <th>Service Requested</th>
                                     <th>Chief Complaint</th>
-                                    <th style="width: 160px;">Status</th>
+                                    <th style="width: 150px;">Status</th>
+                                    <th class="text-right" style="width: 170px;">Status Tracking</th>
                                 </tr>
                             </thead>
                             <tbody id="upcomingTableBody">
@@ -950,13 +1017,20 @@
                             </div>
 
                             <div class="mb-2">
-                                <label class="text-xs font-bold text-dim uppercase">Consultation Availability
-                                    Schedule</label>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                    <label class="text-xs font-bold text-dim uppercase" style="margin-bottom: 0;">Consultation Availability Schedule</label>
+                                    <a href="javascript:void(0)" onclick="switchDocTab('schedule')" style="font-size: 11px; font-weight: 700; color: var(--doctor-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                        <i class='bx bx-slider'></i> Manage Duty Schedule (D-006)
+                                    </a>
+                                </div>
                                 <div class="input-group">
                                     <i class='bx bx-time-five'></i>
                                     <input type="text" id="docProfileSchedule"
-                                        placeholder="e.g. Mon - Fri (9:00 AM - 5:00 PM)" required>
+                                        placeholder="e.g. Mon - Fri (09:00 AM - 05:00 PM)" required>
                                 </div>
+                                <span class="text-xs text-dim" style="font-size: 10.5px; margin-top: 3px; display: block;">
+                                    Updating this schedule parses duty hours and generates booking time slots automatically across the clinic.
+                                </span>
                             </div>
 
                             <div class="mb-3">
@@ -1082,6 +1156,169 @@
                                 style="padding: 10px; font-size: 13px; font-weight: 600; border-radius: 8px;">
                                 <i class='bx bx-calendar-check mr-1'></i> Return to Today's Queue
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: Doctor Schedule Management (D-006) -->
+            <section id="tab-schedule" class="doc-tab-content" style="display: none;">
+                <div class="top-banner mb-3" style="margin-bottom: 1.25rem;">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="font-bold text-2xl" style="margin: 0;">Doctor Schedule &amp; Duty Management</h2>
+                            <span class="badge" style="background: rgba(14, 177, 177, 0.15); color: var(--doctor-primary-dark); font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 700;">
+                                <i class='bx bx-calendar-check'></i> D-006 Feature
+                            </span>
+                        </div>
+                        <p class="text-dim text-xs mt-1">Configure your clinical working days and duty hours. The system will dynamically generate appointment booking slots for patient self-service and receptionist bookings.</p>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.25rem; align-items: start;">
+                    <!-- Configuration Form Card -->
+                    <div class="workspace-card">
+                        <div class="flex-between border-bottom pb-2 mb-3">
+                            <h3 class="font-bold text-base mb-0" style="display: flex; align-items: center; gap: 8px;">
+                                <i class='bx bx-time text-primary'></i> Doctor Working Hours &amp; Duty Availability
+                            </h3>
+                            <span class="operatory-pill in-progress" style="font-size: 11px;">
+                                <i class='bx bxs-circle' style="font-size: 7px;"></i> Duty Enforced
+                            </span>
+                        </div>
+                        <p class="text-xs text-dim mb-3">
+                            Set your duty shift parameters below. When saved, patients and receptionists will only be able to book you during these hours.
+                        </p>
+
+                        <form id="form-doctor-schedule" onsubmit="event.preventDefault(); confirmDoctorScheduleSave();">
+                            <div class="form-row-2col mb-2">
+                                <div>
+                                    <label class="text-xs font-bold text-dim uppercase">Working Duty Days</label>
+                                    <select id="docWorkingDays" class="custom-input" onchange="renderDocHoursPreview()" style="width: 100%; padding: 8px 10px; border-radius: 8px; margin-top: 4px; font-size: 12px;">
+                                        <option value="Mon - Fri" selected>Mon - Fri (Standard Weekdays)</option>
+                                        <option value="Mon - Sat">Mon - Sat (Six-Day Clinic Duty)</option>
+                                        <option value="Mon - Thu">Mon - Thu (Four-Day Clinic Duty)</option>
+                                        <option value="Tue - Sat">Tue - Sat (Tuesday to Saturday)</option>
+                                        <option value="Mon - Sun">Mon - Sun (Full Week Coverage)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-dim uppercase">Timezone</label>
+                                    <select id="docTimezone" class="custom-input" style="width: 100%; padding: 8px 10px; border-radius: 8px; margin-top: 4px; font-size: 12px;">
+                                        <option value="Asia/Manila" selected>Asia/Manila (GMT+8)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row-2col mb-2">
+                                <div>
+                                    <label class="text-xs font-bold text-dim uppercase">Daily Duty Start Time</label>
+                                    <select id="docDutyStartTime" class="custom-input" onchange="renderDocHoursPreview()" style="width: 100%; padding: 8px 10px; border-radius: 8px; margin-top: 4px; font-size: 12px;">
+                                        <option value="06:00 AM">06:00 AM</option>
+                                        <option value="07:00 AM">07:00 AM</option>
+                                        <option value="08:00 AM">08:00 AM</option>
+                                        <option value="09:00 AM" selected>09:00 AM</option>
+                                        <option value="10:00 AM">10:00 AM</option>
+                                        <option value="11:00 AM">11:00 AM</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-dim uppercase">Daily Duty End Time</label>
+                                    <select id="docDutyEndTime" class="custom-input" onchange="renderDocHoursPreview()" style="width: 100%; padding: 8px 10px; border-radius: 8px; margin-top: 4px; font-size: 12px;">
+                                        <option value="03:00 PM">03:00 PM</option>
+                                        <option value="04:00 PM">04:00 PM</option>
+                                        <option value="05:00 PM" selected>05:00 PM</option>
+                                        <option value="06:00 PM">06:00 PM</option>
+                                        <option value="07:00 PM">07:00 PM</option>
+                                        <option value="08:00 PM">08:00 PM</option>
+                                        <option value="09:00 PM">09:00 PM</option>
+                                        <option value="10:00 PM">10:00 PM</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mt-2 pt-2 border-top" style="border-top: 1px dashed var(--doctor-border);">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; font-weight: 600; color: var(--doctor-text);">
+                                    <input type="checkbox" id="docLunchBreak" checked onchange="renderDocHoursPreview()" style="accent-color: var(--doctor-primary); width: 16px; height: 16px;">
+                                    <span>Exclude 12:00 PM – 01:00 PM Lunch Break from appointment schedules</span>
+                                </label>
+                            </div>
+
+                            <!-- Live Preview of Computed Time Slots -->
+                            <div style="margin-top: 14px; padding: 12px; background: rgba(14, 177, 177, 0.05); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 11px; font-weight: 700; color: var(--doctor-primary-dark); text-transform: uppercase; letter-spacing: 0.5px;">
+                                        <i class='bx bx-calendar-event'></i> Active Doctor Time Slots (<span id="docPreviewSlotCount">7</span> slots)
+                                    </span>
+                                    <span style="font-size: 10px; color: var(--doctor-text-muted); font-weight: 600;">Governs Walk-ins &amp; Patient Bookings</span>
+                                </div>
+                                <div id="docTimeSlotsPills" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                                <div style="font-size: 11px; color: var(--doctor-text-muted); margin-top: 8px; display: flex; align-items: center; gap: 5px;">
+                                    <i class='bx bx-check-shield' style="color: #10b981; font-size: 15px;"></i>
+                                    <span>Updating these hours modifies your booking availability in real time across the entire clinic system.</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button type="submit" id="saveDoctorScheduleBtn" class="btn-primary w-full" style="padding: 10px; font-weight: 700; font-size: 13px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                    <i class='bx bx-save'></i> Save Schedule &amp; Availability
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Right Column: Shift Summary & Policy Notice -->
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="workspace-card">
+                            <div class="flex-between border-bottom pb-2 mb-2">
+                                <h3 class="font-bold text-base mb-0" style="display: flex; align-items: center; gap: 8px;">
+                                    <i class='bx bx-calendar-star text-primary'></i> Shift Overview &amp; Verification
+                                </h3>
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px;">
+                                    PRC Verified
+                                </span>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; margin-top: 10px;">
+                                <div class="flex-between py-1 border-bottom">
+                                    <span class="text-dim"><i class='bx bx-user mr-1'></i> Healthcare Provider</span>
+                                    <span class="font-bold" id="docScheduleCardName">Dr. Specialist</span>
+                                </div>
+                                <div class="flex-between py-1 border-bottom">
+                                    <span class="text-dim"><i class='bx bx-briefcase-alt-2 mr-1'></i> Specialty</span>
+                                    <span class="font-bold text-primary" id="docScheduleCardSpecialty">General Dentistry</span>
+                                </div>
+                                <div class="flex-between py-1 border-bottom">
+                                    <span class="text-dim"><i class='bx bx-calendar mr-1'></i> Duty Days</span>
+                                    <span class="font-bold" id="docScheduleCardDays">Mon - Fri</span>
+                                </div>
+                                <div class="flex-between py-1 border-bottom">
+                                    <span class="text-dim"><i class='bx bx-time mr-1'></i> Duty Hours</span>
+                                    <span class="font-bold" id="docScheduleCardHours">09:00 AM - 05:00 PM</span>
+                                </div>
+                                <div class="flex-between py-1 border-bottom">
+                                    <span class="text-dim"><i class='bx bx-restaurant mr-1'></i> Lunch Interval</span>
+                                    <span class="font-bold" id="docScheduleCardLunch">12:00 PM - 01:00 PM</span>
+                                </div>
+                                <div class="flex-between py-1">
+                                    <span class="text-dim"><i class='bx bx-check-double mr-1'></i> Available Booking Slots</span>
+                                    <span class="font-bold text-primary" id="docScheduleCardSlots">7 Slots / Day</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Booking Policy Card -->
+                        <div class="workspace-card" style="background: rgba(14, 177, 177, 0.03); border: 1px dashed rgba(14, 177, 177, 0.3);">
+                            <div class="font-bold text-sm mb-2" style="color: var(--doctor-primary-dark); display: flex; align-items: center; gap: 6px;">
+                                <i class='bx bx-info-circle' style="font-size: 18px;"></i> How Booking Enforcement Operates
+                            </div>
+                            <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: var(--doctor-text-muted); line-height: 1.6; display: flex; flex-direction: column; gap: 6px;">
+                                <li><strong>Walk-in Assignment:</strong> Receptionists can only assign walk-in patients during your duty hours and on your working days.</li>
+                                <li><strong>Client Self-Booking:</strong> When patients select your name on the booking portal, only your active time slots are shown.</li>
+                                <li><strong>Immediate Confirmation:</strong> Modifying your schedule opens a confirmation dialog before applying system-wide changes.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -1541,6 +1778,114 @@
                 </button>
             </div>
         </div>
+    <!-- MODAL: Confirmation for Doctor Schedule Update (D-006) -->
+    <div id="confirmDoctorScheduleModal" class="doc-modal-overlay">
+        <div class="doc-modal-content" style="max-width: 540px;">
+            <div class="flex justify-between items-center border-bottom pb-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(14, 177, 177, 0.12); color: var(--doctor-primary); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        <i class='bx bx-calendar-check'></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base" style="margin: 0;">Confirm Schedule &amp; Hours Update</h3>
+                        <p class="text-dim text-xs mt-0" style="margin: 0;">Task D-006 &bull; Duty Availability Enforcement</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-icon" onclick="closeConfirmDoctorScheduleModal()"><i class='bx bx-x' style="font-size: 24px;"></i></button>
+            </div>
+
+            <p class="text-xs text-dim mb-3">
+                You are about to modify your duty working days and active appointment hours. Please review the updated schedule parameters:
+            </p>
+
+            <!-- Schedule Parameters Card -->
+            <div style="background: rgba(14, 177, 177, 0.06); border: 1px solid rgba(14, 177, 177, 0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; margin-bottom: 10px;">
+                    <div>
+                        <span class="text-dim text-xs" style="display: block; font-size: 10.5px; text-transform: uppercase; font-weight: 600;">Duty Days</span>
+                        <strong id="confirmDocDays" style="color: var(--doctor-text);">Mon - Fri</strong>
+                    </div>
+                    <div>
+                        <span class="text-dim text-xs" style="display: block; font-size: 10.5px; text-transform: uppercase; font-weight: 600;">Duty Hours</span>
+                        <strong id="confirmDocHours" style="color: var(--doctor-text);">09:00 AM - 05:00 PM</strong>
+                    </div>
+                    <div>
+                        <span class="text-dim text-xs" style="display: block; font-size: 10.5px; text-transform: uppercase; font-weight: 600;">Lunch Break Policy</span>
+                        <strong id="confirmDocLunch" style="color: var(--doctor-text);">Excluded (12:00 PM - 01:00 PM)</strong>
+                    </div>
+                    <div>
+                        <span class="text-dim text-xs" style="display: block; font-size: 10.5px; text-transform: uppercase; font-weight: 600;">Daily Time Slots</span>
+                        <strong id="confirmDocSlotCount" class="text-primary font-bold">7 Daily Slots</strong>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px dashed rgba(14, 177, 177, 0.3); padding-top: 8px;">
+                    <span style="font-size: 10.5px; font-weight: 600; color: var(--doctor-primary-dark); display: block; margin-bottom: 5px;">Enforced Appointment Booking Slots:</span>
+                    <div id="confirmDocSlotChips" style="display: flex; flex-wrap: wrap; gap: 4px; max-height: 80px; overflow-y: auto;">
+                        <!-- Chips dynamically populated -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Impact Notice -->
+            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px;">
+                <i class='bx bx-info-circle' style="color: #d97706; font-size: 20px; margin-top: 1px; flex-shrink: 0;"></i>
+                <div style="font-size: 11.5px; color: #92400e; line-height: 1.45;">
+                    <strong>Schedule Enforcement:</strong> Proceeding will update your availability so patients and receptionists can only book you during these duty hours and active time slots.
+                </div>
+            </div>
+
+            <!-- Modal Actions -->
+            <div class="flex gap-2" style="border-top: 1px solid var(--doctor-border); padding-top: 14px;">
+                <button type="button" class="btn-outline flex-1" onclick="closeConfirmDoctorScheduleModal()" style="height: 38px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer;">
+                    Cancel
+                </button>
+                <button type="button" id="executeSaveDocScheduleBtn" class="btn-primary flex-1" onclick="requestFinalDoctorScheduleConfirmation()" style="height: 38px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer;">
+                    <i class='bx bx-check mr-1'></i> Proceed to Confirmation
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Doctor Cancel Consultation (D-007) -->
+    <div id="doctorCancelModal" class="doc-modal-overlay">
+        <div class="doc-modal-content" style="max-width: 480px;">
+            <div class="flex justify-between items-center border-bottom pb-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        <i class='bx bx-x-circle'></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base" style="margin: 0; color: #b91c1c;">Cancel Consultation</h3>
+                        <p class="text-dim text-xs mt-0" style="margin: 0;">Task D-007 &bull; Appointment Status Tracking</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-icon" onclick="closeDoctorCancelModal()"><i class='bx bx-x' style="font-size: 24px;"></i></button>
+            </div>
+
+            <p class="text-xs text-dim mb-2" id="doctorCancelSubtitle">Patient: Loading...</p>
+            <input type="hidden" id="doctorCancelApptId">
+
+            <div class="mb-2">
+                <label class="text-xs font-bold text-dim uppercase">Reason for Cancellation</label>
+                <select id="doctorCancelPresetReason" class="custom-input mb-1" onchange="handlePresetReasonChange(this.value)" style="width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-top: 4px;">
+                    <option value="Patient No-Show">Patient No-Show</option>
+                    <option value="Emergency Dental Reschedule">Emergency Dental Reschedule</option>
+                    <option value="Doctor Medical / Urgent Leave">Doctor Medical / Urgent Leave</option>
+                    <option value="Patient Requested Reschedule">Patient Requested Reschedule</option>
+                    <option value="Procedure Deferred / Medical Contraindication">Procedure Deferred / Medical Contraindication</option>
+                    <option value="Other">Other (Specify below)</option>
+                </select>
+                <textarea id="doctorCancelReasonText" class="custom-input mt-1" rows="3" placeholder="Provide notes or details for clinic audit trail..." style="width: 100%; border-radius: 8px; font-size: 12px;"></textarea>
+            </div>
+
+            <div class="flex gap-2 border-top pt-3">
+                <button type="button" class="btn-outline flex-1" onclick="closeDoctorCancelModal()">Keep Appointment</button>
+                <button type="button" id="confirmDoctorCancelBtn" class="btn-primary flex-1" onclick="executeDoctorCancel()" style="background: #ef4444; border-color: #dc2626; font-weight: 700;">
+                    <i class='bx bx-x-circle mr-1'></i> Confirm Cancellation
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- ── FLOATING TOAST NOTIFICATION ─────────────────────────────────── -->
@@ -1743,6 +2088,7 @@
                     renderCompleted(data.completed_procedures);
                     renderPatients(data.patients);
                     populateProfileForm(data.doctor);
+                    loadDoctorScheduleData(data.doctor);
                 }
             } catch (err) {
                 console.error("Error loading doctor workspace:", err);
@@ -1777,22 +2123,74 @@
             }
 
             tbody.innerHTML = queue.map(apt => {
-                const isOngoing = (apt.status === 'in_progress');
-                const statusPill = isOngoing
-                    ? `<span class="operatory-pill in-progress"><i class='bx bxs-circle' style="font-size: 7px;"></i> In Operatory Chair</span>`
-                    : `<span class="operatory-pill scheduled"><i class='bx bx-time'></i> Waiting / Scheduled</span>`;
+                const status = (apt.status || 'scheduled').toLowerCase();
+                const isOngoing = (status === 'in_progress');
+                const isCompleted = (status === 'completed');
+                const isCancelled = (status === 'cancelled');
+
+                let statusClass = 'status-scheduled';
+                if (isOngoing) statusClass = 'status-in_progress';
+                else if (isCompleted) statusClass = 'status-completed';
+                else if (isCancelled) statusClass = 'status-cancelled';
+
+                const statusInteractiveSelector = `
+                    <div class="doc-status-select-wrap" title="Click to change consultation status">
+                        <select class="doc-status-select ${statusClass}" onchange="handleDoctorStatusChange('${apt._id}', this.value, '${status}')">
+                            <option value="scheduled" ${(!isOngoing && !isCompleted && !isCancelled) ? 'selected' : ''}>⏳ Pending (Queue)</option>
+                            <option value="in_progress" ${isOngoing ? 'selected' : ''}>⚡ In Process (Ongoing)</option>
+                            <option value="completed" ${isCompleted ? 'selected' : ''}>✓ Complete (Charted)</option>
+                            <option value="cancelled" ${isCancelled ? 'selected' : ''}>✕ Cancelled</option>
+                        </select>
+                        <i class='bx bx-chevron-down doc-status-arrow'></i>
+                    </div>
+                    ${isOngoing ? `<div style="font-size: 10px; color: #047857; font-weight: 700; margin-top: 4px; display: flex; align-items: center; gap: 4px;"><i class='bx bxs-circle' style="font-size: 6px; color: #10b981;"></i> In Operatory Chair</div>` : ''}
+                    ${isCompleted ? `<div style="font-size: 10px; color: #047857; font-weight: 600; margin-top: 3px;"><i class='bx bx-check-double'></i> Treatment Finished</div>` : ''}
+                    ${isCancelled ? `<div style="font-size: 10px; color: #b91c1c; font-style: italic; margin-top: 3px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(apt.cancellation_reason || 'Cancelled')}">${escapeHtml(apt.cancellation_reason || 'Cancelled')}</div>` : ''}
+                `;
 
                 const alertHtml = apt.medical_alerts && apt.medical_alerts !== 'None reported.'
                     ? `<span class="alert-tag danger"><i class='bx bx-error-circle'></i> ${escapeHtml(apt.medical_alerts)}</span>`
                     : `<span class="text-xs text-dim">None</span>`;
 
-                const actionButtons = isOngoing
-                    ? `<button class="btn-primary" style="white-space: nowrap; padding: 7px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;" onclick="openChartingModal('${apt._id}')">
-                            <i class='bx bx-check-double'></i> Complete &amp; Chart
-                       </button>`
-                    : `<button class="btn-secondary" style="white-space: nowrap; padding: 7px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; background: var(--doctor-primary-light); color: var(--doctor-primary-dark); border: 1px solid rgba(14, 177, 177, 0.3);" onclick="startConsultation('${apt._id}')">
-                            <i class='bx bx-play-circle'></i> Start Consultation
-                       </button>`;
+                let actionButtons = '';
+                if (isOngoing) {
+                    actionButtons = `
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            <button class="btn-primary" style="white-space: nowrap; padding: 7px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;" onclick="openChartingModal('${apt._id}')">
+                                <i class='bx bx-check-double'></i> Complete &amp; Chart
+                            </button>
+                            <button type="button" class="btn-outline" style="white-space: nowrap; padding: 7px 10px; font-size: 12px; font-weight: 600; border-radius: 8px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="cancelAppointmentDoctor('${apt._id}')" title="Cancel Consultation">
+                                <i class='bx bx-x-circle'></i> Cancel
+                            </button>
+                        </div>
+                    `;
+                } else if (isCompleted) {
+                    actionButtons = `
+                        <button class="btn-outline" style="white-space: nowrap; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;" onclick="viewCompletedRecord('${apt._id}')">
+                            <i class='bx bx-file text-primary'></i> View Chart
+                        </button>
+                    `;
+                } else if (isCancelled) {
+                    actionButtons = `
+                        <span class="text-xs text-dim" style="font-style: italic; max-width: 180px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(apt.cancellation_reason || 'Cancelled')}">
+                            ${escapeHtml(apt.cancellation_reason || 'Cancelled')}
+                        </span>
+                    `;
+                } else {
+                    actionButtons = `
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            <button class="btn-secondary" style="white-space: nowrap; padding: 7px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; background: var(--doctor-primary-light); color: var(--doctor-primary-dark); border: 1px solid rgba(14, 177, 177, 0.3);" onclick="startConsultation('${apt._id}')">
+                                <i class='bx bx-play-circle'></i> Start Consultation
+                            </button>
+                            <button type="button" class="btn-primary" style="white-space: nowrap; padding: 7px 10px; font-size: 12px; font-weight: 700; border-radius: 8px;" onclick="openChartingModal('${apt._id}')" title="Complete & Chart Direct">
+                                <i class='bx bx-check-double'></i>
+                            </button>
+                            <button type="button" class="btn-outline" style="white-space: nowrap; padding: 7px 10px; font-size: 12px; font-weight: 600; border-radius: 8px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="cancelAppointmentDoctor('${apt._id}')" title="Cancel Consultation">
+                                <i class='bx bx-x-circle'></i>
+                            </button>
+                        </div>
+                    `;
+                }
 
                 return `
                     <tr style="${isOngoing ? 'background: rgba(16, 185, 129, 0.05);' : ''}">
@@ -1812,7 +2210,7 @@
                             <div class="text-xs text-dim" style="max-width: 260px; line-height: 1.35;">${escapeHtml(apt.chief_complaint || 'Routine consultation')}</div>
                         </td>
                         <td>${alertHtml}</td>
-                        <td>${statusPill}</td>
+                        <td>${statusInteractiveSelector}</td>
                         <td class="text-right" style="white-space: nowrap;">${actionButtons}</td>
                     </tr>
                 `;
@@ -1822,27 +2220,88 @@
         function renderUpcoming(list) {
             const tbody = document.getElementById('upcomingTableBody');
             if (!list || list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-3 text-dim">No upcoming visits booked yet.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-3 text-dim">No upcoming visits booked yet.</td></tr>`;
                 return;
             }
-            tbody.innerHTML = list.map(apt => `
-                <tr>
-                    <td>
-                        <div class="font-bold text-sm">${escapeHtml(apt.appointment_date)}</div>
-                        <div class="text-xs text-dim">${escapeHtml(apt.appointment_time || '')}</div>
-                    </td>
-                    <td>
-                        <div class="font-bold text-sm">${escapeHtml(apt.patient_name)}</div>
-                        <button type="button" class="btn-outline" style="padding: 2px 8px; font-size: 10px; margin-top: 3px; border-radius: 5px; display: inline-flex; align-items: center; gap: 3px;" onclick="openPatientHistoryModal('${escapeHtml(apt.patient_name)}')">
-                            <i class='bx bx-history text-primary'></i> Dental History
+            tbody.innerHTML = list.map(apt => {
+                const status = (apt.status || 'scheduled').toLowerCase();
+                const isOngoing = (status === 'in_progress');
+                const isCompleted = (status === 'completed');
+                const isCancelled = (status === 'cancelled');
+
+                let statusClass = 'status-scheduled';
+                if (isOngoing) statusClass = 'status-in_progress';
+                else if (isCompleted) statusClass = 'status-completed';
+                else if (isCancelled) statusClass = 'status-cancelled';
+
+                const statusInteractiveSelector = `
+                    <div class="doc-status-select-wrap" title="Click to update consultation status">
+                        <select class="doc-status-select ${statusClass}" onchange="handleDoctorStatusChange('${apt._id}', this.value, '${status}')">
+                            <option value="scheduled" ${(!isOngoing && !isCompleted && !isCancelled) ? 'selected' : ''}>⏳ Pending</option>
+                            <option value="in_progress" ${isOngoing ? 'selected' : ''}>⚡ In Process</option>
+                            <option value="completed" ${isCompleted ? 'selected' : ''}>✓ Complete</option>
+                            <option value="cancelled" ${isCancelled ? 'selected' : ''}>✕ Cancelled</option>
+                        </select>
+                        <i class='bx bx-chevron-down doc-status-arrow'></i>
+                    </div>
+                `;
+
+                let actions = '';
+                if (isCompleted) {
+                    actions = `
+                        <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 11px; border-radius: 6px;" onclick="viewCompletedRecord('${apt._id}')">
+                            <i class='bx bx-file'></i> Record
                         </button>
-                    </td>
-                    <td class="text-sm">${escapeHtml(apt.patient_phone || 'N/A')}</td>
-                    <td class="text-sm font-semibold text-primary">${escapeHtml(apt.service_name)}</td>
-                    <td class="text-xs text-dim">${escapeHtml(apt.chief_complaint || 'None')}</td>
-                    <td><span class="operatory-pill scheduled">${escapeHtml(apt.status)}</span></td>
-                </tr>
-            `).join('');
+                    `;
+                } else if (isCancelled) {
+                    actions = `<span class="text-xs text-dim" style="font-style: italic;">Cancelled</span>`;
+                } else if (isOngoing) {
+                    actions = `
+                        <div style="display: inline-flex; align-items: center; gap: 4px; justify-content: flex-end;">
+                            <button type="button" class="btn-primary" style="padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 6px;" onclick="openChartingModal('${apt._id}')" title="Complete & Chart">
+                                <i class='bx bx-check-double'></i> Chart
+                            </button>
+                            <button type="button" class="btn-outline" style="padding: 4px 7px; font-size: 11px; border-radius: 6px; color: #ef4444; border-color: rgba(239,68,68,0.3);" onclick="cancelAppointmentDoctor('${apt._id}')" title="Cancel">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    actions = `
+                        <div style="display: inline-flex; align-items: center; gap: 4px; justify-content: flex-end;">
+                            <button type="button" class="btn-secondary" style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; background: var(--doctor-primary-light); color: var(--doctor-primary-dark); border: 1px solid rgba(14,177,177,0.3);" onclick="startConsultation('${apt._id}')" title="Start Consultation">
+                                <i class='bx bx-play'></i> Start
+                            </button>
+                            <button type="button" class="btn-primary" style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px;" onclick="openChartingModal('${apt._id}')" title="Complete & Chart Direct">
+                                <i class='bx bx-check-double'></i>
+                            </button>
+                            <button type="button" class="btn-outline" style="padding: 4px 7px; font-size: 11px; border-radius: 6px; color: #ef4444; border-color: rgba(239,68,68,0.3);" onclick="cancelAppointmentDoctor('${apt._id}')" title="Cancel">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="font-bold text-sm">${escapeHtml(apt.appointment_date)}</div>
+                            <div class="text-xs text-dim">${escapeHtml(apt.appointment_time || '')}</div>
+                        </td>
+                        <td>
+                            <div class="font-bold text-sm">${escapeHtml(apt.patient_name)}</div>
+                            <button type="button" class="btn-outline" style="padding: 2px 8px; font-size: 10px; margin-top: 3px; border-radius: 5px; display: inline-flex; align-items: center; gap: 3px;" onclick="openPatientHistoryModal('${escapeHtml(apt.patient_name)}')">
+                                <i class='bx bx-history text-primary'></i> Dental History
+                            </button>
+                        </td>
+                        <td class="text-sm">${escapeHtml(apt.patient_phone || 'N/A')}</td>
+                        <td class="text-sm font-semibold text-primary">${escapeHtml(apt.service_name)}</td>
+                        <td class="text-xs text-dim">${escapeHtml(apt.chief_complaint || 'None')}</td>
+                        <td>${statusInteractiveSelector}</td>
+                        <td class="text-right" style="white-space: nowrap;">${actions}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         let selectedSurfaces = new Set();
@@ -2888,6 +3347,7 @@
             notice.style.display = 'none';
 
             const payload = {
+                doctor_email: cachedDashboardData?.doctor?.email || '',
                 phone: document.getElementById('docProfilePhone').value.trim(),
                 specialization: document.getElementById('docProfileSpecialty').value,
                 schedule_days: document.getElementById('docProfileSchedule').value.trim(),
@@ -2907,10 +3367,11 @@
                     notice.style.color = '#059669';
                     notice.style.display = 'inline';
 
-                    // Optimistically update cached data + sync card
+                    // Optimistically update cached data + sync card & schedule
                     if (cachedDashboardData?.doctor) {
-                        Object.assign(cachedDashboardData.doctor, payload);
+                        Object.assign(cachedDashboardData.doctor, data.doctor || payload);
                         syncProfileCard(cachedDashboardData.doctor);
+                        loadDoctorScheduleData(cachedDashboardData.doctor);
                     }
 
                     setTimeout(() => { notice.style.display = 'none'; }, 3500);
@@ -2993,6 +3454,442 @@
             }
         });
 
+        // ── D-006: Doctor Schedule Management ─────────────────────────
+        function parseTimeStrToMinutes(tStr) {
+            const parts = tStr.trim().split(' ');
+            const timeParts = parts[0].split(':');
+            let h = parseInt(timeParts[0], 10);
+            const m = parseInt(timeParts[1] || '0', 10);
+            const meridiem = (parts[1] || 'AM').toUpperCase();
+            if (meridiem === 'PM' && h !== 12) h += 12;
+            if (meridiem === 'AM' && h === 12) h = 0;
+            return h * 60 + m;
+        }
+
+        function formatMinutesToTimeStr(totalMin) {
+            let h = Math.floor(totalMin / 60);
+            const m = totalMin % 60;
+            const meridiem = h >= 12 ? 'PM' : 'AM';
+            const displayH = h % 12 === 0 ? 12 : h % 12;
+            return `${displayH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${meridiem}`;
+        }
+
+        function calculateDoctorTimeSlots(openingTime, closingTime, lunchBreak = true) {
+            const startMin = parseTimeStrToMinutes(openingTime);
+            const endMin = parseTimeStrToMinutes(closingTime);
+            const slots = [];
+            let current = startMin;
+
+            while (current < endMin) {
+                // Lunch break: 12:00 PM (720 min) to 1:00 PM (780 min)
+                if (lunchBreak && current >= 720 && current < 780) {
+                    current += 60;
+                    continue;
+                }
+                slots.push(formatMinutesToTimeStr(current));
+                current += 60;
+            }
+            return slots;
+        }
+
+        function renderDocHoursPreview() {
+            const start = document.getElementById('docDutyStartTime')?.value || '09:00 AM';
+            const end = document.getElementById('docDutyEndTime')?.value || '05:00 PM';
+            const lunch = document.getElementById('docLunchBreak')?.checked ?? true;
+            const days = document.getElementById('docWorkingDays')?.value || 'Mon - Fri';
+
+            const slots = calculateDoctorTimeSlots(start, end, lunch);
+            const countEl = document.getElementById('docPreviewSlotCount');
+            if (countEl) countEl.textContent = slots.length;
+
+            const pillsContainer = document.getElementById('docTimeSlotsPills');
+            if (pillsContainer) {
+                pillsContainer.innerHTML = slots.map(s => {
+                    const isMorning = s.includes('AM');
+                    return `<span style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; background: ${isMorning ? 'rgba(14, 177, 177, 0.12)' : 'rgba(99, 102, 241, 0.12)'}; color: ${isMorning ? '#0a8f8f' : '#4f46e5'}; border: 1px solid ${isMorning ? 'rgba(14, 177, 177, 0.3)' : 'rgba(99, 102, 241, 0.3)'}; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class='bx bx-time' style="font-size: 12px;"></i> ${escapeHtml(s)}
+                    </span>`;
+                }).join('');
+            }
+
+            // Sync right overview card
+            const cDays = document.getElementById('docScheduleCardDays');
+            const cHours = document.getElementById('docScheduleCardHours');
+            const cLunch = document.getElementById('docScheduleCardLunch');
+            const cSlots = document.getElementById('docScheduleCardSlots');
+            if (cDays) cDays.textContent = days;
+            if (cHours) cHours.textContent = `${start} - ${end}`;
+            if (cLunch) cLunch.textContent = lunch ? '12:00 PM - 01:00 PM (Excluded)' : 'No Lunch Break';
+            if (cSlots) cSlots.textContent = `${slots.length} Slots / Day`;
+
+            return slots;
+        }
+
+        function loadDoctorScheduleData(doc) {
+            if (!doc) return;
+            const wDays = document.getElementById('docWorkingDays');
+            if (wDays && doc.working_days) wDays.value = doc.working_days;
+
+            const tStart = document.getElementById('docDutyStartTime');
+            if (tStart && doc.opening_time) tStart.value = doc.opening_time;
+
+            const tEnd = document.getElementById('docDutyEndTime');
+            if (tEnd && doc.closing_time) tEnd.value = doc.closing_time;
+
+            const lunch = document.getElementById('docLunchBreak');
+            if (lunch && doc.lunch_break !== undefined) {
+                lunch.checked = (doc.lunch_break === 'yes' || doc.lunch_break === true);
+            }
+
+            const cName = document.getElementById('docScheduleCardName');
+            const cSpec = document.getElementById('docScheduleCardSpecialty');
+            if (cName) cName.textContent = doc.full_name || 'Dr. Specialist';
+            if (cSpec) cSpec.textContent = doc.specialization || 'General Dentistry';
+
+            renderDocHoursPreview();
+        }
+
+        function confirmDoctorScheduleSave() {
+            const days = document.getElementById('docWorkingDays')?.value || 'Mon - Fri';
+            const start = document.getElementById('docDutyStartTime')?.value || '09:00 AM';
+            const end = document.getElementById('docDutyEndTime')?.value || '05:00 PM';
+            const lunch = document.getElementById('docLunchBreak')?.checked ?? true;
+            const slots = calculateDoctorTimeSlots(start, end, lunch);
+
+            document.getElementById('confirmDocDays').textContent = days;
+            document.getElementById('confirmDocHours').textContent = `${start} - ${end}`;
+            document.getElementById('confirmDocLunch').textContent = lunch ? 'Excluded (12:00 PM - 01:00 PM)' : 'Included in duty';
+            document.getElementById('confirmDocSlotCount').textContent = `${slots.length} Daily Slots`;
+
+            const chipsEl = document.getElementById('confirmDocSlotChips');
+            if (chipsEl) {
+                chipsEl.innerHTML = slots.map(s => `
+                    <span style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: rgba(14, 177, 177, 0.15); color: #0a8f8f; border: 1px solid rgba(14, 177, 177, 0.3);">
+                        ${escapeHtml(s)}
+                    </span>
+                `).join('');
+            }
+
+            document.getElementById('confirmDoctorScheduleModal').style.display = 'flex';
+        }
+
+        function closeConfirmDoctorScheduleModal() {
+            document.getElementById('confirmDoctorScheduleModal').style.display = 'none';
+        }
+
+        function requestFinalDoctorScheduleConfirmation() {
+            const days = document.getElementById('docWorkingDays')?.value || 'Mon - Fri';
+            const start = document.getElementById('docDutyStartTime')?.value || '09:00 AM';
+            const end = document.getElementById('docDutyEndTime')?.value || '05:00 PM';
+            const lunch = document.getElementById('docLunchBreak')?.checked ?? true;
+            const slots = calculateDoctorTimeSlots(start, end, lunch);
+
+            showCustomConfirm({
+                title: "Confirm Schedule Implementation?",
+                message: `Are you completely sure you want to enforce your duty hours (${days}: ${start} - ${end}, ${slots.length} daily slots) across the entire clinic system? This will immediately alter appointment slot availability for all incoming patients and walk-ins.`,
+                icon: "bx bx-calendar-check",
+                confirmText: "Yes, Confirm & Implement",
+                cancelText: "Go Back & Review",
+                onConfirm: () => {
+                    executeDoctorScheduleSave();
+                }
+            });
+        }
+
+        async function executeDoctorScheduleSave() {
+            const btn = document.getElementById('executeSaveDocScheduleBtn');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Enforcing Schedule...";
+            }
+
+            const payload = {
+                doctor_email: cachedDashboardData?.doctor?.email || '',
+                working_days: document.getElementById('docWorkingDays')?.value || 'Mon - Fri',
+                opening_time: document.getElementById('docDutyStartTime')?.value || '09:00 AM',
+                closing_time: document.getElementById('docDutyEndTime')?.value || '05:00 PM',
+                lunch_break: document.getElementById('docLunchBreak')?.checked ? 'yes' : 'no',
+                timezone: document.getElementById('docTimezone')?.value || 'Asia/Manila'
+            };
+
+            try {
+                const res = await fetch('api/doctor/update_schedule.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    closeConfirmDoctorScheduleModal();
+                    showDoctorToast(data.message || 'Duty schedule updated and enforced successfully!', 'success');
+                    if (cachedDashboardData?.doctor) {
+                        Object.assign(cachedDashboardData.doctor, data.doctor || data.schedule || payload);
+                        loadDoctorScheduleData(cachedDashboardData.doctor);
+                        const docProfileSched = document.getElementById('docProfileSchedule');
+                        if (docProfileSched && cachedDashboardData.doctor.schedule_days) {
+                            docProfileSched.value = cachedDashboardData.doctor.schedule_days;
+                        }
+                    } else {
+                        loadDoctorDashboard();
+                    }
+                } else {
+                    showDoctorToast(data.message || 'Failed to update schedule.', 'error');
+                }
+            } catch (err) {
+                showDoctorToast('Network error saving schedule.', 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        // ── D-007: Appointment Status Tracking ─────────────────────────
+        async function handleDoctorStatusChange(apptId, newStatus, currentStatus) {
+            if (newStatus === currentStatus) return;
+
+            if (newStatus === 'in_progress') {
+                // Change status to in_progress (Ongoing in Operatory Chair)
+                try {
+                    const res = await fetch('api/doctor/update_appointment_status.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            appointment_id: apptId,
+                            status: 'in_progress'
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        showDoctorToast('Appointment status changed to In Process (Ongoing).', 'success');
+                        loadDoctorDashboard();
+                    } else {
+                        showDoctorToast(data.message || 'Failed to update status.', 'error');
+                        loadDoctorDashboard();
+                    }
+                } catch (err) {
+                    showDoctorToast('Network error updating status.', 'error');
+                    loadDoctorDashboard();
+                }
+            } else if (newStatus === 'completed') {
+                // Open clinical charting modal to complete procedure
+                openChartingModal(apptId);
+            } else if (newStatus === 'cancelled') {
+                // Open cancellation modal
+                cancelAppointmentDoctor(apptId);
+            } else if (newStatus === 'scheduled') {
+                // Revert to pending in queue
+                try {
+                    const res = await fetch('api/doctor/update_appointment_status.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            appointment_id: apptId,
+                            status: 'scheduled'
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        showDoctorToast('Appointment status set back to Pending (Waiting in Queue).', 'info');
+                        loadDoctorDashboard();
+                    } else {
+                        showDoctorToast(data.message || 'Failed to update status.', 'error');
+                        loadDoctorDashboard();
+                    }
+                } catch (err) {
+                    showDoctorToast('Network error updating status.', 'error');
+                    loadDoctorDashboard();
+                }
+            }
+        }
+
+        async function startConsultation(apptId) {
+            showCustomConfirm({
+                title: "Start Consultation?",
+                message: "Are you ready to admit this patient into the operatory chair and mark consultation as ONGOING?",
+                icon: "bx bx-play-circle",
+                confirmText: "Yes, Start Consultation",
+                onConfirm: async () => {
+                    try {
+                        const res = await fetch('api/doctor/update_appointment_status.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                appointment_id: apptId,
+                                status: 'in_progress'
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.status === 'success') {
+                            showDoctorToast('Patient admitted. Consultation is now Ongoing.', 'success');
+                            loadDoctorDashboard();
+                        } else {
+                            showDoctorToast(data.message || 'Failed to start consultation.', 'error');
+                        }
+                    } catch (err) {
+                        showDoctorToast('Network error starting consultation.', 'error');
+                    }
+                }
+            });
+        }
+
+        function openChartingModal(apptId) {
+            const allAppts = [
+                ...(cachedDashboardData?.queue_today || []),
+                ...(cachedDashboardData?.upcoming_appointments || [])
+            ];
+            const apt = allAppts.find(a => a._id === apptId);
+            
+            document.getElementById('chartingAppointmentId').value = apptId;
+            document.getElementById('chartingPatientSubtitle').textContent = apt 
+                ? `Patient: ${apt.patient_name} • ${apt.service_name} (${apt.appointment_time || 'Today'})`
+                : 'Patient Consultation';
+
+            document.getElementById('chartingDiagnosis').value = apt?.diagnosis || '';
+            document.getElementById('chartingProcedureNotes').value = apt?.procedure_notes || '';
+            document.getElementById('chartingPrescription').value = apt?.prescription || '';
+            document.getElementById('chartingPostOp').value = apt?.post_op_instructions || '';
+            document.getElementById('chartingFollowUp').value = apt?.follow_up_date || '';
+
+            // Reset teeth
+            selectedTeeth.clear();
+            if (apt?.teeth_selected && Array.isArray(apt.teeth_selected)) {
+                apt.teeth_selected.forEach(t => selectedTeeth.add(t));
+            }
+            updateTeethGridUI('teethGrid', selectedTeeth, 'selectedTeethDisplay');
+
+            document.getElementById('chartingModal').style.display = 'flex';
+        }
+
+        function closeChartingModal() {
+            document.getElementById('chartingModal').style.display = 'none';
+            if (cachedDashboardData?.queue_today) {
+                renderQueue(cachedDashboardData.queue_today);
+            }
+        }
+
+        document.getElementById('form-charting')?.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveChartingBtn');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Finalizing...";
+
+            const apptId = document.getElementById('chartingAppointmentId').value;
+            const payload = {
+                appointment_id: apptId,
+                status: 'completed',
+                treatment_category: document.getElementById('chartingCategory')?.value || 'General Dentistry',
+                local_anesthesia: document.getElementById('chartingAnesthesia')?.value?.trim() || '',
+                diagnosis: document.getElementById('chartingDiagnosis')?.value?.trim() || '',
+                teeth_selected: Array.from(selectedTeeth),
+                procedure_notes: document.getElementById('chartingProcedureNotes')?.value?.trim() || '',
+                prescription: document.getElementById('chartingPrescription')?.value?.trim() || '',
+                post_op_instructions: document.getElementById('chartingPostOp')?.value?.trim() || '',
+                follow_up_date: document.getElementById('chartingFollowUp')?.value || ''
+            };
+
+            try {
+                const res = await fetch('api/doctor/update_appointment_status.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    closeChartingModal();
+                    showDoctorToast('Treatment finalized & clinical charting saved!', 'success');
+                    loadDoctorDashboard();
+                } else {
+                    showDoctorToast(data.message || 'Failed to complete treatment.', 'error');
+                }
+            } catch (err) {
+                showDoctorToast('Network error while completing appointment.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        });
+
+        // Cancellation Handler (D-007)
+        function cancelAppointmentDoctor(apptId) {
+            const allAppts = [
+                ...(cachedDashboardData?.queue_today || []),
+                ...(cachedDashboardData?.upcoming_appointments || [])
+            ];
+            const apt = allAppts.find(a => a._id === apptId);
+            
+            document.getElementById('doctorCancelApptId').value = apptId;
+            document.getElementById('doctorCancelSubtitle').textContent = apt 
+                ? `Patient: ${apt.patient_name} • ${apt.service_name} (${apt.appointment_time || apt.appointment_date || 'Scheduled'})`
+                : 'Patient Appointment';
+            document.getElementById('doctorCancelPresetReason').value = 'Patient No-Show';
+            document.getElementById('doctorCancelReasonText').value = 'Patient did not arrive within scheduled operatory window.';
+
+            document.getElementById('doctorCancelModal').style.display = 'flex';
+        }
+
+        function handlePresetReasonChange(val) {
+            const textEl = document.getElementById('doctorCancelReasonText');
+            const map = {
+                'Patient No-Show': 'Patient did not arrive within scheduled operatory window.',
+                'Emergency Dental Reschedule': 'Rescheduled due to clinic operatory emergency priority.',
+                'Doctor Medical / Urgent Leave': 'Doctor unavailable due to emergency medical leave.',
+                'Patient Requested Reschedule': 'Patient called to request alternate appointment date.',
+                'Procedure Deferred / Medical Contraindication': 'Procedure postponed pending systemic medical clearance.',
+                'Other': ''
+            };
+            if (textEl && map[val] !== undefined) {
+                textEl.value = map[val];
+            }
+        }
+
+        function closeDoctorCancelModal() {
+            document.getElementById('doctorCancelModal').style.display = 'none';
+            if (cachedDashboardData?.queue_today) {
+                renderQueue(cachedDashboardData.queue_today);
+            }
+        }
+
+        async function executeDoctorCancel() {
+            const btn = document.getElementById('confirmDoctorCancelBtn');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Cancelling...";
+
+            const apptId = document.getElementById('doctorCancelApptId').value;
+            const preset = document.getElementById('doctorCancelPresetReason').value;
+            const notes = document.getElementById('doctorCancelReasonText').value.trim();
+            const fullReason = notes ? `${preset}: ${notes}` : preset;
+
+            try {
+                const res = await fetch('api/doctor/update_appointment_status.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        appointment_id: apptId,
+                        status: 'cancelled',
+                        cancellation_reason: fullReason
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    closeDoctorCancelModal();
+                    showDoctorToast('Appointment status updated to Cancelled.', 'info');
+                    loadDoctorDashboard();
+                } else {
+                    showDoctorToast(data.message || 'Failed to cancel appointment.', 'error');
+                }
+            } catch (err) {
+                showDoctorToast('Network error while cancelling appointment.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
         function switchDocTab(tabKey) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.doc-tab-content').forEach(el => el.style.display = 'none');
@@ -3007,7 +3904,8 @@
                 'upcoming': "Upcoming Scheduled Appointments",
                 'completed': "Completed Treatments & Clinical Record Management (D-004)",
                 'patients': "My Patient Directory & Medical History (D-003)",
-                'profile': "Doctor Professional Profile & Availability (D-001)"
+                'profile': "Doctor Professional Profile & Availability (D-001)",
+                'schedule': "Doctor Duty Schedule & Working Hours Management (D-006)"
             };
             document.getElementById('pageHeading').textContent = headings[tabKey] || "Doctor Workspace";
         }

@@ -33,12 +33,23 @@ $input = json_decode(file_get_contents("php://input"), true);
 if (!$input) $input = $_POST;
 
 $appointmentId = trim($input['appointment_id'] ?? '');
-$newStatus = trim($input['status'] ?? '');
+$rawStatus = strtolower(trim($input['status'] ?? ''));
+$statusAliases = [
+    'pending' => 'scheduled',
+    'waiting' => 'scheduled',
+    'ongoing' => 'in_progress',
+    'in_progress' => 'in_progress',
+    'completed' => 'completed',
+    'cancelled' => 'cancelled'
+];
+$newStatus = $statusAliases[$rawStatus] ?? $rawStatus;
+
 $diagnosis = trim($input['diagnosis'] ?? '');
 $teethSelected = $input['teeth_selected'] ?? [];
 $procedureNotes = trim($input['procedure_notes'] ?? '');
 $prescription = trim($input['prescription'] ?? '');
 $followUpDate = trim($input['follow_up_date'] ?? '');
+$cancellationReason = trim($input['cancellation_reason'] ?? ($input['reason'] ?? ''));
 
 if (empty($appointmentId) || empty($newStatus)) {
     http_response_code(400);
@@ -77,6 +88,10 @@ if ($newStatus === 'in_progress') {
     if (!empty($procedureNotes)) $updateData['procedure_notes'] = $procedureNotes;
     if (!empty($prescription)) $updateData['prescription'] = $prescription;
     if (!empty($followUpDate)) $updateData['follow_up_date'] = $followUpDate;
+} else if ($newStatus === 'cancelled') {
+    $updateData['cancelled_at'] = date('Y-m-d H:i:s');
+    $updateData['cancelled_by'] = $userEmail;
+    $updateData['cancellation_reason'] = !empty($cancellationReason) ? $cancellationReason : 'Cancelled by Doctor';
 }
 
 $db->updateOne('appointments', ['_id' => $appointmentId], ['$set' => $updateData]);
