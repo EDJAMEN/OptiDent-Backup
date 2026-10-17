@@ -46,6 +46,41 @@ if (empty($patientName) || empty($appointmentDate) || empty($timeSlot)) {
     exit;
 }
 
+$today = date('Y-m-d');
+if ($appointmentDate < $today) {
+    http_response_code(400);
+    echo json_encode(["status" => "error", "message" => "Cannot book appointments for past dates."]);
+    exit;
+}
+
+$assignedDoctor = $doctorName ?: 'Dr. Super Admin';
+$allowConflictOverride = !empty($input['allow_conflict_override']);
+
+// R-008: Check for dentist scheduling conflict on the requested date and time slot
+if ($assignedDoctor !== 'First Available Doctor' && !$allowConflictOverride) {
+    $existingConflict = $db->findOne('appointments', [
+        'doctor_name' => $assignedDoctor,
+        'appointment_date' => $appointmentDate,
+        'time_slot' => $timeSlot,
+        'is_deleted' => false
+    ]);
+    if ($existingConflict && in_array(strtolower($existingConflict['status'] ?? ''), ['scheduled', 'checked_in', 'waiting', 'in_progress'])) {
+        http_response_code(409);
+        echo json_encode([
+            "status" => "conflict",
+            "message" => "Scheduling Conflict: {$assignedDoctor} is already booked with {$existingConflict['patient_name']} at {$timeSlot} on {$appointmentDate}. Please choose an open slot or another dentist.",
+            "conflict_appointment" => [
+                "id" => (string)$existingConflict['_id'],
+                "patient_name" => $existingConflict['patient_name'] ?? 'Patient',
+                "service_name" => $existingConflict['service_name'] ?? 'Consultation',
+                "time_slot" => $timeSlot,
+                "date" => $appointmentDate
+            ]
+        ]);
+        exit;
+    }
+}
+
 // Ensure patient user exists or find email
 if (empty($patientEmail)) {
     $existingPatient = $db->findOne('users', ['full_name' => $patientName, 'role' => 'patient']);

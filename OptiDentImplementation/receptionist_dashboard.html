@@ -552,6 +552,105 @@
             color: var(--rec-primary-dark);
             border-color: rgba(14, 177, 177, 0.35);
         }
+
+        /* ── R-008: Schedule Monitoring & Slot Matrix Styles ─────────── */
+        .slot-chip {
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            border: 1px solid var(--rec-border);
+            transition: all 0.2s ease;
+            position: relative;
+            text-align: left;
+            user-select: none;
+        }
+        .slot-chip.available {
+            background: #F0FDF4;
+            border-color: #86EFAC;
+            color: #166534;
+            cursor: pointer;
+        }
+        .slot-chip.available:hover {
+            background: #DCFCE7;
+            border-color: #22C55E;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(34, 197, 94, 0.18);
+        }
+        .slot-chip.booked {
+            background: #EFF6FF;
+            border-color: #93C5FD;
+            color: #1E40AF;
+            cursor: pointer;
+        }
+        .slot-chip.booked:hover {
+            background: #DBEAFE;
+            border-color: #3B82F6;
+            transform: translateY(-1px);
+        }
+        .slot-chip.off_duty {
+            background: #F8FAFC;
+            border-color: #E2E8F0;
+            color: #94A3B8;
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        .doc-sched-card {
+            background: var(--rec-surface);
+            border: 1px solid var(--rec-border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .doc-sched-card:hover {
+            border-color: rgba(14, 177, 177, 0.4);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+        }
+        .slot-time-header {
+            font-size: 12px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .slot-subtext {
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .conflict-alert-box {
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            line-height: 1.4;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .conflict-alert-box.conflict {
+            background: #FEF2F2;
+            border: 1.5px solid #F87171;
+            color: #991B1B;
+        }
+        .conflict-alert-box.available {
+            background: #F0FDF4;
+            border: 1.5px solid #86EFAC;
+            color: #166534;
+        }
+        .conflict-alert-box.off_duty {
+            background: #FFFBEB;
+            border: 1.5px solid #FCD34D;
+            color: #92400E;
+        }
     </style>
 </head>
 
@@ -912,18 +1011,111 @@
                 </div>
             </section>
 
-            <!-- ── TAB 4: DOCTORS ON DUTY ───────────────────────────── -->
+            <!-- ── TAB 4: DENTIST SCHEDULE MONITORING & SLOT MATRIX (R-008) ── -->
             <section id="tab-doctors" class="tab-section">
                 <div class="content-card">
-                    <div class="card-header-bar">
+                    <!-- Header Bar with Monitoring Controls -->
+                    <div class="card-header-bar" style="margin-bottom: 1rem;">
                         <div>
-                            <h3 style="margin: 0; font-size: 16px; font-weight: 700;">Clinic Doctors & Clinical Schedules</h3>
-                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">Active healthcare providers, specialties, license credentials, and duty hours.</p>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                <i class='bx bx-calendar-week text-primary' style="font-size: 22px;"></i> Dentist Schedule Monitoring & Slot Availability Matrix
+                            </h3>
+                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">
+                                Track provider duty schedules, real-time time-slot capacity, and book patient visits without scheduling conflicts.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <!-- Date Navigator -->
+                            <div style="display: flex; align-items: center; background: var(--rec-surface); border: 1px solid var(--rec-border); border-radius: 8px; padding: 2px;">
+                                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" style="border: none; padding: 6px 8px;" onclick="changeSchedDate(-1)" title="Previous Day">
+                                    <i class='bx bx-chevron-left'></i>
+                                </button>
+                                <input type="date" id="schedMonitorDate" class="form-control" style="border: none; padding: 4px 6px; font-size: 12px; font-weight: 700; width: 135px; background: transparent;" onchange="loadDoctorScheduleSlots()">
+                                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" style="border: none; padding: 6px 8px;" onclick="changeSchedDate(1)" title="Next Day">
+                                    <i class='bx bx-chevron-right'></i>
+                                </button>
+                                <button type="button" class="btn-rec btn-rec-sm" style="background: var(--rec-primary-light); color: var(--rec-primary); border: none; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; margin: 0 2px;" onclick="setSchedDateToday()">
+                                    Today
+                                </button>
+                            </div>
+
+                            <!-- Doctor Filter -->
+                            <select id="schedDoctorFilter" class="form-control" style="width: 180px;" onchange="filterDoctorScheduleMatrix()">
+                                <option value="all">All Dentists</option>
+                            </select>
+
+                            <!-- View Switcher -->
+                            <div style="display: flex; background: var(--rec-primary-light); padding: 3px; border-radius: 8px; border: 1px solid rgba(14, 177, 177, 0.2);">
+                                <button type="button" id="btnViewMatrix" class="btn-rec btn-rec-sm" style="background: var(--rec-primary); color: white; border: none; font-size: 11px; font-weight: 700;" onclick="switchSchedView('matrix')">
+                                    <i class='bx bx-grid-alt'></i> Slot Matrix
+                                </button>
+                                <button type="button" id="btnViewProfiles" class="btn-rec btn-rec-sm" style="background: transparent; color: var(--rec-text-muted); border: none; font-size: 11px; font-weight: 700;" onclick="switchSchedView('profiles')">
+                                    <i class='bx bx-user-pin'></i> Profiles
+                                </button>
+                            </div>
+
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="loadDoctorScheduleSlots()" title="Refresh Schedule Matrix">
+                                <i class='bx bx-refresh'></i>
+                            </button>
                         </div>
                     </div>
 
-                    <div id="doctorsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
-                        <!-- Rendered by JS -->
+                    <!-- Live KPI Metrics Strip for Selected Date -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 1.25rem;">
+                        <div style="background: var(--rec-surface); border: 1px solid var(--rec-border); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(14, 177, 177, 0.12); color: var(--rec-primary); display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                <i class='bx bx-user-check'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 18px; font-weight: 800; color: var(--rec-text);" id="statSchedDocsDuty">0</div>
+                                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--rec-text-muted);">Dentists on Duty</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--rec-surface); border: 1px solid var(--rec-border); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.12); color: #059669; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                <i class='bx bx-check-circle'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 18px; font-weight: 800; color: #059669;" id="statSchedAvailSlots">0</div>
+                                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--rec-text-muted);">Open Slots Available</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--rec-surface); border: 1px solid var(--rec-border); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.12); color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                <i class='bx bx-calendar-event'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 18px; font-weight: 800; color: #2563EB;" id="statSchedBookedSlots">0</div>
+                                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--rec-text-muted);">Booked Consultations</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--rec-surface); border: 1px solid var(--rec-border); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                <i class='bx bx-pie-chart-alt-2'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 18px; font-weight: 800; color: #D97706;" id="statSchedUtilization">0%</div>
+                                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--rec-text-muted);">Chair Slot Utilization</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VIEW 1: Interactive Slot Availability Matrix -->
+                    <div id="schedMatrixContainer">
+                        <div style="text-align: center; padding: 3rem; color: var(--rec-text-muted);">
+                            <i class='bx bx-loader-alt bx-spin' style="font-size: 28px; color: var(--rec-primary);"></i>
+                            <div style="margin-top: 8px; font-size: 13px;">Loading schedule matrix and slot availability...</div>
+                        </div>
+                    </div>
+
+                    <!-- VIEW 2: Dentist Profiles & Credentials Roster -->
+                    <div id="schedProfilesContainer" style="display: none;">
+                        <div id="doctorsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                            <!-- Rendered by JS -->
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1197,7 +1389,7 @@
                 <div class="form-grid-2">
                     <div class="form-group">
                         <label>Attending Healthcare Provider (Doctor) *</label>
-                        <select id="bookDoctorSelect" class="form-control" required>
+                        <select id="bookDoctorSelect" class="form-control" required onchange="handleBookDoctorChange()">
                             <!-- Populated by JS -->
                         </select>
                     </div>
@@ -1217,11 +1409,11 @@
                 <div class="form-grid-2">
                     <div class="form-group">
                         <label>Appointment Date *</label>
-                        <input type="date" id="bookDate" class="form-control" required>
+                        <input type="date" id="bookDate" class="form-control" required onchange="checkBookingConflict()">
                     </div>
                     <div class="form-group">
                         <label>Time Slot *</label>
-                        <select id="bookTime" class="form-control" required>
+                        <select id="bookTime" class="form-control" required onchange="checkBookingConflict()">
                             <option value="09:00 AM">09:00 AM</option>
                             <option value="10:00 AM">10:00 AM</option>
                             <option value="11:00 AM">11:00 AM</option>
@@ -1232,6 +1424,9 @@
                         </select>
                     </div>
                 </div>
+
+                <!-- Live Conflict & Availability Notice Banner (R-008) -->
+                <div id="bookConflictAlert" style="display: none; border-radius: 8px; padding: 10px 14px; margin-bottom: 1rem; font-size: 12px; line-height: 1.4;"></div>
 
                 <div class="form-group">
                     <label>Operatory Station</label>
@@ -1798,7 +1993,7 @@
                 <div class="form-grid-2">
                     <div class="form-group">
                         <label>Available Time Slot *</label>
-                        <select id="reschedTimeSlot" class="form-control" required>
+                        <select id="reschedTimeSlot" class="form-control" required onchange="checkRescheduleConflict()">
                             <!-- Populated dynamically based on doctor and clinic settings -->
                         </select>
                     </div>
@@ -1814,6 +2009,9 @@
                         </select>
                     </div>
                 </div>
+
+                <!-- Live Conflict & Availability Notice Banner (R-008) -->
+                <div id="reschedConflictAlert" style="display: none; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; line-height: 1.4;"></div>
 
                 <!-- Reschedule Reason -->
                 <div class="form-group">
@@ -1948,7 +2146,13 @@
 
         // Initialize today's date picker defaults
         const todayIso = new Date().toISOString().split('T')[0];
-        document.getElementById('bookDate').value = todayIso;
+        if (document.getElementById('bookDate')) {
+            document.getElementById('bookDate').value = todayIso;
+            document.getElementById('bookDate').min = todayIso;
+        }
+        if (document.getElementById('schedMonitorDate')) {
+            document.getElementById('schedMonitorDate').value = todayIso;
+        }
 
         // Load Receptionist Dashboard
         async function loadDashboardData() {
@@ -1970,6 +2174,12 @@
                     populateBookingDropdowns(data.patients, data.doctors, data.clinic_settings);
                     populateProfileForm(data.receptionist);
                     searchPatientsLive();
+
+                    // If currently on Doctor Schedule tab, refresh matrix
+                    if (document.getElementById('tab-doctors')?.classList.contains('active')) {
+                        const schedDate = document.getElementById('schedMonitorDate')?.value || todayIso;
+                        loadDoctorScheduleSlots(schedDate);
+                    }
                 }
             } catch (err) {
                 console.error("Error fetching receptionist dashboard:", err);
@@ -2615,8 +2825,525 @@
             }).join('');
         }
 
+        // ── R-008: Dentist Schedule Monitoring & Slot Availability Matrix ─────
+        let cachedDoctorScheduleData = null;
+        let currentSchedView = 'matrix';
+
+        async function loadDoctorScheduleSlots(targetDate) {
+            const dateInput = document.getElementById('schedMonitorDate');
+            const chosenDate = targetDate || (dateInput ? dateInput.value : '') || new Date().toISOString().split('T')[0];
+            if (dateInput) dateInput.value = chosenDate;
+
+            const container = document.getElementById('schedMatrixContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);">
+                        <i class='bx bx-loader-alt bx-spin' style="font-size: 28px; color: var(--rec-primary);"></i>
+                        <div style="margin-top: 8px; font-size: 13px;">Loading dentist schedule matrix for ${escapeHtml(chosenDate)}...</div>
+                    </div>
+                `;
+            }
+
+            try {
+                const res = await fetch(`api/receptionist/get_doctor_schedule_slots.php?date=${encodeURIComponent(chosenDate)}`);
+                if (res.status === 401) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                const data = await res.json();
+                if (data.status === 'success') {
+                    cachedDoctorScheduleData = data;
+
+                    // Update summary KPIs
+                    const sum = data.summary || {};
+                    const dutyEl = document.getElementById('statSchedDocsDuty');
+                    const availEl = document.getElementById('statSchedAvailSlots');
+                    const bookedEl = document.getElementById('statSchedBookedSlots');
+                    const utilEl = document.getElementById('statSchedUtilization');
+
+                    if (dutyEl) dutyEl.textContent = `${sum.doctors_on_duty || 0} / ${sum.total_doctors || 0}`;
+                    if (availEl) availEl.textContent = sum.available_slots || 0;
+                    if (bookedEl) bookedEl.textContent = sum.booked_slots || 0;
+                    if (utilEl) utilEl.textContent = `${sum.utilization_rate || 0}%`;
+
+                    // Populate doctor filter dropdown if not yet initialized
+                    populateSchedDoctorFilter(data.doctor_schedules);
+
+                    // Render current view
+                    if (currentSchedView === 'matrix') {
+                        renderDoctorScheduleMatrix();
+                    } else {
+                        renderDoctors(cachedData ? cachedData.doctors : []);
+                    }
+                } else {
+                    if (container) container.innerHTML = `<div style="text-align: center; padding: 2rem; color: #DC2626;">Failed to load schedule: ${escapeHtml(data.message || 'Unknown error')}</div>`;
+                }
+            } catch (err) {
+                console.error("Error loading schedule slots:", err);
+                if (container) container.innerHTML = `<div style="text-align: center; padding: 2rem; color: #DC2626;">Network error loading schedule monitoring matrix.</div>`;
+            }
+        }
+
+        function populateSchedDoctorFilter(schedules) {
+            const filterSel = document.getElementById('schedDoctorFilter');
+            if (!filterSel) return;
+            const curVal = filterSel.value;
+            filterSel.innerHTML = '<option value="all">All Dentists</option>' +
+                (schedules || []).map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)}</option>`).join('');
+            if (curVal && (curVal === 'all' || (schedules || []).some(d => d.full_name === curVal))) {
+                filterSel.value = curVal;
+            }
+        }
+
+        function filterDoctorScheduleMatrix() {
+            renderDoctorScheduleMatrix();
+        }
+
+        function renderDoctorScheduleMatrix() {
+            const container = document.getElementById('schedMatrixContainer');
+            if (!container || !cachedDoctorScheduleData) return;
+
+            const filterVal = document.getElementById('schedDoctorFilter')?.value || 'all';
+            const allDocs = cachedDoctorScheduleData.doctor_schedules || [];
+            const filtered = (filterVal === 'all')
+                ? allDocs
+                : allDocs.filter(d => d.full_name === filterVal);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--rec-text-muted);">
+                        <i class='bx bx-user-x' style="font-size: 36px; color: var(--rec-primary); display: block; margin-bottom: 6px;"></i>
+                        No dentist schedule matches the selected filter.
+                    </div>
+                `;
+                return;
+            }
+
+            const targetDate = cachedDoctorScheduleData.selected_date;
+            const dayName = cachedDoctorScheduleData.day_name;
+
+            container.innerHTML = filtered.map(doc => {
+                const dutyBadge = doc.is_on_duty_today
+                    ? `<span style="background: #D1FAE5; color: #065F46; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class='bx bxs-circle' style="font-size: 7px; color: #10B981;"></i> On Duty Today</span>`
+                    : `<span style="background: #F1F5F9; color: #64748B; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class='bx bx-moon'></i> Off Duty on ${escapeHtml(dayName)}s</span>`;
+
+                const slotsHtml = (doc.slots || []).map(slot => {
+                    if (slot.status === 'available') {
+                        return `
+                            <div class="slot-chip available" onclick="quickBookSlot('${escapeHtml(doc.full_name)}', '${targetDate}', '${escapeHtml(slot.time)}')" title="Click to book an appointment with ${escapeHtml(doc.full_name)} at ${escapeHtml(slot.time)}">
+                                <div class="slot-time-header">
+                                    <span>${escapeHtml(slot.time)}</span>
+                                    <span style="color: #15803d; font-size: 10px; font-weight: 800;"><i class='bx bx-check'></i> Open</span>
+                                </div>
+                                <div class="slot-subtext" style="color: #166534;"><i class='bx bx-plus-circle'></i> Book Slot</div>
+                            </div>
+                        `;
+                    } else if (slot.status === 'booked' && slot.appointment) {
+                        const apt = slot.appointment;
+                        return `
+                            <div class="slot-chip booked" onclick="openBookedSlotDetails('${escapeHtml(apt.id)}')" title="Booked: ${escapeHtml(apt.patient_name)} (${escapeHtml(apt.service_name)}) - Click to manage">
+                                <div class="slot-time-header">
+                                    <span>${escapeHtml(slot.time)}</span>
+                                    <span style="font-size: 10px; font-weight: 800; color: #1D4ED8;">BOOKED</span>
+                                </div>
+                                <div class="slot-subtext" style="color: #1E3A8A; font-weight: 800;">${escapeHtml(apt.patient_name)}</div>
+                                <div class="slot-subtext" style="color: #475569;">${escapeHtml(apt.service_name)} &bull; ${escapeHtml(apt.operatory_chair)}</div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="slot-chip off_duty" title="Dentist is off-duty during this time or day">
+                                <div class="slot-time-header">
+                                    <span>${escapeHtml(slot.time)}</span>
+                                    <span style="font-size: 10px; color: #94A3B8;">Off Duty</span>
+                                </div>
+                                <div class="slot-subtext" style="color: #94A3B8;">Not Available</div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+
+                const offDutyNotice = !doc.is_on_duty_today
+                    ? `<div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; color: #92400E; display: flex; align-items: center; gap: 8px;">
+                           <i class='bx bx-info-circle' style="font-size: 18px; color: #D97706; flex-shrink: 0;"></i>
+                           <div><strong>Off-Duty Notice:</strong> Dr. ${escapeHtml(doc.full_name)} standard working schedule is <strong>${escapeHtml(doc.schedule_days || doc.working_days)}</strong>. Appointments can be scheduled for their active working days.</div>
+                       </div>`
+                    : '';
+
+                return `
+                    <div class="doc-sched-card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid var(--rec-border); padding-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(14, 177, 177, 0.12); color: var(--rec-primary); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;">
+                                    <i class='bx bx-user-voice'></i>
+                                </div>
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--rec-text);">${escapeHtml(doc.full_name)}</h4>
+                                        ${dutyBadge}
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--rec-text-muted); margin-top: 2px;">
+                                        <span style="color: var(--rec-primary); font-weight: 700;">${escapeHtml(doc.specialization)}</span>
+                                        <span>&bull;</span>
+                                        <span><i class='bx bx-time'></i> ${escapeHtml(doc.schedule_days || doc.working_days)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 8px;">
+                                    <i class='bx bx-check-circle'></i> ${doc.available_count} Open Slots
+                                </span>
+                                <span style="background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 8px;">
+                                    <i class='bx bx-calendar'></i> ${doc.booked_count} Booked
+                                </span>
+                                <button class="btn-rec btn-rec-primary btn-rec-sm" onclick="bookWithDoctor('${escapeHtml(doc.full_name)}')" title="Book patient with ${escapeHtml(doc.full_name)}">
+                                    <i class='bx bx-calendar-plus'></i> Book Appointment
+                                </button>
+                            </div>
+                        </div>
+
+                        ${offDutyNotice}
+
+                        <!-- Time Slot Matrix Grid -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">
+                            ${slotsHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function changeSchedDate(delta) {
+            const dateInput = document.getElementById('schedMonitorDate');
+            const curVal = (dateInput && dateInput.value) || new Date().toISOString().split('T')[0];
+            const parts = curVal.split('-');
+            const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            d.setDate(d.getDate() + delta);
+            const nextIso = d.toISOString().split('T')[0];
+            loadDoctorScheduleSlots(nextIso);
+        }
+
+        function setSchedDateToday() {
+            const today = new Date().toISOString().split('T')[0];
+            loadDoctorScheduleSlots(today);
+        }
+
+        function switchSchedView(viewName) {
+            currentSchedView = viewName;
+            const matrixContainer = document.getElementById('schedMatrixContainer');
+            const profilesContainer = document.getElementById('schedProfilesContainer');
+            const btnMatrix = document.getElementById('btnViewMatrix');
+            const btnProfiles = document.getElementById('btnViewProfiles');
+
+            if (viewName === 'matrix') {
+                if (matrixContainer) matrixContainer.style.display = 'block';
+                if (profilesContainer) profilesContainer.style.display = 'none';
+                if (btnMatrix) { btnMatrix.style.background = 'var(--rec-primary)'; btnMatrix.style.color = 'white'; }
+                if (btnProfiles) { btnProfiles.style.background = 'transparent'; btnProfiles.style.color = 'var(--rec-text-muted)'; }
+                renderDoctorScheduleMatrix();
+            } else {
+                if (matrixContainer) matrixContainer.style.display = 'none';
+                if (profilesContainer) profilesContainer.style.display = 'block';
+                if (btnProfiles) { btnProfiles.style.background = 'var(--rec-primary)'; btnProfiles.style.color = 'white'; }
+                if (btnMatrix) { btnMatrix.style.background = 'transparent'; btnMatrix.style.color = 'var(--rec-text-muted)'; }
+                renderDoctors(cachedData ? cachedData.doctors : []);
+            }
+        }
+
+        function quickBookSlot(doctorName, date, timeSlot) {
+            openModal('bookAppointmentModal');
+            const docSel = document.getElementById('bookDoctorSelect');
+            const dateInput = document.getElementById('bookDate');
+            const timeSel = document.getElementById('bookTime');
+
+            if (docSel && doctorName) docSel.value = doctorName;
+            if (dateInput && date) dateInput.value = date;
+            
+            handleBookDoctorChange();
+
+            if (timeSel && timeSlot) {
+                timeSel.value = timeSlot;
+            }
+
+            checkBookingConflict();
+
+            const patientSel = document.getElementById('bookPatientSelect');
+            if (patientSel) patientSel.focus();
+        }
+
+        function openBookedSlotDetails(appointmentId) {
+            if (!appointmentId) return;
+            openManageApptModal(appointmentId);
+        }
+
+        function isDoctorWorkingOnDateJs(dateStr, workingDaysStr) {
+            if (!dateStr || !workingDaysStr) return true;
+            const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+            const parts = dateStr.split('-');
+            const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            const dayAbbr = days[d.getDay()];
+            const str = workingDaysStr.toLowerCase();
+
+            if (str.includes('mon - sat') || str.includes('mon-sat')) {
+                return ['mon', 'tue', 'wed', 'thu', 'fri', 'sat'].includes(dayAbbr);
+            }
+            if (str.includes('mon - fri') || str.includes('mon-fri')) {
+                return ['mon', 'tue', 'wed', 'thu', 'fri'].includes(dayAbbr);
+            }
+            if (str.includes('mon - thu') || str.includes('mon-thu')) {
+                return ['mon', 'tue', 'wed', 'thu'].includes(dayAbbr);
+            }
+            if (str.includes('daily') || str.includes('mon - sun') || str.includes('mon-sun')) {
+                return true;
+            }
+            return str.includes(dayAbbr);
+        }
+
+        function handleBookDoctorChange() {
+            const docSel = document.getElementById('bookDoctorSelect');
+            const dateInput = document.getElementById('bookDate');
+            const timeSel = document.getElementById('bookTime');
+            if (!docSel || !timeSel) return;
+
+            const chosenDoc = docSel.value;
+            const chosenDate = dateInput ? dateInput.value : '';
+            const doctors = cachedData ? (cachedData.doctors || []) : [];
+            const docObj = doctors.find(d => d.full_name === chosenDoc);
+
+            const masterSlots = (cachedData && cachedData.clinic_settings && cachedData.clinic_settings.time_slots && cachedData.clinic_settings.time_slots.length > 0)
+                ? cachedData.clinic_settings.time_slots
+                : ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
+
+            const slots = (docObj && docObj.time_slots && docObj.time_slots.length > 0)
+                ? docObj.time_slots
+                : masterSlots;
+
+            const allAppointments = [...(cachedData?.queue_today || []), ...(cachedData?.upcoming_appointments || []), ...(cachedAllAppointments || [])];
+
+            const curVal = timeSel.value;
+            timeSel.innerHTML = slots.map(s => {
+                const cleanS = s.trim();
+                const isConflict = allAppointments.some(apt => {
+                    const aDate = (apt.appointment_date || apt.date || '').substring(0, 10);
+                    const aTime = (apt.time_slot || apt.appointment_time || '').trim().toUpperCase();
+                    const aDoc = (apt.doctor_name || '').trim().toLowerCase();
+                    const aStatus = (apt.status || 'scheduled').toLowerCase();
+                    if (['cancelled', 'no_show', 'completed'].includes(aStatus)) return false;
+                    return (aDate === chosenDate && aTime === cleanS.toUpperCase() && (aDoc === chosenDoc.toLowerCase() || aDoc === 'first available doctor'));
+                });
+
+                if (isConflict) {
+                    return `<option value="${escapeHtml(s)}" style="color: #DC2626; font-weight: 700;">${escapeHtml(s)} ⚠️ (Booked - Conflict)</option>`;
+                }
+                return `<option value="${escapeHtml(s)}" style="color: #166534; font-weight: 600;">${escapeHtml(s)} ✓ (Available)</option>`;
+            }).join('');
+
+            if (slots.includes(curVal)) {
+                timeSel.value = curVal;
+            }
+
+            checkBookingConflict();
+        }
+
+        function checkBookingConflict() {
+            const docName = document.getElementById('bookDoctorSelect')?.value || '';
+            const date = document.getElementById('bookDate')?.value || '';
+            const time = document.getElementById('bookTime')?.value || '';
+            const alertBox = document.getElementById('bookConflictAlert');
+            const saveBtn = document.getElementById('btnSaveAppt');
+            if (!alertBox) return;
+
+            if (!docName || !date || !time) {
+                alertBox.style.display = 'none';
+                return;
+            }
+
+            const todayIso = new Date().toISOString().split('T')[0];
+            if (date < todayIso) {
+                alertBox.className = 'conflict-alert-box conflict';
+                alertBox.style.display = 'flex';
+                alertBox.innerHTML = `
+                    <i class='bx bxs-error-circle' style="font-size: 20px; color: #DC2626; flex-shrink: 0;"></i>
+                    <div>
+                        <strong>Invalid Past Date:</strong> Appointments cannot be booked for past dates (${escapeHtml(date)}). Please select today or a future date.
+                    </div>
+                `;
+                if (saveBtn) saveBtn.disabled = true;
+                return;
+            }
+
+            const docObj = (cachedData?.doctors || []).find(d => d.full_name === docName);
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const parts = date.split('-');
+            const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            const dayName = dayNames[dObj.getDay()];
+
+            const isWorking = docObj && docObj.working_days ? isDoctorWorkingOnDateJs(date, docObj.working_days) : true;
+
+            const allAppointments = [...(cachedData?.queue_today || []), ...(cachedData?.upcoming_appointments || []), ...(cachedAllAppointments || [])];
+            const cleanTime = time.trim().toUpperCase();
+
+            const conflict = allAppointments.find(apt => {
+                const aDate = (apt.appointment_date || apt.date || '').substring(0, 10);
+                const aTime = (apt.time_slot || apt.appointment_time || '').trim().toUpperCase();
+                const aDoc = (apt.doctor_name || '').trim().toLowerCase();
+                const aStatus = (apt.status || 'scheduled').toLowerCase();
+
+                if (['cancelled', 'no_show', 'completed'].includes(aStatus)) return false;
+                if (aDate !== date) return false;
+                if (aTime !== cleanTime) return false;
+                if (docName === 'First Available Doctor') return false;
+
+                return (aDoc === docName.toLowerCase() || aDoc === 'first available doctor');
+            });
+
+            if (conflict) {
+                alertBox.className = 'conflict-alert-box conflict';
+                alertBox.style.display = 'flex';
+                alertBox.innerHTML = `
+                    <i class='bx bxs-error-circle' style="font-size: 20px; color: #DC2626; flex-shrink: 0;"></i>
+                    <div>
+                        <strong>⚠️ Dentist Scheduling Conflict Detected!</strong><br>
+                        <span><strong>${escapeHtml(docName)}</strong> is already booked with patient <strong>${escapeHtml(conflict.patient_name || 'Patient')}</strong> (${escapeHtml(conflict.service_name || 'Consultation')}) at ${escapeHtml(time)} on ${escapeHtml(date)}.</span>
+                        <div style="margin-top: 4px; font-size: 11px; opacity: 0.9;">
+                            Please choose an open time slot or assign another dentist to avoid double-booking.
+                        </div>
+                    </div>
+                `;
+                if (saveBtn) saveBtn.disabled = true;
+                return;
+            }
+
+            if (!isWorking) {
+                alertBox.className = 'conflict-alert-box off_duty';
+                alertBox.style.display = 'flex';
+                alertBox.innerHTML = `
+                    <i class='bx bx-time-five' style="font-size: 20px; color: #D97706; flex-shrink: 0;"></i>
+                    <div>
+                        <strong>Dentist Off-Duty Notice:</strong><br>
+                        <span>${escapeHtml(docName)} standard schedule is <strong>${escapeHtml(docObj.schedule_days || docObj.working_days)}</strong> (Off-duty on ${dayName}s).</span>
+                        <div style="margin-top: 4px; font-size: 11px; color: #92400E;">
+                            You may still confirm if this booking is an approved clinical exception.
+                        </div>
+                    </div>
+                `;
+                if (saveBtn) saveBtn.disabled = false;
+                return;
+            }
+
+            alertBox.className = 'conflict-alert-box available';
+            alertBox.style.display = 'flex';
+            alertBox.innerHTML = `
+                <i class='bx bx-check-circle' style="font-size: 20px; color: #16A34A; flex-shrink: 0;"></i>
+                <div>
+                    <strong>✓ Time Slot Available:</strong><br>
+                    <span>${escapeHtml(docName)} is open and ready for patient booking at <strong>${escapeHtml(time)}</strong> on <strong>${escapeHtml(date)} (${dayName})</strong>.</span>
+                </div>
+            `;
+            if (saveBtn) saveBtn.disabled = false;
+        }
+
+        function checkRescheduleConflict() {
+            const apptId = document.getElementById('reschedApptId')?.value || '';
+            const docName = document.getElementById('reschedDoctorSelect')?.value || '';
+            const date = document.getElementById('reschedNewDate')?.value || '';
+            const time = document.getElementById('reschedTimeSlot')?.value || '';
+            const alertBox = document.getElementById('reschedConflictAlert');
+            const submitBtn = document.getElementById('btnSubmitReschedule');
+            if (!alertBox) return;
+
+            if (!docName || !date || !time) {
+                alertBox.style.display = 'none';
+                return;
+            }
+
+            const todayIso = new Date().toISOString().split('T')[0];
+            if (date < todayIso) {
+                alertBox.className = 'conflict-alert-box conflict';
+                alertBox.style.display = 'flex';
+                alertBox.innerHTML = `
+                    <i class='bx bxs-error-circle' style="font-size: 20px; color: #DC2626; flex-shrink: 0;"></i>
+                    <div>
+                        <strong>Invalid Past Date:</strong> Cannot reschedule visits to past dates (${escapeHtml(date)}).
+                    </div>
+                `;
+                if (submitBtn) submitBtn.disabled = true;
+                return;
+            }
+
+            const docObj = (cachedData?.doctors || []).find(d => d.full_name === docName);
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const parts = date.split('-');
+            const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            const dayName = dayNames[dObj.getDay()];
+
+            const isWorking = docObj && docObj.working_days ? isDoctorWorkingOnDateJs(date, docObj.working_days) : true;
+
+            const allAppointments = [...(cachedData?.queue_today || []), ...(cachedData?.upcoming_appointments || []), ...(cachedAllAppointments || [])];
+            const cleanTime = time.trim().toUpperCase();
+
+            const conflict = allAppointments.find(apt => {
+                if ((apt._id || '') === apptId) return false;
+                const aDate = (apt.appointment_date || apt.date || '').substring(0, 10);
+                const aTime = (apt.time_slot || apt.appointment_time || '').trim().toUpperCase();
+                const aDoc = (apt.doctor_name || '').trim().toLowerCase();
+                const aStatus = (apt.status || 'scheduled').toLowerCase();
+
+                if (['cancelled', 'no_show', 'completed'].includes(aStatus)) return false;
+                if (aDate !== date) return false;
+                if (aTime !== cleanTime) return false;
+                if (docName === 'First Available Doctor') return false;
+
+                return (aDoc === docName.toLowerCase() || aDoc === 'first available doctor');
+            });
+
+            if (conflict) {
+                alertBox.className = 'conflict-alert-box conflict';
+                alertBox.style.display = 'flex';
+                alertBox.innerHTML = `
+                    <i class='bx bxs-error-circle' style="font-size: 20px; color: #DC2626; flex-shrink: 0;"></i>
+                    <div>
+                        <strong>⚠️ Scheduling Conflict Detected!</strong><br>
+                        <span><strong>${escapeHtml(docName)}</strong> already has an appointment with <strong>${escapeHtml(conflict.patient_name || 'Patient')}</strong> at ${escapeHtml(time)} on ${escapeHtml(date)}.</span>
+                        <div style="margin-top: 4px; font-size: 11px; opacity: 0.9;">
+                            Please choose an alternate time slot or provider to prevent overlapping bookings.
+                        </div>
+                    </div>
+                `;
+                if (submitBtn) submitBtn.disabled = true;
+                return;
+            }
+
+            if (!isWorking) {
+                alertBox.className = 'conflict-alert-box off_duty';
+                alertBox.style.display = 'flex';
+                alertBox.innerHTML = `
+                    <i class='bx bx-time-five' style="font-size: 20px; color: #D97706; flex-shrink: 0;"></i>
+                    <div>
+                        <strong>Doctor Off-Duty Notice:</strong><br>
+                        <span>${escapeHtml(docName)} duty days are <strong>${escapeHtml(docObj.schedule_days || docObj.working_days)}</strong> (Off-duty on ${dayName}s).</span>
+                    </div>
+                `;
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+
+            alertBox.className = 'conflict-alert-box available';
+            alertBox.style.display = 'flex';
+            alertBox.innerHTML = `
+                <i class='bx bx-check-circle' style="font-size: 20px; color: #16A34A; flex-shrink: 0;"></i>
+                <div>
+                    <strong>✓ Reschedule Slot Available:</strong><br>
+                    <span>${escapeHtml(docName)} is available at <strong>${escapeHtml(time)}</strong> on <strong>${escapeHtml(date)} (${dayName})</strong>.</span>
+                </div>
+            `;
+            if (submitBtn) submitBtn.disabled = false;
+        }
+
         function renderDoctors(doctors) {
             const grid = document.getElementById('doctorsGrid');
+            if (!grid) return;
             if (!doctors || doctors.length === 0) {
                 grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--rec-text-muted);">No doctors on record.</div>`;
                 return;
@@ -2774,10 +3501,14 @@
                 'queue': "Front Desk Reception Workspace",
                 'patients': "Patient Master Directory",
                 'appointments': "All Booked Appointments",
-                'doctors': "Clinic Doctor Schedules",
+                'doctors': "Dentist Schedule Monitoring & Slot Matrix",
                 'profile': "Front Desk Account & Settings"
             };
             document.getElementById('viewHeading').textContent = headings[tabId] || "Receptionist Workspace";
+
+            if (tabId === 'doctors') {
+                loadDoctorScheduleSlots();
+            }
         }
 
         // ── R-006: Patient Queue Organization & Order Management ──────────────
@@ -3581,12 +4312,14 @@
         }
 
         function handleRescheduleDoctorOrDateChange(presetTime) {
-            const docName = document.getElementById('reschedDoctorSelect')?.value;
+            const docName = document.getElementById('reschedDoctorSelect')?.value || '';
+            const newDate = document.getElementById('reschedNewDate')?.value || '';
             const timeSel = document.getElementById('reschedTimeSlot');
+            const curApptId = document.getElementById('reschedApptId')?.value || '';
             if (!timeSel) return;
 
-            const docObj = (cachedData.doctors || []).find(d => d.full_name === docName);
-            const masterSlots = (cachedData.clinic_settings && cachedData.clinic_settings.time_slots && cachedData.clinic_settings.time_slots.length > 0)
+            const docObj = (cachedData?.doctors || []).find(d => d.full_name === docName);
+            const masterSlots = (cachedData?.clinic_settings?.time_slots?.length > 0)
                 ? cachedData.clinic_settings.time_slots
                 : ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
 
@@ -3594,11 +4327,32 @@
                 ? docObj.time_slots
                 : masterSlots;
 
+            const allAppointments = [...(cachedData?.queue_today || []), ...(cachedData?.upcoming_appointments || []), ...(cachedAllAppointments || [])];
+
             const prev = presetTime || timeSel.value;
-            timeSel.innerHTML = slots.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+            timeSel.innerHTML = slots.map(s => {
+                const cleanS = s.trim();
+                const isConflict = allAppointments.some(apt => {
+                    if ((apt._id || '') === curApptId) return false;
+                    const aDate = (apt.appointment_date || apt.date || '').substring(0, 10);
+                    const aTime = (apt.time_slot || apt.appointment_time || '').trim().toUpperCase();
+                    const aDoc = (apt.doctor_name || '').trim().toLowerCase();
+                    const aStatus = (apt.status || 'scheduled').toLowerCase();
+                    if (['cancelled', 'no_show', 'completed'].includes(aStatus)) return false;
+                    return (aDate === newDate && aTime === cleanS.toUpperCase() && (aDoc === docName.toLowerCase() || aDoc === 'first available doctor'));
+                });
+
+                if (isConflict) {
+                    return `<option value="${escapeHtml(s)}" style="color: #DC2626; font-weight: 700;">${escapeHtml(s)} ⚠️ (Booked - Conflict)</option>`;
+                }
+                return `<option value="${escapeHtml(s)}" style="color: #166534; font-weight: 600;">${escapeHtml(s)} ✓ (Available)</option>`;
+            }).join('');
+
             if (slots.includes(prev)) {
                 timeSel.value = prev;
             }
+
+            checkRescheduleConflict();
         }
 
         function handleReschedReasonChange(val) {
@@ -3650,8 +4404,21 @@
                 const data = await res.json();
                 if (data.status === 'success') {
                     closeModal('rescheduleAppointmentModal');
+                    const alertBox = document.getElementById('reschedConflictAlert');
+                    if (alertBox) alertBox.style.display = 'none';
                     showToast('success', data.message || 'Appointment rescheduled successfully.');
                     await loadDashboardData();
+                    if (document.getElementById('tab-doctors')?.classList.contains('active')) {
+                        loadDoctorScheduleSlots();
+                    }
+                } else if (res.status === 409 || data.status === 'conflict') {
+                    showToast('error', data.message || 'Dentist scheduling conflict detected!');
+                    const alertBox = document.getElementById('reschedConflictAlert');
+                    if (alertBox) {
+                        alertBox.className = 'conflict-alert-box conflict';
+                        alertBox.style.display = 'flex';
+                        alertBox.innerHTML = `<i class='bx bxs-error-circle' style="font-size: 20px; color: #DC2626; flex-shrink: 0;"></i><div><strong>Scheduling Conflict:</strong> ${escapeHtml(data.message)}</div>`;
+                    }
                 } else {
                     showToast('error', data.message || 'Failed to reschedule appointment.');
                 }
@@ -4119,7 +4886,20 @@
                     showToast('success', data.message || 'Appointment confirmed!');
                     closeModal('bookAppointmentModal');
                     document.getElementById('form-book-appointment').reset();
-                    loadDashboardData();
+                    const alertBox = document.getElementById('bookConflictAlert');
+                    if (alertBox) alertBox.style.display = 'none';
+                    await loadDashboardData();
+                    if (document.getElementById('tab-doctors')?.classList.contains('active')) {
+                        loadDoctorScheduleSlots();
+                    }
+                } else if (res.status === 409 || data.status === 'conflict') {
+                    showToast('error', data.message || 'Dentist scheduling conflict detected!');
+                    const alertBox = document.getElementById('bookConflictAlert');
+                    if (alertBox) {
+                        alertBox.className = 'conflict-alert-box conflict';
+                        alertBox.style.display = 'flex';
+                        alertBox.innerHTML = `<i class='bx bxs-error-circle' style="font-size: 20px; color: #DC2626; flex-shrink: 0;"></i><div><strong>Scheduling Conflict:</strong> ${escapeHtml(data.message)}</div>`;
+                    }
                 } else {
                     showToast('error', data.message || 'Booking failed.');
                 }

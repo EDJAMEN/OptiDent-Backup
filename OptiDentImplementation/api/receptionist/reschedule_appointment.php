@@ -80,6 +80,32 @@ $finalDoctor = !empty($doctorName) ? $doctorName : $previousDoctor;
 $finalChair = !empty($operatoryChair) ? $operatoryChair : ($apt['operatory_chair'] ?? 'Operatory Chair 1');
 $finalService = !empty($serviceName) ? $serviceName : ($apt['service_name'] ?? 'Dental Consultation');
 
+// R-008: Check for dentist scheduling conflict on the new rescheduled date and time slot
+$allowConflictOverride = !empty($input['allow_conflict_override']);
+if ($finalDoctor !== 'First Available Doctor' && !$allowConflictOverride) {
+    $existingConflict = $db->findOne('appointments', [
+        'doctor_name' => $finalDoctor,
+        'appointment_date' => $newDate,
+        'time_slot' => $newTime,
+        'is_deleted' => false
+    ]);
+    if ($existingConflict && (string)$existingConflict['_id'] !== (string)$appointmentId && in_array(strtolower($existingConflict['status'] ?? ''), ['scheduled', 'checked_in', 'waiting', 'in_progress'])) {
+        http_response_code(409);
+        echo json_encode([
+            "status" => "conflict",
+            "message" => "Scheduling Conflict: {$finalDoctor} already has an appointment booked with {$existingConflict['patient_name']} at {$newTime} on {$newDate}. Please choose another time or doctor.",
+            "conflict_appointment" => [
+                "id" => (string)$existingConflict['_id'],
+                "patient_name" => $existingConflict['patient_name'] ?? 'Patient',
+                "service_name" => $existingConflict['service_name'] ?? 'Consultation',
+                "time_slot" => $newTime,
+                "date" => $newDate
+            ]
+        ]);
+        exit;
+    }
+}
+
 $historyEntry = [
     'from_date' => $previousDate,
     'from_time' => $previousTime,
