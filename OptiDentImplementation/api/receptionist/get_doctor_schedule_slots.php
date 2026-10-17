@@ -87,7 +87,7 @@ foreach ($doctors as $doc) {
     $workingDaysStr = $sched['working_days'] ?? 'Mon - Fri';
 
     // Check if doctor is on duty on this day of the week
-    $isOnDuty = isDayInWorkingDays($dayAbbr, $workingDaysStr);
+    $isOnDuty = ClinicHoursHelper::isDayInWorkingDays($dayAbbr, $workingDaysStr);
     if ($isOnDuty) {
         $doctorsOnDutyCount++;
     }
@@ -202,27 +202,11 @@ echo json_encode([
     "master_slots" => $masterSlots
 ]);
 
-/**
- * Checks if an abbreviated day name (Mon, Tue, etc.) falls within doctor's working_days string
- */
-function isDayInWorkingDays($dayAbbr, $workingDaysStr) {
-    $workingDaysStr = strtolower(trim($workingDaysStr));
-    $dayAbbr = strtolower(trim($dayAbbr));
-
-    // Handle standard ranges
-    if (strpos($workingDaysStr, 'mon - sat') !== false || strpos($workingDaysStr, 'mon-sat') !== false) {
-        return in_array($dayAbbr, ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']);
+if (!function_exists('isDayInWorkingDays')) {
+    /**
+     * Checks if an abbreviated day name (Mon, Tue, etc.) falls within doctor's working_days string
+     */
+    function isDayInWorkingDays($dayAbbr, $workingDaysStr) {
+        return ClinicHoursHelper::isDayInWorkingDays($dayAbbr, $workingDaysStr);
     }
-    if (strpos($workingDaysStr, 'mon - fri') !== false || strpos($workingDaysStr, 'mon-fri') !== false) {
-        return in_array($dayAbbr, ['mon', 'tue', 'wed', 'thu', 'fri']);
-    }
-    if (strpos($workingDaysStr, 'mon - thu') !== false || strpos($workingDaysStr, 'mon-thu') !== false) {
-        return in_array($dayAbbr, ['mon', 'tue', 'wed', 'thu']);
-    }
-    if (strpos($workingDaysStr, 'daily') !== false || strpos($workingDaysStr, 'mon - sun') !== false || strpos($workingDaysStr, 'mon-sun') !== false) {
-        return true;
-    }
-    
-    // Check specific days mentioned
-    return (strpos($workingDaysStr, $dayAbbr) !== false);
 }

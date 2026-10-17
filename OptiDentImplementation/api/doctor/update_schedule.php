@@ -40,6 +40,48 @@ if (!empty($input['doctor_email'])) {
     $targetEmail = trim($input['email']);
 }
 
+$targetId = $input['doctor_id'] ?? $input['id'] ?? '';
+$targetName = trim($input['doctor_name'] ?? '');
+
+// Identify target doctor document portably
+$doctorUser = null;
+if (!empty($targetId)) {
+    $doctorUser = $db->findOne('users', ['_id' => (string)$targetId]);
+}
+
+if (!$doctorUser && !empty($_SESSION['user_id']) && $userRole === 'doctor') {
+    $doctorUser = $db->findOne('users', ['_id' => (string)$_SESSION['user_id']]);
+}
+
+if (!$doctorUser && !empty($targetEmail)) {
+    $doctorUser = $db->findOne('users', ['email' => $targetEmail]);
+}
+
+// Case-insensitive matching across doctors
+if (!$doctorUser) {
+    $allDocs = $db->find('users', ['role' => 'doctor']);
+    foreach ($allDocs as $d) {
+        if (!empty($targetEmail) && strcasecmp($d['email'] ?? '', $targetEmail) === 0) {
+            $doctorUser = $d;
+            break;
+        }
+        if (!empty($targetName) && strcasecmp($d['full_name'] ?? '', $targetName) === 0) {
+            $doctorUser = $d;
+            break;
+        }
+        if (!empty($userEmail) && strcasecmp($d['email'] ?? '', $userEmail) === 0) {
+            $doctorUser = $d;
+            break;
+        }
+    }
+}
+
+if (!$doctorUser) {
+    http_response_code(404);
+    echo json_encode(["status" => "error", "message" => "Doctor record not found for availability update."]);
+    exit;
+}
+
 $workingDays = trim($input['working_days'] ?? 'Mon - Fri');
 $openingTime = trim($input['opening_time'] ?? '08:00 AM');
 $closingTime = trim($input['closing_time'] ?? '05:00 PM');
@@ -72,25 +114,32 @@ $updateFields = [
     'updated_at'    => date('Y-m-d H:i:s')
 ];
 
-// Update in MongoDB users collection
-$db->updateOne('users', ['email' => $targetEmail], ['$set' => $updateFields]);
+// Update by primary _id
+$db->updateOne('users', ['_id' => $doctorUser['_id']], ['$set' => $updateFields]);
+
+$effectiveEmail = $doctorUser['email'] ?? $targetEmail;
 
 // Log schedule modification in Audit Trail
 AuditLogger::log(
     'DOCTOR_SCHEDULE_UPDATE',
-    "users:{$targetEmail}",
+    "users:{$effectiveEmail}",
     [
-        'doctor'        => $targetEmail,
+        'doctor_id'     => (string)$doctorUser['_id'],
+        'doctor'        => $effectiveEmail,
         'schedule_days' => $compiledSchedule,
         'slots_count'   => count($timeSlots),
         'lunch_break'   => $lunchBreak ? 'EXCLUDED' : 'CONTINUOUS'
     ]
 );
 
+$mergedDoctor = array_merge($doctorUser, $updateFields);
+$mergedDoctor['id'] = (string)$doctorUser['_id'];
+$mergedDoctor['_id'] = (string)$doctorUser['_id'];
+
 http_response_code(200);
 echo json_encode([
     "status"   => "success",
     "message"  => "Doctor working hours and appointment availability successfully updated!",
     "schedule" => $updateFields,
-    "doctor"   => $updateFields
+    "doctor"   => $mergedDoctor
 ]);

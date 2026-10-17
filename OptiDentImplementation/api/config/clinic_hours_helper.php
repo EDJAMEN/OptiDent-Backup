@@ -32,15 +32,17 @@ class ClinicHoursHelper {
      * Resolves and standardizes a doctor's schedule, ensuring working days, hours, and slots are 100% in sync
      */
     public static function resolveDoctorSchedule($userDoc) {
-        $workingDays = $userDoc['working_days'] ?? 'Mon - Fri';
+        $workingDays = $userDoc['working_days'] ?? '';
         $openingTime = $userDoc['opening_time'] ?? '';
         $closingTime = $userDoc['closing_time'] ?? '';
         $scheduleDays = $userDoc['schedule_days'] ?? '';
 
-        // If opening_time or closing_time is empty, or if schedule_days has a specific format like "Mon - Fri (7:00 AM - 4:00 PM)", parse it:
-        if (preg_match('/^(.*?)\s*\(\s*(.*?)\s*-\s*(.*?)\s*\)$/i', $scheduleDays, $m)) {
+        // If opening_time or closing_time or working_days is empty, parse from schedule_days:
+        if (preg_match('/^(.*?)\s*[\(,]\s*(.*?)\s*-\s*(.*?)\s*[\)]?$/i', $scheduleDays, $m) || preg_match('/^(.*?)\s*\(\s*(.*?)\s*-\s*(.*?)\s*\)$/i', $scheduleDays, $m)) {
             $parsedDays = trim($m[1]);
-            if (!empty($parsedDays)) $workingDays = $parsedDays;
+            if (empty($workingDays) && !empty($parsedDays)) {
+                $workingDays = $parsedDays;
+            }
             $startStr = trim($m[2]);
             $endStr   = trim($m[3]);
             $sTime = strtotime("2026-01-01 " . $startStr);
@@ -49,8 +51,16 @@ class ClinicHoursHelper {
                 if (empty($openingTime)) $openingTime = date('h:i A', $sTime);
                 if (empty($closingTime)) $closingTime = date('h:i A', $eTime);
             }
+        } elseif (preg_match('/^(.*?)\s*-\s*(.*?)$/i', $scheduleDays, $m)) {
+            $sTime = strtotime("2026-01-01 " . trim($m[1]));
+            $eTime = strtotime("2026-01-01 " . trim($m[2]));
+            if ($sTime && $eTime) {
+                if (empty($openingTime)) $openingTime = date('h:i A', $sTime);
+                if (empty($closingTime)) $closingTime = date('h:i A', $eTime);
+            }
         }
 
+        if (empty($workingDays)) $workingDays = 'Mon - Fri';
         if (empty($openingTime)) $openingTime = '08:00 AM';
         if (empty($closingTime)) $closingTime = '05:00 PM';
         
@@ -80,6 +90,39 @@ class ClinicHoursHelper {
             'time_slots'    => array_values($timeSlots),
             'timezone'      => $userDoc['timezone'] ?? 'Asia/Manila'
         ];
+    }
+
+    /**
+     * Determines whether an abbreviated day name (Mon, Tue, etc.) falls within doctor's working_days specification
+     */
+    public static function isDayInWorkingDays($dayAbbr, $workingDaysStr) {
+        $workingDaysStr = strtolower(trim($workingDaysStr ?? 'Mon - Fri'));
+        $dayAbbr = strtolower(trim($dayAbbr ?? ''));
+
+        if (empty($dayAbbr)) return true;
+
+        // Check standard predefined ranges
+        if (strpos($workingDaysStr, 'mon - sat') !== false || strpos($workingDaysStr, 'mon-sat') !== false) {
+            return in_array($dayAbbr, ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']);
+        }
+        if (strpos($workingDaysStr, 'mon - fri') !== false || strpos($workingDaysStr, 'mon-fri') !== false) {
+            return in_array($dayAbbr, ['mon', 'tue', 'wed', 'thu', 'fri']);
+        }
+        if (strpos($workingDaysStr, 'mon - thu') !== false || strpos($workingDaysStr, 'mon-thu') !== false) {
+            return in_array($dayAbbr, ['mon', 'tue', 'wed', 'thu']);
+        }
+        if (strpos($workingDaysStr, 'tue - sat') !== false || strpos($workingDaysStr, 'tue-sat') !== false) {
+            return in_array($dayAbbr, ['tue', 'wed', 'thu', 'fri', 'sat']);
+        }
+        if (strpos($workingDaysStr, 'sat - sun') !== false || strpos($workingDaysStr, 'sat-sun') !== false) {
+            return in_array($dayAbbr, ['sat', 'sun']);
+        }
+        if (strpos($workingDaysStr, 'daily') !== false || strpos($workingDaysStr, 'mon - sun') !== false || strpos($workingDaysStr, 'mon-sun') !== false) {
+            return true;
+        }
+
+        // Direct day check
+        return (strpos($workingDaysStr, $dayAbbr) !== false);
     }
 
     /**

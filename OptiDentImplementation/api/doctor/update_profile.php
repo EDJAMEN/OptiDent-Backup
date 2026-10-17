@@ -39,6 +39,47 @@ if (!empty($input['doctor_email'])) {
     $targetEmail = trim($input['email']);
 }
 
+$targetId = $input['doctor_id'] ?? $input['id'] ?? '';
+$targetName = trim($input['doctor_name'] ?? '');
+
+$doctorUser = null;
+if (!empty($targetId)) {
+    $doctorUser = $db->findOne('users', ['_id' => (string)$targetId]);
+}
+
+if (!$doctorUser && !empty($_SESSION['user_id']) && $userRole === 'doctor') {
+    $doctorUser = $db->findOne('users', ['_id' => (string)$_SESSION['user_id']]);
+}
+
+if (!$doctorUser && !empty($targetEmail)) {
+    $doctorUser = $db->findOne('users', ['email' => $targetEmail]);
+}
+
+// Case-insensitive matching across doctors
+if (!$doctorUser) {
+    $allDocs = $db->find('users', ['role' => 'doctor']);
+    foreach ($allDocs as $d) {
+        if (!empty($targetEmail) && strcasecmp($d['email'] ?? '', $targetEmail) === 0) {
+            $doctorUser = $d;
+            break;
+        }
+        if (!empty($targetName) && strcasecmp($d['full_name'] ?? '', $targetName) === 0) {
+            $doctorUser = $d;
+            break;
+        }
+        if (!empty($userEmail) && strcasecmp($d['email'] ?? '', $userEmail) === 0) {
+            $doctorUser = $d;
+            break;
+        }
+    }
+}
+
+if (!$doctorUser) {
+    http_response_code(404);
+    echo json_encode(["status" => "error", "message" => "Doctor user profile not found."]);
+    exit;
+}
+
 $phone = trim($input['phone'] ?? '');
 $specialization = trim($input['specialization'] ?? '');
 $scheduleDays = trim($input['schedule_days'] ?? '');
@@ -53,14 +94,31 @@ if (!empty($scheduleDays)) {
     $update['schedule_days'] = $scheduleDays;
 
     // Parse working days, opening time, closing time, and generate slots
-    if (preg_match('/^(.*?)\s*\(\s*(.*?)\s*-\s*(.*?)\s*\)$/i', $scheduleDays, $m)) {
+    // Handles: "Mon - Fri (09:00 AM - 05:00 PM)", "Mon - Fri 09:00 AM - 05:00 PM", "Mon - Fri, 09:00 AM - 05:00 PM"
+    $matched = false;
+    if (preg_match('/^(.*?)\s*[\(,]\s*(.*?)\s*-\s*(.*?)\s*[\)]?$/i', $scheduleDays, $m)) {
         $parsedDays = trim($m[1]);
         $sTime = strtotime("2026-01-01 " . trim($m[2]));
         $eTime = strtotime("2026-01-01 " . trim($m[3]));
         if ($sTime && $eTime) {
             $parsedOpening = date('h:i A', $sTime);
             $parsedClosing = date('h:i A', $eTime);
-            $update['working_days'] = !empty($parsedDays) ? $parsedDays : 'Mon - Fri';
+            $update['working_days'] = !empty($parsedDays) ? $parsedDays : ($doctorUser['working_days'] ?? 'Mon - Fri');
+            $update['opening_time'] = $parsedOpening;
+            $update['closing_time'] = $parsedClosing;
+            $update['schedule_days'] = "{$update['working_days']} ({$parsedOpening} - {$parsedClosing})";
+            $update['time_slots'] = ClinicHoursHelper::generateSlots($parsedOpening, $parsedClosing, true);
+            $matched = true;
+        }
+    }
+
+    if (!$matched && preg_match('/^(.*?)\s*-\s*(.*?)$/i', $scheduleDays, $m)) {
+        $sTime = strtotime("2026-01-01 " . trim($m[1]));
+        $eTime = strtotime("2026-01-01 " . trim($m[2]));
+        if ($sTime && $eTime) {
+            $parsedOpening = date('h:i A', $sTime);
+            $parsedClosing = date('h:i A', $eTime);
+            $update['working_days'] = $doctorUser['working_days'] ?? 'Mon - Fri';
             $update['opening_time'] = $parsedOpening;
             $update['closing_time'] = $parsedClosing;
             $update['schedule_days'] = "{$update['working_days']} ({$parsedOpening} - {$parsedClosing})";
@@ -77,13 +135,18 @@ if (empty($update)) {
 
 $update['updated_at'] = date('Y-m-d H:i:s');
 
-$db->updateOne('users', ['email' => $targetEmail], ['$set' => $update]);
+$db->updateOne('users', ['_id' => $doctorUser['_id']], ['$set' => $update]);
 
-AuditLogger::log('DOCTOR_PROFILE_UPDATED', "users:{$targetEmail}", $update);
+$effectiveEmail = $doctorUser['email'] ?? $targetEmail;
+AuditLogger::log('DOCTOR_PROFILE_UPDATED', "users:{$effectiveEmail}", $update);
+
+$mergedDoctor = array_merge($doctorUser, $update);
+$mergedDoctor['id'] = (string)$doctorUser['_id'];
+$mergedDoctor['_id'] = (string)$doctorUser['_id'];
 
 http_response_code(200);
 echo json_encode([
     "status" => "success",
     "message" => "Doctor profile & availability updated successfully!",
-    "doctor" => $update
+    "doctor" => $mergedDoctor
 ]);

@@ -1840,8 +1840,8 @@
                 <button type="button" class="btn-outline flex-1" onclick="closeConfirmDoctorScheduleModal()" style="height: 38px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer;">
                     Cancel
                 </button>
-                <button type="button" id="executeSaveDocScheduleBtn" class="btn-primary flex-1" onclick="requestFinalDoctorScheduleConfirmation()" style="height: 38px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer;">
-                    <i class='bx bx-check mr-1'></i> Proceed to Confirmation
+                <button type="button" id="executeSaveDocScheduleBtn" class="btn-primary flex-1" onclick="executeDoctorScheduleSave()" style="height: 38px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer;">
+                    <i class='bx bx-check-circle mr-1'></i> Confirm &amp; Enforce Schedule
                 </button>
             </div>
         </div>
@@ -3605,7 +3605,9 @@
             }
 
             const payload = {
+                doctor_id: cachedDashboardData?.doctor?.id || cachedDashboardData?.doctor?._id || '',
                 doctor_email: cachedDashboardData?.doctor?.email || '',
+                doctor_name: cachedDashboardData?.doctor?.full_name || '',
                 working_days: document.getElementById('docWorkingDays')?.value || 'Mon - Fri',
                 opening_time: document.getElementById('docDutyStartTime')?.value || '09:00 AM',
                 closing_time: document.getElementById('docDutyEndTime')?.value || '05:00 PM',
