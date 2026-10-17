@@ -844,16 +844,50 @@
                 </div>
             </section>
 
-            <!-- ── TAB 3: ALL APPOINTMENTS ─────────────────────────── -->
+            <!-- ── TAB 3: ALL APPOINTMENTS & SCHEDULING (R-007) ────── -->
             <section id="tab-appointments" class="tab-section">
                 <div class="content-card">
-                    <div class="card-header-bar">
+                    <div class="card-header-bar" style="margin-bottom: 0.75rem;">
                         <div>
-                            <h3 style="margin: 0; font-size: 16px; font-weight: 700;">Upcoming & All Booked Appointments</h3>
-                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">Clinic scheduling calendar, future consultations, and follow-ups.</p>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                <i class='bx bx-calendar-event text-primary' style="font-size: 20px;"></i> Appointment Management & Calendar Roster
+                            </h3>
+                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">Book new appointments, reschedule consultations, modify doctor assignments, and track statuses.</p>
                         </div>
-                        <button class="btn-rec btn-rec-primary" onclick="openModal('bookAppointmentModal')">
-                            <i class='bx bx-calendar-plus'></i> Book Appointment
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <input type="text" id="apptSearchInput" class="form-control" style="width: 220px;" placeholder="Search patient, phone, doctor..." oninput="filterAppointmentsTable()">
+                            <select id="apptStatusFilter" class="form-control" style="width: 150px;" onchange="filterAppointmentsTable()">
+                                <option value="all">All Statuses</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="in_progress">In Treatment</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" onclick="openModal('bookAppointmentModal')">
+                                <i class='bx bx-calendar-plus'></i> Book Appointment
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="loadDashboardData()" title="Refresh appointments">
+                                <i class='bx bx-refresh'></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Appointment Filter Pills -->
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;" id="apptFilterPills">
+                        <button type="button" class="filter-pill active" onclick="setApptFilter('all', this)">
+                            <i class='bx bx-list-ul'></i> All Bookings <span class="pill-count" id="countApptAll">0</span>
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setApptFilter('upcoming', this)">
+                            <i class='bx bx-time-five'></i> Upcoming / Future <span class="pill-count" id="countApptUpcoming">0</span>
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setApptFilter('today', this)">
+                            <i class='bx bx-calendar-check'></i> Today's Schedule <span class="pill-count" id="countApptToday">0</span>
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setApptFilter('completed', this)">
+                            <i class='bx bx-check-double'></i> Completed <span class="pill-count" id="countApptCompleted">0</span>
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setApptFilter('cancelled', this)">
+                            <i class='bx bx-x-circle'></i> Cancelled <span class="pill-count" id="countApptCancelled">0</span>
                         </button>
                     </div>
 
@@ -861,13 +895,13 @@
                         <table class="rec-table">
                             <thead>
                                 <tr>
-                                    <th>Date & Time</th>
-                                    <th>Patient</th>
+                                    <th>Date & Time Slot</th>
+                                    <th>Patient Information</th>
                                     <th>Attending Doctor</th>
-                                    <th>Service</th>
-                                    <th>Station</th>
+                                    <th>Dental Procedure</th>
+                                    <th>Operatory Station</th>
                                     <th>Status</th>
-                                    <th style="text-align: right;">Action</th>
+                                    <th style="text-align: right;">Appointment Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="appointmentsTableBody">
@@ -1698,10 +1732,178 @@
                     <input type="text" id="manageQueueCancelReason" class="form-control" placeholder="Reason for cancellation or no-show...">
                 </div>
 
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem; flex-wrap: wrap; gap: 8px;">
+                    <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openRescheduleFromQueue()" style="color: #4F46E5; border-color: #C7D2FE;">
+                        <i class='bx bx-calendar-edit'></i> Reschedule to Another Date
+                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('manageQueueModal')">Cancel</button>
+                        <button type="submit" id="btnSaveManageQueue" class="btn-rec btn-rec-primary">
+                            <i class='bx bx-check-circle'></i> Save & Update Queue
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: RESCHEDULE APPOINTMENT (R-007) ─────────────────── -->
+    <div id="rescheduleAppointmentModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 540px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-calendar-edit text-primary' style="font-size: 20px;"></i> Reschedule Appointment
+                    </h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--rec-text-muted);">
+                        Assign an alternate consultation date, time slot, or attending doctor.
+                    </p>
+                </div>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('rescheduleAppointmentModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-reschedule-appointment" onsubmit="submitRescheduleAppointment(event)">
+                <input type="hidden" id="reschedApptId">
+
+                <!-- Current Appointment Summary Banner -->
+                <div style="background: #F8FAFC; border: 1px solid var(--rec-border); border-radius: 10px; padding: 12px; margin-bottom: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--rec-text-muted);">Current Booking</span>
+                        <span id="reschedCurrentStatusBadge" class="status-pill scheduled">Scheduled</span>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 800; color: var(--rec-text);" id="reschedPatientName">Patient Name</div>
+                    <div style="display: flex; gap: 14px; font-size: 12px; color: var(--rec-text-muted); margin-top: 4px; flex-wrap: wrap;">
+                        <span><i class='bx bx-calendar text-primary'></i> <strong id="reschedCurrentDate">2026-10-17</strong></span>
+                        <span><i class='bx bx-time text-primary'></i> <strong id="reschedCurrentTime">09:00 AM</strong></span>
+                        <span><i class='bx bx-user-check text-primary'></i> <strong id="reschedCurrentDoctor">Dr. Maria Santos</strong></span>
+                    </div>
+                </div>
+
+                <!-- New Date and Doctor Selection -->
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>New Consultation Date *</label>
+                        <input type="date" id="reschedNewDate" class="form-control" required onchange="handleRescheduleDoctorOrDateChange()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Attending Doctor *</label>
+                        <select id="reschedDoctorSelect" class="form-control" required onchange="handleRescheduleDoctorOrDateChange()">
+                            <!-- Populated with doctors -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- New Time Slot and Operatory Chair -->
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Available Time Slot *</label>
+                        <select id="reschedTimeSlot" class="form-control" required>
+                            <!-- Populated dynamically based on doctor and clinic settings -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Operatory Station</label>
+                        <select id="reschedOperatoryChair" class="form-control">
+                            <option value="Operatory Chair 1">Operatory Chair 1</option>
+                            <option value="Operatory Chair 2">Operatory Chair 2</option>
+                            <option value="Operatory Chair 3">Operatory Chair 3</option>
+                            <option value="Operatory Chair 4">Operatory Chair 4</option>
+                            <option value="Surgical Suite">Surgical Suite</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Reschedule Reason -->
+                <div class="form-group">
+                    <label>Reason for Rescheduling</label>
+                    <select id="reschedReasonSelect" class="form-control" onchange="handleReschedReasonChange(this.value)">
+                        <option value="Patient requested schedule adjustment">Patient requested alternate date / time</option>
+                        <option value="Doctor schedule conflict / Emergency leave">Attending Doctor unavailable / On Leave</option>
+                        <option value="Clinic operatory maintenance">Operatory maintenance / Clinic priority</option>
+                        <option value="Patient illness or personal conflict">Patient personal conflict / Medical condition</option>
+                        <option value="Other">Other reason (Specify below)</option>
+                    </select>
+                </div>
+
+                <div id="reschedCustomReasonGroup" class="form-group" style="display: none;">
+                    <label>Specify Custom Reason *</label>
+                    <input type="text" id="reschedCustomReason" class="form-control" placeholder="Provide reason for record keeping...">
+                </div>
+
                 <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
-                    <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('manageQueueModal')">Cancel</button>
-                    <button type="submit" id="btnSaveManageQueue" class="btn-rec btn-rec-primary">
-                        <i class='bx bx-check-circle'></i> Save & Update Queue
+                    <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('rescheduleAppointmentModal')">Cancel</button>
+                    <button type="submit" id="btnSubmitReschedule" class="btn-rec btn-rec-primary">
+                        <i class='bx bx-calendar-check'></i> Confirm & Save Reschedule
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: MANAGE APPOINTMENT DETAILS (R-007) ───────────────── -->
+    <div id="manageApptModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 520px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-edit text-primary' style="font-size: 20px;"></i> Edit Appointment Details
+                    </h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--rec-text-muted);">
+                        Update procedure, assigned doctor, station, or patient notes.
+                    </p>
+                </div>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('manageApptModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-manage-appt" onsubmit="submitManageAppt(event)">
+                <input type="hidden" id="manageApptId">
+
+                <div class="form-group">
+                    <label>Patient</label>
+                    <input type="text" id="manageApptPatientName" class="form-control" disabled style="background: #F1F5F9; font-weight: 700;">
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Procedure / Dental Service *</label>
+                        <input type="text" id="manageApptService" class="form-control" required placeholder="e.g. Oral Prophylaxis, Extraction">
+                    </div>
+                    <div class="form-group">
+                        <label>Attending Doctor</label>
+                        <select id="manageApptDoctor" class="form-control">
+                            <!-- Populated with doctors -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Operatory Station</label>
+                        <select id="manageApptChair" class="form-control">
+                            <option value="Operatory Chair 1">Operatory Chair 1</option>
+                            <option value="Operatory Chair 2">Operatory Chair 2</option>
+                            <option value="Operatory Chair 3">Operatory Chair 3</option>
+                            <option value="Operatory Chair 4">Operatory Chair 4</option>
+                            <option value="Surgical Suite">Surgical Suite</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        <input type="tel" id="manageApptPhone" class="form-control" placeholder="Patient contact number">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Appointment Notes</label>
+                    <textarea id="manageApptNotes" class="form-control" rows="2" placeholder="Clinical notes, patient preferences..."></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                    <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('manageApptModal')">Cancel</button>
+                    <button type="submit" id="btnSaveManageAppt" class="btn-rec btn-rec-primary">
+                        <i class='bx bx-save'></i> Save Changes
                     </button>
                 </div>
             </form>
@@ -2216,61 +2418,190 @@
             }).join('');
         }
 
-        function renderAppointments(upcoming, todayQueue) {
-            const tbody = document.getElementById('appointmentsTableBody');
-            const all = [...todayQueue, ...upcoming];
+        let currentApptFilter = 'all';
+        let cachedAllAppointments = [];
 
-            if (all.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--rec-text-muted);">No appointment records found.</td></tr>`;
+        function renderAppointments(upcoming, todayQueue) {
+            const all = [...(todayQueue || []), ...(upcoming || [])];
+            cachedAllAppointments = all;
+
+            // Calculate filter pill counts
+            const todayIso = new Date().toISOString().split('T')[0];
+            const countAll = all.length;
+            const countUpcoming = all.filter(a => {
+                const d = (a.appointment_date || a.date || '').substring(0, 10);
+                const s = (a.status || '').toLowerCase();
+                return d >= todayIso && s === 'scheduled';
+            }).length;
+            const countToday = all.filter(a => {
+                const d = (a.appointment_date || a.date || '').substring(0, 10);
+                return d === todayIso;
+            }).length;
+            const countCompleted = all.filter(a => (a.status || '').toLowerCase() === 'completed').length;
+            const countCancelled = all.filter(a => ['cancelled', 'no_show'].includes((a.status || '').toLowerCase())).length;
+
+            if (document.getElementById('countApptAll')) document.getElementById('countApptAll').textContent = countAll;
+            if (document.getElementById('countApptUpcoming')) document.getElementById('countApptUpcoming').textContent = countUpcoming;
+            if (document.getElementById('countApptToday')) document.getElementById('countApptToday').textContent = countToday;
+            if (document.getElementById('countApptCompleted')) document.getElementById('countApptCompleted').textContent = countCompleted;
+            if (document.getElementById('countApptCancelled')) document.getElementById('countApptCancelled').textContent = countCancelled;
+
+            filterAppointmentsTable();
+        }
+
+        function setApptFilter(filterName, btnEl) {
+            currentApptFilter = filterName;
+            document.querySelectorAll('#apptFilterPills .filter-pill').forEach(btn => btn.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            filterAppointmentsTable();
+        }
+
+        function filterAppointmentsTable() {
+            const tbody = document.getElementById('appointmentsTableBody');
+            if (!tbody) return;
+
+            const q = (document.getElementById('apptSearchInput')?.value || '').toLowerCase().trim();
+            const filterDropdown = document.getElementById('apptStatusFilter')?.value || 'all';
+            const todayIso = new Date().toISOString().split('T')[0];
+
+            const filtered = (cachedAllAppointments || []).filter(apt => {
+                const name = (apt.patient_name || '').toLowerCase();
+                const phone = (apt.patient_phone || '').toLowerCase();
+                const doc = (apt.doctor_name || '').toLowerCase();
+                const service = (apt.service_name || '').toLowerCase();
+                const status = (apt.status || 'scheduled').toLowerCase();
+                const aptDate = (apt.appointment_date || apt.date || '').substring(0, 10);
+
+                const matchesText = !q || name.includes(q) || phone.includes(q) || doc.includes(q) || service.includes(q);
+
+                let matchesPill = true;
+                if (currentApptFilter === 'upcoming') {
+                    matchesPill = (aptDate >= todayIso && status === 'scheduled');
+                } else if (currentApptFilter === 'today') {
+                    matchesPill = (aptDate === todayIso);
+                } else if (currentApptFilter === 'completed') {
+                    matchesPill = (status === 'completed');
+                } else if (currentApptFilter === 'cancelled') {
+                    matchesPill = (status === 'cancelled' || status === 'no_show');
+                }
+
+                let matchesStatus = true;
+                if (filterDropdown !== 'all') {
+                    matchesStatus = (status === filterDropdown);
+                }
+
+                return matchesText && matchesPill && matchesStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);"><i class='bx bx-calendar-x' style="font-size: 32px; display: block; margin-bottom: 6px; color: var(--rec-primary);"></i>No appointment records match the selected filter.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = all.map(apt => {
-                const date = apt.appointment_date || apt.date || 'TBD';
+            tbody.innerHTML = filtered.map(apt => {
+                const date = (apt.appointment_date || apt.date || 'TBD').substring(0, 10);
                 const time = apt.time_slot || apt.appointment_time || '09:00 AM';
                 const status = (apt.status || 'scheduled').toLowerCase();
+                const isToday = (date === todayIso);
 
                 let actionBtn = '';
                 if (status === 'scheduled') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <button class="btn-rec btn-rec-primary btn-rec-sm" title="Check In to Today's Queue" onclick="updateApptStatus('${apt._id}', 'checked_in')">
+                            ${isToday ? `
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" title="Arrival Check In to Today's Queue" onclick="updateApptStatus('${apt._id}', 'checked_in')">
                                 <i class='bx bx-check-circle'></i> Check In
+                            </button>` : ''}
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
+                                <i class='bx bx-calendar-edit'></i> Reschedule
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Edit Procedure & Details" onclick="openManageApptModal('${apt._id}')">
+                                <i class='bx bx-edit'></i>
                             </button>
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel this appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
-                                <i class='bx bx-x-circle'></i> Cancel
+                                <i class='bx bx-x-circle'></i>
                             </button>
                         </div>
                     `;
                 } else if (status === 'checked_in' || status === 'waiting') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel this appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
-                                <i class='bx bx-x-circle'></i> Cancel
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" style="background: #2563eb;" title="Call to Operatory Chair" onclick="updateApptStatus('${apt._id}', 'in_progress')">
+                                <i class='bx bx-chair'></i> Call
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule to Another Date" onclick="openRescheduleModal('${apt._id}')">
+                                <i class='bx bx-calendar-edit'></i> Reschedule
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Edit Procedure & Details" onclick="openManageApptModal('${apt._id}')">
+                                <i class='bx bx-edit'></i>
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i>
                             </button>
                         </div>
                     `;
                 } else if (status === 'in_progress') {
-                    actionBtn = `<span style="font-size: 11px; color: #2563eb; font-weight: 600;"><i class='bx bx-chair'></i> In Chair</span>`;
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <span style="font-size: 11px; color: #2563eb; font-weight: 700;"><i class='bx bx-chair'></i> In Chair</span>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Edit Procedure & Details" onclick="openManageApptModal('${apt._id}')" style="margin-left: 4px;">
+                                <i class='bx bx-edit'></i>
+                            </button>
+                        </div>
+                    `;
                 } else if (status === 'completed') {
-                    actionBtn = `<span style="font-size: 11px; color: #059669; font-weight: 600;"><i class='bx bx-check'></i> Done</span>`;
-                } else if (status === 'cancelled') {
-                    actionBtn = `<span style="font-size: 11px; color: #94a3b8; font-style: italic;"><i class='bx bx-x-circle'></i> Cancelled</span>`;
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <span style="font-size: 11px; color: #059669; font-weight: 700;"><i class='bx bx-check'></i> Done</span>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="View / Edit Details" onclick="openManageApptModal('${apt._id}')" style="margin-left: 4px;">
+                                <i class='bx bx-show'></i>
+                            </button>
+                        </div>
+                    `;
+                } else if (status === 'cancelled' || status === 'no_show') {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <span style="font-size: 11px; color: #94a3b8; font-style: italic;">${escapeHtml(status.toUpperCase())}</span>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #059669; border-color: #A7F3D0; margin-left: 4px;" title="Rebook or Reschedule Appointment" onclick="openRescheduleModal('${apt._id}')">
+                                <i class='bx bx-calendar-plus'></i> Reschedule
+                            </button>
+                        </div>
+                    `;
                 }
+
+                const reschedBadge = apt.rescheduled_at
+                    ? `<span style="background: #EEF2FF; color: #4F46E5; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px;" title="Rescheduled on ${escapeHtml(apt.rescheduled_at)}"><i class='bx bx-revision'></i> Rescheduled</span>`
+                    : '';
 
                 return `
                     <tr>
                         <td>
-                            <div style="font-weight: 700; font-size: 12px;">${escapeHtml(date)}</div>
-                            <div style="font-size: 11px; color: var(--rec-primary); font-weight: 600;">${escapeHtml(time)}</div>
+                            <div style="font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                                <span>${escapeHtml(date)}</span>
+                                ${isToday ? `<span style="background: var(--rec-primary); color: white; font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 3px;">TODAY</span>` : ''}
+                            </div>
+                            <div style="font-size: 11px; color: var(--rec-primary); font-weight: 600; margin-top: 1px;">
+                                <i class='bx bx-time mr-1'></i> ${escapeHtml(time)}
+                            </div>
                         </td>
                         <td>
-                            <div style="font-weight: 600; font-size: 13px;">${escapeHtml(apt.patient_name || 'Patient')}</div>
+                            <div style="font-weight: 700; font-size: 13px; color: var(--rec-text);">
+                                ${escapeHtml(apt.patient_name || 'Patient')}
+                            </div>
                             <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(apt.patient_phone || '')}</div>
                         </td>
-                        <td style="font-size: 12px;">${escapeHtml(apt.doctor_name || 'Attending Doctor')}</td>
-                        <td style="font-size: 12px;">${escapeHtml(apt.service_name || 'Consultation')}</td>
-                        <td style="font-size: 12px;">${escapeHtml(apt.operatory_chair || 'Operatory Chair 1')}</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 12px; color: var(--rec-text);">${escapeHtml(apt.doctor_name || 'Attending Doctor')}</div>
+                        </td>
+                        <td>
+                            <div style="font-size: 12px;">${escapeHtml(apt.service_name || 'Consultation')}</div>
+                            ${reschedBadge}
+                        </td>
+                        <td>
+                            <span style="font-size: 11px; background: rgba(14, 177, 177, 0.08); padding: 3px 8px; border-radius: 6px; font-weight: 600;">
+                                ${escapeHtml(apt.operatory_chair || 'Operatory Chair 1')}
+                            </span>
+                        </td>
                         <td>
                             <span class="status-pill ${status}">
                                 <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
@@ -2361,6 +2692,18 @@
             const manageDocSel = document.getElementById('manageQueueDoctor');
             if (manageDocSel && doctors) {
                 manageDocSel.innerHTML = '<option value="">-- Keep Current / Any Available --</option>' +
+                    doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
+            }
+
+            const reschedDocSel = document.getElementById('reschedDoctorSelect');
+            if (reschedDocSel && doctors) {
+                reschedDocSel.innerHTML = '<option value="First Available Doctor">First Available Doctor (Any On-Duty)</option>' +
+                    doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
+            }
+
+            const manageApptDocSel = document.getElementById('manageApptDoctor');
+            if (manageApptDocSel && doctors) {
+                manageApptDocSel.innerHTML = '<option value="">-- Keep Current / Any --</option>' +
                     doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
             }
 
@@ -3167,6 +3510,233 @@
             } catch (err) {
                 console.error("Cancellation error:", err);
                 showToast('error', 'Network error while cancelling appointment.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        // ── R-007: Appointment Rescheduling & Record Management Handlers ──
+        function openRescheduleModal(appointmentId) {
+            const all = [...(cachedData.queue_today || []), ...(cachedData.upcoming_appointments || [])];
+            const apt = all.find(a => (a._id || '') === appointmentId);
+            if (!apt) {
+                showToast('error', 'Appointment record not found.');
+                return;
+            }
+
+            document.getElementById('reschedApptId').value = apt._id;
+            document.getElementById('reschedPatientName').textContent = apt.patient_name || 'Patient';
+            const curDate = (apt.appointment_date || apt.date || '').substring(0, 10);
+            const curTime = apt.time_slot || apt.appointment_time || '09:00 AM';
+            const curDoc = apt.doctor_name || 'Assigned Doctor';
+
+            document.getElementById('reschedCurrentDate').textContent = curDate;
+            document.getElementById('reschedCurrentTime').textContent = curTime;
+            document.getElementById('reschedCurrentDoctor').textContent = curDoc;
+
+            const badge = document.getElementById('reschedCurrentStatusBadge');
+            if (badge) {
+                const st = (apt.status || 'scheduled').toLowerCase();
+                badge.className = `status-pill ${st}`;
+                badge.textContent = st.replace('_', ' ').toUpperCase();
+            }
+
+            const todayIso = new Date().toISOString().split('T')[0];
+            const newDateInput = document.getElementById('reschedNewDate');
+            if (newDateInput) {
+                newDateInput.min = todayIso;
+                newDateInput.value = curDate >= todayIso ? curDate : todayIso;
+            }
+
+            const docSel = document.getElementById('reschedDoctorSelect');
+            if (docSel) {
+                docSel.value = apt.doctor_name || 'First Available Doctor';
+            }
+
+            const chairSel = document.getElementById('reschedOperatoryChair');
+            if (chairSel) {
+                chairSel.value = apt.operatory_chair || 'Operatory Chair 1';
+            }
+
+            // Populate time slots for selected doctor
+            handleRescheduleDoctorOrDateChange(apt.time_slot || apt.appointment_time);
+
+            const reasonSel = document.getElementById('reschedReasonSelect');
+            if (reasonSel) reasonSel.value = 'Patient requested schedule adjustment';
+            const customGroup = document.getElementById('reschedCustomReasonGroup');
+            if (customGroup) customGroup.style.display = 'none';
+
+            openModal('rescheduleAppointmentModal');
+        }
+
+        function openRescheduleFromQueue() {
+            const queueId = document.getElementById('manageQueueApptId')?.value;
+            closeModal('manageQueueModal');
+            if (queueId) {
+                openRescheduleModal(queueId);
+            }
+        }
+
+        function handleRescheduleDoctorOrDateChange(presetTime) {
+            const docName = document.getElementById('reschedDoctorSelect')?.value;
+            const timeSel = document.getElementById('reschedTimeSlot');
+            if (!timeSel) return;
+
+            const docObj = (cachedData.doctors || []).find(d => d.full_name === docName);
+            const masterSlots = (cachedData.clinic_settings && cachedData.clinic_settings.time_slots && cachedData.clinic_settings.time_slots.length > 0)
+                ? cachedData.clinic_settings.time_slots
+                : ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
+
+            const slots = (docObj && docObj.time_slots && docObj.time_slots.length > 0)
+                ? docObj.time_slots
+                : masterSlots;
+
+            const prev = presetTime || timeSel.value;
+            timeSel.innerHTML = slots.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+            if (slots.includes(prev)) {
+                timeSel.value = prev;
+            }
+        }
+
+        function handleReschedReasonChange(val) {
+            const customGroup = document.getElementById('reschedCustomReasonGroup');
+            if (customGroup) {
+                customGroup.style.display = (val === 'Other') ? 'block' : 'none';
+            }
+        }
+
+        async function submitRescheduleAppointment(e) {
+            if (e && e.preventDefault) e.preventDefault();
+
+            const apptId = document.getElementById('reschedApptId')?.value;
+            const newDate = document.getElementById('reschedNewDate')?.value;
+            const newTime = document.getElementById('reschedTimeSlot')?.value;
+            const doctorName = document.getElementById('reschedDoctorSelect')?.value;
+            const operatoryChair = document.getElementById('reschedOperatoryChair')?.value;
+            const reasonSel = document.getElementById('reschedReasonSelect')?.value;
+            let finalReason = reasonSel;
+            if (reasonSel === 'Other') {
+                finalReason = document.getElementById('reschedCustomReason')?.value.trim() || 'Other reason';
+            }
+
+            if (!apptId || !newDate || !newTime) {
+                showToast('error', 'Please select a valid date and time slot.');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitReschedule');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Rescheduling...";
+            }
+
+            try {
+                const res = await fetch('api/receptionist/reschedule_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        appointment_id: apptId,
+                        appointment_date: newDate,
+                        time_slot: newTime,
+                        doctor_name: doctorName,
+                        operatory_chair: operatoryChair,
+                        reason: finalReason
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    closeModal('rescheduleAppointmentModal');
+                    showToast('success', data.message || 'Appointment rescheduled successfully.');
+                    await loadDashboardData();
+                } else {
+                    showToast('error', data.message || 'Failed to reschedule appointment.');
+                }
+            } catch (err) {
+                console.error("Reschedule error:", err);
+                showToast('error', 'Network error rescheduling appointment.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        // Manage Appointment Details (Procedure, notes, doctor, chair)
+        function openManageApptModal(appointmentId) {
+            const all = [...(cachedData.queue_today || []), ...(cachedData.upcoming_appointments || [])];
+            const apt = all.find(a => (a._id || '') === appointmentId);
+            if (!apt) {
+                showToast('error', 'Appointment record not found.');
+                return;
+            }
+
+            document.getElementById('manageApptId').value = apt._id;
+            document.getElementById('manageApptPatientName').value = apt.patient_name || 'Patient';
+            document.getElementById('manageApptService').value = apt.service_name || 'Dental Consultation';
+
+            const docSel = document.getElementById('manageApptDoctor');
+            if (docSel) docSel.value = apt.doctor_name || '';
+
+            const chairSel = document.getElementById('manageApptChair');
+            if (chairSel) chairSel.value = apt.operatory_chair || 'Operatory Chair 1';
+
+            const phoneInput = document.getElementById('manageApptPhone');
+            if (phoneInput) phoneInput.value = apt.patient_phone || '';
+
+            const notesInput = document.getElementById('manageApptNotes');
+            if (notesInput) notesInput.value = apt.notes || '';
+
+            openModal('manageApptModal');
+        }
+
+        async function submitManageAppt(e) {
+            if (e && e.preventDefault) e.preventDefault();
+
+            const apptId = document.getElementById('manageApptId')?.value;
+            if (!apptId) return;
+
+            const serviceName = document.getElementById('manageApptService')?.value;
+            const doctorName = document.getElementById('manageApptDoctor')?.value;
+            const operatoryChair = document.getElementById('manageApptChair')?.value;
+            const patientPhone = document.getElementById('manageApptPhone')?.value;
+            const notes = document.getElementById('manageApptNotes')?.value;
+
+            const btn = document.getElementById('btnSaveManageAppt');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Saving...";
+            }
+
+            try {
+                const res = await fetch('api/receptionist/update_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        appointment_id: apptId,
+                        service_name: serviceName,
+                        doctor_name: doctorName,
+                        operatory_chair: operatoryChair,
+                        patient_phone: patientPhone,
+                        notes: notes
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    closeModal('manageApptModal');
+                    showToast('success', data.message || 'Appointment details updated successfully.');
+                    await loadDashboardData();
+                } else {
+                    showToast('error', data.message || 'Failed to update appointment.');
+                }
+            } catch (err) {
+                console.error("Manage appt error:", err);
+                showToast('error', 'Network error updating appointment.');
             } finally {
                 if (btn) {
                     btn.disabled = false;

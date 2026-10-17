@@ -485,7 +485,7 @@
                                 <th>Dental Procedure / Treatment</th>
                                 <th>Operatory Station</th>
                                 <th>Status / Queue Number</th>
-                                <th>Front-Desk Notes</th>
+                                <th style="text-align: right;">Appointment Actions</th>
                             </tr>
                         </thead>
                         <tbody id="upcomingTableBody">
@@ -627,6 +627,98 @@
                     </button>
                 </div>
             </form>
+    <!-- ── MODAL: RESCHEDULE APPOINTMENT (CLIENT SELF-SERVICE) ─────── -->
+    <div id="clientReschedModal" class="modal-overlay">
+        <div class="modal-dialog">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--pat-border); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-calendar-edit text-primary'></i> Reschedule My Appointment
+                </h3>
+                <button type="button" class="btn-pat-secondary btn-sm" onclick="closeClientReschedModal()"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-client-resched" onsubmit="submitClientReschedule(event)">
+                <input type="hidden" id="clientReschedApptId">
+
+                <!-- Current Booking Details -->
+                <div style="background: #F8FAFC; border: 1px solid var(--pat-border); border-radius: 8px; padding: 12px; margin-bottom: 1rem;">
+                    <div style="font-size: 11px; font-weight: 700; color: var(--pat-text-muted); text-transform: uppercase;">Current Appointment</div>
+                    <div style="font-size: 14px; font-weight: 800; color: var(--pat-text); margin-top: 2px;" id="clientReschedCurrentService">Dental Consultation</div>
+                    <div style="display: flex; gap: 12px; font-size: 12px; color: var(--pat-text-muted); margin-top: 4px;">
+                        <span><i class='bx bx-calendar text-primary'></i> <strong id="clientReschedCurrentDate">2026-10-20</strong></span>
+                        <span><i class='bx bx-time text-primary'></i> <strong id="clientReschedCurrentTime">10:00 AM</strong></span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Select Attending Doctor</label>
+                    <select id="clientReschedDoctorSelect" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;" onchange="handleClientReschedDoctorChange()">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">New Appointment Date *</label>
+                        <input type="date" id="clientReschedDateInput" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">New Time Slot *</label>
+                        <select id="clientReschedTimeSelect" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Reason for Rescheduling</label>
+                    <input type="text" id="clientReschedReasonInput" class="form-control" placeholder="Optional note for reception..." style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--pat-border); padding-top: 1rem;">
+                    <button type="button" class="btn-pat-secondary" onclick="closeClientReschedModal()">Cancel</button>
+                    <button type="submit" id="btnConfirmClientResched" class="btn-pat-primary">
+                        <i class='bx bx-calendar-check'></i> Save Rescheduled Date
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: CANCEL APPOINTMENT (CLIENT SELF-SERVICE) ─────────── -->
+    <div id="clientCancelModal" class="modal-overlay">
+        <div class="modal-dialog" style="max-width: 440px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--pat-border); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #DC2626; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-x-circle'></i> Cancel Appointment
+                </h3>
+                <button type="button" class="btn-pat-secondary btn-sm" onclick="closeClientCancelModal()"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-client-cancel" onsubmit="submitClientCancel(event)">
+                <input type="hidden" id="clientCancelApptId">
+                <p style="font-size: 13px; color: var(--pat-text); margin: 0 0 1rem 0;">
+                    Are you sure you want to cancel your upcoming appointment on <strong id="clientCancelApptDate">--</strong>?
+                </p>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Reason for Cancellation</label>
+                    <select id="clientCancelReasonSelect" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                        <option value="Personal schedule conflict">Personal schedule conflict</option>
+                        <option value="Symptoms resolved / feeling better">Symptoms resolved</option>
+                        <option value="Transportation issue">Transportation issue</option>
+                        <option value="Financial reasons">Financial reasons</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--pat-border); padding-top: 1rem;">
+                    <button type="button" class="btn-pat-secondary" onclick="closeClientCancelModal()">Keep Appointment</button>
+                    <button type="submit" id="btnConfirmClientCancel" class="btn-pat-secondary" style="background: #DC2626; color: white; border-color: #DC2626;">
+                        <i class='bx bx-x'></i> Confirm Cancellation
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -739,6 +831,24 @@
                     ? `<span style="background: #FEF3C7; color: #B45309; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; margin-left: 6px;"><i class='bx bx-walk'></i> Queue #${escapeHtml(apt.queue_number)}</span>`
                     : '';
 
+                let actionBtns = '';
+                if (statusClass === 'scheduled') {
+                    actionBtns = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-pat-secondary" style="padding: 4px 8px; font-size: 11px; color: #4F46E5; border-color: #C7D2FE;" onclick="openClientReschedModal('${apt._id}')" title="Reschedule Date & Time">
+                                <i class='bx bx-calendar-edit'></i> Reschedule
+                            </button>
+                            <button class="btn-pat-secondary" style="padding: 4px 8px; font-size: 11px; color: #DC2626; border-color: #FCA5A5;" onclick="openClientCancelModal('${apt._id}')" title="Cancel this appointment">
+                                <i class='bx bx-x-circle'></i> Cancel
+                            </button>
+                        </div>
+                    `;
+                } else if (statusClass === 'checked_in' || statusClass === 'waiting') {
+                    actionBtns = `<div style="text-align: right;"><span style="font-size: 11px; color: #0284C7; font-weight: 700;"><i class='bx bx-time'></i> In Lobby Queue</span></div>`;
+                } else {
+                    actionBtns = `<div style="text-align: right;"><span style="font-size: 11px; color: var(--pat-text-muted);">${escapeHtml(statusClass.toUpperCase())}</span></div>`;
+                }
+
                 return `
                     <tr>
                         <td>
@@ -754,7 +864,9 @@
                             </span>
                             ${queueBadge}
                         </td>
-                        <td style="font-size: 12px; color: var(--pat-text-muted);">${escapeHtml(apt.notes || '--')}</td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            ${actionBtns}
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -948,6 +1060,185 @@
 
         function closeBookModal() {
             document.getElementById('bookModal').style.display = 'none';
+        }
+
+        // ── Client Self-Service Rescheduling Handlers ─────────────────
+        function openClientReschedModal(aptId) {
+            if (!clientData || !clientData.upcoming_appointments) return;
+            const apt = clientData.upcoming_appointments.find(a => (a._id || a.id) === aptId);
+            if (!apt) {
+                showToast('error', 'Appointment not found.');
+                return;
+            }
+
+            document.getElementById('clientReschedApptId').value = aptId;
+            document.getElementById('clientReschedCurrentService').textContent = apt.service_name || 'Dental Consultation';
+            document.getElementById('clientReschedCurrentDate').textContent = apt.date || '--';
+            document.getElementById('clientReschedCurrentTime').textContent = apt.time || '--';
+
+            // Populate Doctors
+            const docSel = document.getElementById('clientReschedDoctorSelect');
+            const doctors = clientData.doctors || [];
+            docSel.innerHTML = '<option value="First Available Doctor">First Available Doctor</option>' +
+                doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
+            
+            if (apt.doctor_name && doctors.some(d => d.full_name === apt.doctor_name)) {
+                docSel.value = apt.doctor_name;
+            } else {
+                docSel.value = 'First Available Doctor';
+            }
+
+            // Min date is today
+            const dateInp = document.getElementById('clientReschedDateInput');
+            dateInp.min = todayIso;
+            dateInp.value = apt.date && apt.date >= todayIso ? apt.date : todayIso;
+
+            // Trigger doctor change to refresh time slots
+            handleClientReschedDoctorChange();
+
+            // Set current time slot if present
+            const timeSel = document.getElementById('clientReschedTimeSelect');
+            if (apt.time) {
+                for (let i = 0; i < timeSel.options.length; i++) {
+                    if (timeSel.options[i].value === apt.time) {
+                        timeSel.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            document.getElementById('clientReschedReasonInput').value = '';
+            document.getElementById('clientReschedModal').style.display = 'flex';
+        }
+
+        function closeClientReschedModal() {
+            document.getElementById('clientReschedModal').style.display = 'none';
+        }
+
+        function handleClientReschedDoctorChange() {
+            const docSel = document.getElementById('clientReschedDoctorSelect');
+            const timeSel = document.getElementById('clientReschedTimeSelect');
+            if (!docSel || !timeSel) return;
+
+            const chosen = docSel.value;
+            const doctors = (clientData && clientData.doctors) || [];
+            const docObj = doctors.find(d => d.full_name === chosen);
+
+            const clinicSettings = (clientData && clientData.clinic_settings) || {};
+            const masterSlots = (clinicSettings && clinicSettings.time_slots && clinicSettings.time_slots.length > 0)
+                ? clinicSettings.time_slots
+                : ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
+
+            let slots = (docObj && docObj.time_slots && docObj.time_slots.length > 0)
+                ? docObj.time_slots
+                : null;
+
+            if (!slots && docObj) {
+                let start = docObj.opening_time || '08:00 AM';
+                let end = docObj.closing_time || '05:00 PM';
+                if (docObj.schedule_days) {
+                    const m = docObj.schedule_days.match(/\((.*?)\s*-\s*(.*?)\)/);
+                    if (m) { start = m[1].trim(); end = m[2].trim(); }
+                }
+                slots = calculateSlotsFromRangeClient(start, end, docObj.lunch_break !== false && docObj.lunch_break !== 'no');
+            }
+
+            if (!slots || slots.length === 0) {
+                slots = masterSlots;
+            }
+
+            const curVal = timeSel.value;
+            timeSel.innerHTML = slots.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+            if (slots.includes(curVal)) timeSel.value = curVal;
+        }
+
+        async function submitClientReschedule(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnConfirmClientResched');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Rescheduling...";
+
+            const payload = {
+                appointment_id: document.getElementById('clientReschedApptId').value,
+                doctor_name: document.getElementById('clientReschedDoctorSelect').value,
+                appointment_date: document.getElementById('clientReschedDateInput').value,
+                time_slot: document.getElementById('clientReschedTimeSelect').value,
+                reason: document.getElementById('clientReschedReasonInput').value.trim() || 'Patient self-service reschedule'
+            };
+
+            try {
+                const res = await fetch('api/client/reschedule_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.status === 200 && data.status === 'success') {
+                    showToast('success', data.message || 'Appointment rescheduled successfully!');
+                    closeClientReschedModal();
+                    loadClientDashboard();
+                } else {
+                    showToast('error', data.message || 'Failed to reschedule appointment.');
+                }
+            } catch (err) {
+                showToast('error', 'Network error while rescheduling.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        // ── Client Self-Service Cancellation Handlers ─────────────────
+        function openClientCancelModal(aptId) {
+            if (!clientData || !clientData.upcoming_appointments) return;
+            const apt = clientData.upcoming_appointments.find(a => (a._id || a.id) === aptId);
+            if (!apt) {
+                showToast('error', 'Appointment not found.');
+                return;
+            }
+
+            document.getElementById('clientCancelApptId').value = aptId;
+            document.getElementById('clientCancelApptDate').textContent = `${apt.date || 'Scheduled Date'} at ${apt.time || ''}`;
+            document.getElementById('clientCancelModal').style.display = 'flex';
+        }
+
+        function closeClientCancelModal() {
+            document.getElementById('clientCancelModal').style.display = 'none';
+        }
+
+        async function submitClientCancel(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnConfirmClientCancel');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Cancelling...";
+
+            const payload = {
+                appointment_id: document.getElementById('clientCancelApptId').value,
+                reason: document.getElementById('clientCancelReasonSelect').value
+            };
+
+            try {
+                const res = await fetch('api/client/cancel_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.status === 200 && data.status === 'success') {
+                    showToast('success', data.message || 'Appointment cancelled.');
+                    closeClientCancelModal();
+                    loadClientDashboard();
+                } else {
+                    showToast('error', data.message || 'Failed to cancel appointment.');
+                }
+            } catch (err) {
+                showToast('error', 'Network error while cancelling.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
         }
 
         function switchClientTab(tabId, btn) {
