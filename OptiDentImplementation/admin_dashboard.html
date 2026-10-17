@@ -1319,11 +1319,8 @@
                                 <button class="btn-primary text-xs" onclick="exportReportsPdf()" style="padding: 8px 16px; background: #0eb1b1; border-color: #0c9696; display: inline-flex; align-items: center; gap: 6px;">
                                     <i class='bx bx-printer'></i> Official PDF Report
                                 </button>
-                                <button class="btn-outline text-xs" onclick="exportReportsCsv()" style="padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px;">
-                                    <i class='bx bx-download'></i> Export CSV
-                                </button>
-                                <button class="btn-outline text-xs" onclick="loadReportsWorkspace()" title="Refresh live report data" style="padding: 8px 12px;">
-                                    <i class='bx bx-refresh'></i>
+                                <button class="btn-outline text-xs" onclick="loadReportsWorkspace()" title="Refresh live report data" style="padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class='bx bx-refresh'></i> Refresh
                                 </button>
                             </div>
                         </div>
@@ -1447,62 +1444,6 @@
                             </div>
                             <div class="text-2xl font-bold text-dark" id="reportKpiAudit">0</div>
                             <div class="text-xs text-dim mt-1" id="reportKpiAuditSub">System operations logged</div>
-                        </div>
-                    </div>
-
-                    <!-- 4 Visual Analytics Breakdown Cards -->
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; margin-bottom: 20px;">
-                        
-                        <!-- Top Procedures -->
-                        <div class="card bg-white soft-shadow-sm p-3">
-                            <div class="flex items-center justify-between border-bottom pb-1 mb-2">
-                                <h3 class="font-bold text-sm text-dark m-0 flex items-center gap-1">
-                                    <i class='bx bx-pulse text-primary'></i> Top Dental Procedures
-                                </h3>
-                                <span class="text-xs text-dim">Volume &amp; Share</span>
-                            </div>
-                            <div id="reportProceduresBreakdown" class="flex flex-col gap-2" style="font-size: 12px; min-height: 120px;">
-                                <div class="text-dim text-center py-3"><i class='bx bx-loader-alt bx-spin mr-1'></i> Loading procedures...</div>
-                            </div>
-                        </div>
-
-                        <!-- Appointment Status Ratios -->
-                        <div class="card bg-white soft-shadow-sm p-3">
-                            <div class="flex items-center justify-between border-bottom pb-1 mb-2">
-                                <h3 class="font-bold text-sm text-dark m-0 flex items-center gap-1">
-                                    <i class='bx bx-pie-chart-alt-2' style="color: #3b82f6;"></i> Appointment Status Distribution
-                                </h3>
-                                <span class="text-xs text-dim">Status Ratios</span>
-                            </div>
-                            <div id="reportStatusBreakdown" class="flex flex-col gap-2" style="font-size: 12px; min-height: 120px;">
-                                <div class="text-dim text-center py-3"><i class='bx bx-loader-alt bx-spin mr-1'></i> Loading status ratios...</div>
-                            </div>
-                        </div>
-
-                        <!-- Doctor Workloads -->
-                        <div class="card bg-white soft-shadow-sm p-3">
-                            <div class="flex items-center justify-between border-bottom pb-1 mb-2">
-                                <h3 class="font-bold text-sm text-dark m-0 flex items-center gap-1">
-                                    <i class='bx bx-user-voice' style="color: #10b981;"></i> Attending Doctor Workload
-                                </h3>
-                                <span class="text-xs text-dim">Active Dentists</span>
-                            </div>
-                            <div id="reportDoctorBreakdown" class="flex flex-col gap-2" style="font-size: 12px; min-height: 120px;">
-                                <div class="text-dim text-center py-3"><i class='bx bx-loader-alt bx-spin mr-1'></i> Loading doctor workload...</div>
-                            </div>
-                        </div>
-
-                        <!-- Cancellation Root Causes -->
-                        <div class="card bg-white soft-shadow-sm p-3">
-                            <div class="flex items-center justify-between border-bottom pb-1 mb-2">
-                                <h3 class="font-bold text-sm text-dark m-0 flex items-center gap-1">
-                                    <i class='bx bx-x-circle text-danger'></i> Cancellation &amp; No-Show Reasons
-                                </h3>
-                                <span class="text-xs text-dim">Attrition Causes</span>
-                            </div>
-                            <div id="reportCancellationBreakdown" class="flex flex-col gap-2" style="font-size: 12px; min-height: 120px;">
-                                <div class="text-dim text-center py-3"><i class='bx bx-loader-alt bx-spin mr-1'></i> Loading cancellation analysis...</div>
-                            </div>
                         </div>
                     </div>
 
@@ -3768,8 +3709,19 @@
         }
 
         // ============================================================================
+        // ============================================================================
         // SA-009: OPERATIONS & GOVERNANCE REPORTS CONTROLLER
         // ============================================================================
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         const reportsState = {
             category: 'appointments',
             datePreset: 'all_time',
@@ -3832,9 +3784,8 @@
                     doctorsOptionsPopulated = true;
                 }
 
-                // Render components
+                // Render KPI metrics and data tables directly
                 renderReportsKpis(json.metrics || {});
-                renderReportsBreakdowns(json.breakdowns || {}, json.metrics || {});
                 updateReportCategoryCounts(json.data || {});
                 renderReportsTable();
 
@@ -3930,7 +3881,7 @@
             const elPat = document.getElementById('reportKpiPatients');
             const elPatSub = document.getElementById('reportKpiPatientsSub');
             if (elPat) elPat.textContent = (m.total_patients || 0).toLocaleString();
-            if (elPatSub) elPatSub.textContent = `+${m.new_patients_period || 0} registered in range`;
+            if (elPatSub) elPatSub.textContent = `Active registered patients`;
 
             const elAppt = document.getElementById('reportKpiAppointments');
             const elApptSub = document.getElementById('reportKpiAppointmentsSub');
@@ -3956,137 +3907,6 @@
             const elAuditSub = document.getElementById('reportKpiAuditSub');
             if (elAudit) elAudit.textContent = (m.audit_events_count || 0).toLocaleString();
             if (elAuditSub) elAuditSub.textContent = `${m.security_events_count || 0} security events`;
-        }
-
-        function renderReportsBreakdowns(b, m) {
-            // 1. Top Dental Procedures
-            const procContainer = document.getElementById('reportProceduresBreakdown');
-            if (procContainer) {
-                const services = b.services || [];
-                if (services.length === 0) {
-                    procContainer.innerHTML = `<div class="text-dim text-center py-3">No procedure visits recorded in this period.</div>`;
-                } else {
-                    let html = '';
-                    services.slice(0, 5).forEach(s => {
-                        html += `
-                            <div>
-                                <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
-                                    <strong class="text-dark">${escapeHtml(s.service_name)}</strong>
-                                    <span class="text-dim">${s.count} visit(s) &bull; <strong>${s.percentage}%</strong></span>
-                                </div>
-                                <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
-                                    <div style="height: 100%; width: ${Math.min(100, s.percentage)}%; background: #0eb1b1; border-radius: 999px;"></div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    procContainer.innerHTML = html;
-                }
-            }
-
-            // 2. Appointment Status Ratios
-            const statContainer = document.getElementById('reportStatusBreakdown');
-            if (statContainer) {
-                const total = m.total_appointments || 0;
-                if (total === 0) {
-                    statContainer.innerHTML = `<div class="text-dim text-center py-3">No appointments found in this period.</div>`;
-                } else {
-                    const compPct = total > 0 ? Math.round((m.completed_count / total) * 100) : 0;
-                    const progPct = total > 0 ? Math.round((m.in_progress_count / total) * 100) : 0;
-                    const schPct  = total > 0 ? Math.round((m.scheduled_count / total) * 100) : 0;
-                    const canPct  = total > 0 ? Math.round((m.cancelled_count / total) * 100) : 0;
-
-                    statContainer.innerHTML = `
-                        <div>
-                            <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
-                                <span class="font-bold text-dark flex items-center gap-1"><span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Completed Treatments</span>
-                                <span>${m.completed_count || 0} (${compPct}%)</span>
-                            </div>
-                            <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
-                                <div style="height: 100%; width: ${compPct}%; background: #10b981; border-radius: 999px;"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
-                                <span class="font-bold text-dark flex items-center gap-1"><span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; display: inline-block;"></span> In Consultation / Operatory</span>
-                                <span>${m.in_progress_count || 0} (${progPct}%)</span>
-                            </div>
-                            <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
-                                <div style="height: 100%; width: ${progPct}%; background: #3b82f6; border-radius: 999px;"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
-                                <span class="font-bold text-dark flex items-center gap-1"><span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span> Scheduled / Upcoming</span>
-                                <span>${m.scheduled_count || 0} (${schPct}%)</span>
-                            </div>
-                            <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
-                                <div style="height: 100%; width: ${schPct}%; background: #f59e0b; border-radius: 999px;"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
-                                <span class="font-bold text-dark flex items-center gap-1"><span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block;"></span> Cancelled / No-Show</span>
-                                <span>${m.cancelled_count || 0} (${canPct}%)</span>
-                            </div>
-                            <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
-                                <div style="height: 100%; width: ${canPct}%; background: #ef4444; border-radius: 999px;"></div>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-
-            // 3. Doctor Workload
-            const docContainer = document.getElementById('reportDoctorBreakdown');
-            if (docContainer) {
-                const docs = b.doctor_workload || [];
-                if (docs.length === 0) {
-                    docContainer.innerHTML = `<div class="text-dim text-center py-3">No attending doctor sessions in this period.</div>`;
-                } else {
-                    let html = '';
-                    docs.slice(0, 5).forEach(d => {
-                        const pct = d.total_appointments > 0 ? Math.round((d.completed / d.total_appointments) * 100) : 0;
-                        html += `
-                            <div>
-                                <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
-                                    <strong class="text-dark">${escapeHtml(d.name)}</strong>
-                                    <span class="text-dim">${d.total_appointments} total &bull; <strong style="color: #10b981;">${pct}% completed</strong></span>
-                                </div>
-                                <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
-                                    <div style="height: 100%; width: ${Math.min(100, pct)}%; background: #10b981; border-radius: 999px;"></div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    docContainer.innerHTML = html;
-                }
-            }
-
-            // 4. Cancellation Root Causes
-            const cancContainer = document.getElementById('reportCancellationBreakdown');
-            if (cancContainer) {
-                const reasons = b.cancellation_reasons || [];
-                if (reasons.length === 0) {
-                    cancContainer.innerHTML = `<div class="text-dim text-center py-3">Excellent! Zero cancellations recorded in this period.</div>`;
-                } else {
-                    let html = '';
-                    reasons.slice(0, 5).forEach(r => {
-                        html += `
-                            <div>
-                                <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
-                                    <strong class="text-dark">${escapeHtml(r.reason)}</strong>
-                                    <span class="text-dim">${r.count} case(s) &bull; <strong style="color: #ef4444;">${r.percentage}%</strong></span>
-                                </div>
-                                <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
-                                    <div style="height: 100%; width: ${Math.min(100, r.percentage)}%; background: #ef4444; border-radius: 999px;"></div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    cancContainer.innerHTML = html;
-                }
-            }
         }
 
         function filterReportsTableLive(searchVal) {
