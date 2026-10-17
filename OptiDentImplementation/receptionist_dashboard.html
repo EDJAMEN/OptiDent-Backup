@@ -517,6 +517,41 @@
             background: rgba(255, 255, 255, 0.25);
             color: #ffffff;
         }
+        .btn-order-arrow {
+            background: #F1F5F9;
+            border: 1px solid var(--rec-border);
+            border-radius: 4px;
+            width: 22px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            color: var(--rec-text-muted);
+            transition: all 0.15s ease;
+        }
+        .btn-order-arrow:hover {
+            background: var(--rec-primary);
+            color: #ffffff;
+            border-color: var(--rec-primary);
+        }
+        .queue-pos-badge {
+            background: #F1F5F9;
+            color: var(--rec-text);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 6px;
+            display: inline-block;
+            border: 1px solid var(--rec-border);
+            line-height: 1;
+        }
+        .queue-pos-badge.top-rank {
+            background: rgba(14, 177, 177, 0.15);
+            color: var(--rec-primary-dark);
+            border-color: rgba(14, 177, 177, 0.35);
+        }
     </style>
 </head>
 
@@ -674,37 +709,61 @@
             <!-- ── TAB 1: TODAY'S QUEUE & CHECK-IN ──────────────────── -->
             <section id="tab-queue" class="tab-section active">
                 <div class="content-card">
-                    <div class="card-header-bar">
+                    <div class="card-header-bar" style="margin-bottom: 0.75rem;">
                         <div>
-                            <h3 style="margin: 0; font-size: 16px; font-weight: 700;">Today's Patient Queue & Operatory Roster</h3>
-                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">Manage patient arrival, reception check-in, and transfer to operatory chairs.</p>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                <i class='bx bx-list-ol text-primary' style="font-size: 20px;"></i> Today's Patient Queue & Operatory Roster
+                            </h3>
+                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">Manage patient arrival order, queue triage priority, chair transfers, and live status.</p>
                         </div>
                         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                            <input type="text" id="queueSearch" class="form-control" style="width: 200px;" placeholder="Search patient name..." oninput="filterQueueTable()">
+                            <input type="text" id="queueSearch" class="form-control" style="width: 220px;" placeholder="Search name, phone, Q#..." oninput="filterQueueTable()">
                             <select id="queueStatusFilter" class="form-control" style="width: 150px;" onchange="filterQueueTable()">
                                 <option value="all">All Statuses</option>
+                                <option value="checked_in">Waiting Lobby</option>
+                                <option value="in_progress">In Chair</option>
                                 <option value="scheduled">Scheduled</option>
-                                <option value="checked_in">Checked In / Waiting</option>
-                                <option value="in_progress">In Operatory</option>
                                 <option value="completed">Completed</option>
                             </select>
                             <button class="btn-rec btn-rec-primary btn-rec-sm" onclick="openRegisterPatientModal(true)">
                                 <i class='bx bx-walk'></i> Add Walk-in
                             </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="loadDashboardData()" title="Refresh live queue">
+                                <i class='bx bx-refresh'></i>
+                            </button>
                         </div>
+                    </div>
+
+                    <!-- Queue Filter Pills -->
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;" id="queueFilterPills">
+                        <button type="button" class="filter-pill active" onclick="setQueueFilter('all', this)">
+                            <i class='bx bx-list-ul'></i> All Queue <span class="pill-count" id="countQueueAll">0</span>
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setQueueFilter('waiting', this)">
+                            <i class='bx bx-time'></i> Waiting Lobby <span class="pill-count" id="countQueueWaiting">0</span>
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setQueueFilter('in_progress', this)">
+                            <i class='bx bx-chair'></i> In Operatory Chair <span class="pill-count" id="countQueueChair">0</span>
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setQueueFilter('scheduled', this)">
+                            <i class='bx bx-calendar-event'></i> Scheduled <span class="pill-count" id="countQueueScheduled">0</span>
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setQueueFilter('completed', this)">
+                            <i class='bx bx-check-double'></i> Completed <span class="pill-count" id="countQueueCompleted">0</span>
+                        </button>
                     </div>
 
                     <div class="table-container">
                         <table class="rec-table">
                             <thead>
                                 <tr>
-                                    <th>Scheduled Time</th>
-                                    <th>Patient Information</th>
-                                    <th>Assigned Doctor</th>
-                                    <th>Procedure / Service</th>
+                                    <th style="width: 120px;">Queue # & Pos</th>
+                                    <th>Patient & Priority</th>
+                                    <th>Time & Wait Duration</th>
+                                    <th>Doctor & Procedure</th>
                                     <th>Operatory Station</th>
-                                    <th>Current Status</th>
-                                    <th style="text-align: right;">Front-Desk Action</th>
+                                    <th>Queue Status</th>
+                                    <th style="text-align: right;">Queue Management</th>
                                 </tr>
                             </thead>
                             <tbody id="queueTableBody">
@@ -1559,6 +1618,96 @@
         </div>
     </div>
 
+    <!-- ── MODAL: MANAGE PATIENT QUEUE & TRIAGE STATUS (R-006) ───────────── -->
+    <div id="manageQueueModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 540px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-slider-alt text-primary' style="font-size: 20px;"></i> Manage Queue & Status
+                    </h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--rec-text-muted);">
+                        Adjust queue order, triage priority, operatory station, and arrival status.
+                    </p>
+                </div>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('manageQueueModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-manage-queue" onsubmit="submitManageQueue(event)">
+                <input type="hidden" id="manageQueueApptId">
+
+                <!-- Patient & Queue Header Banner -->
+                <div style="background: var(--rec-primary-light); border: 1px solid rgba(14, 177, 177, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 10px; font-weight: 800; color: var(--rec-text-muted); text-transform: uppercase;">Patient Information</div>
+                        <div style="font-size: 14px; font-weight: 800; color: var(--rec-text);" id="manageQueuePatientName">Patient Name</div>
+                        <div style="font-size: 11px; color: var(--rec-text-muted);" id="manageQueueService">Dental Consultation</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span id="manageQueueNumberBadge" style="background: var(--rec-primary); color: white; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 6px;">Q-001</span>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Queue Status *</label>
+                        <select id="manageQueueStatus" class="form-control" required onchange="handleQueueStatusChange(this.value)">
+                            <option value="checked_in">Waiting Lobby</option>
+                            <option value="in_progress">In Operatory Chair</option>
+                            <option value="scheduled">Scheduled / Pre-Arrival</option>
+                            <option value="completed">Completed Visit</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="no_show">No-Show</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Triage Priority *</label>
+                        <select id="manageQueuePriority" class="form-control" required>
+                            <option value="normal">Normal Queue</option>
+                            <option value="senior">Senior Citizen Priority</option>
+                            <option value="pwd">PWD Priority</option>
+                            <option value="urgent">Urgent Consultation</option>
+                            <option value="emergency">🚨 Emergency / Severe Pain</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Operatory Station *</label>
+                        <select id="manageQueueChair" class="form-control">
+                            <option value="Operatory Chair 1">Operatory Chair 1</option>
+                            <option value="Operatory Chair 2">Operatory Chair 2</option>
+                            <option value="Operatory Chair 3">Operatory Chair 3</option>
+                            <option value="Operatory Chair 4">Operatory Chair 4</option>
+                            <option value="Surgical Suite">Surgical Suite</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Attending Doctor</label>
+                        <select id="manageQueueDoctor" class="form-control">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <div id="manageQueueCancelReasonGroup" class="form-group" style="display: none;">
+                    <label>Cancellation Reason</label>
+                    <input type="text" id="manageQueueCancelReason" class="form-control" placeholder="Reason for cancellation or no-show...">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                    <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('manageQueueModal')">Cancel</button>
+                    <button type="submit" id="btnSaveManageQueue" class="btn-rec btn-rec-primary">
+                        <i class='bx bx-check-circle'></i> Save & Update Queue
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Toast Notification Banner -->
     <div id="toastBanner" class="toast-banner">
         <i id="toastIcon" class='bx bx-check-circle' style="font-size: 20px;"></i>
@@ -1729,92 +1878,217 @@
             document.getElementById('kpiCompletedToday').textContent = m.completed_today || 0;
         }
 
-        function renderQueue(queue) {
+        function renderQueue(queue, updateCounts = true) {
             const tbody = document.getElementById('queueTableBody');
+            if (!tbody) return;
+
+            // Update queue filter pill counts
+            if (updateCounts && cachedData.queue_today) {
+                const allApts = cachedData.queue_today;
+                const countAll = allApts.length;
+                const countWaiting = allApts.filter(a => ['checked_in', 'waiting'].includes((a.status || '').toLowerCase())).length;
+                const countChair = allApts.filter(a => (a.status || '').toLowerCase() === 'in_progress').length;
+                const countScheduled = allApts.filter(a => (a.status || '').toLowerCase() === 'scheduled').length;
+                const countCompleted = allApts.filter(a => (a.status || '').toLowerCase() === 'completed').length;
+
+                if (document.getElementById('countQueueAll')) document.getElementById('countQueueAll').textContent = countAll;
+                if (document.getElementById('countQueueWaiting')) document.getElementById('countQueueWaiting').textContent = countWaiting;
+                if (document.getElementById('countQueueChair')) document.getElementById('countQueueChair').textContent = countChair;
+                if (document.getElementById('countQueueScheduled')) document.getElementById('countQueueScheduled').textContent = countScheduled;
+                if (document.getElementById('countQueueCompleted')) document.getElementById('countQueueCompleted').textContent = countCompleted;
+            }
+
             if (!queue || queue.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);"><i class='bx bx-coffee' style="font-size: 32px; display: block; margin-bottom: 6px; color: var(--rec-primary);"></i>No appointments on schedule for today.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);"><i class='bx bx-coffee' style="font-size: 32px; display: block; margin-bottom: 6px; color: var(--rec-primary);"></i>No patients found matching the queue filter.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = queue.map(apt => {
+            tbody.innerHTML = queue.map((apt, index) => {
                 const status = (apt.status || 'scheduled').toLowerCase();
+                const isWaiting = (status === 'checked_in' || status === 'waiting');
+                const isInChair = (status === 'in_progress');
+                const priority = (apt.queue_priority || 'normal').toLowerCase();
+
+                // 1. Order & Position Column
+                let posHtml = '';
+                if (isWaiting) {
+                    const rankNum = apt.queue_position || (index + 1);
+                    const isTop = (rankNum === 1);
+                    posHtml = `
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                <button type="button" class="btn-order-arrow" onclick="moveQueueOrder('${apt._id}', 'up')" title="Move Up in Waiting Queue">
+                                    <i class='bx bxs-chevron-up'></i>
+                                </button>
+                                <button type="button" class="btn-order-arrow" onclick="moveQueueOrder('${apt._id}', 'down')" title="Move Down in Waiting Queue">
+                                    <i class='bx bxs-chevron-down'></i>
+                                </button>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                <span class="queue-pos-badge ${isTop ? 'top-rank' : ''}">#${rankNum}</span>
+                                ${apt.queue_number ? `<span style="font-size: 10px; font-weight: 800; color: var(--rec-primary);">${escapeHtml(apt.queue_number)}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                } else if (isInChair) {
+                    posHtml = `
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; font-size: 10px; font-weight: 800; padding: 3px 6px; border-radius: 6px;">CHAIR</span>
+                            ${apt.queue_number ? `<span style="font-size: 10px; font-weight: 800; color: #2563EB;">${escapeHtml(apt.queue_number)}</span>` : ''}
+                        </div>
+                    `;
+                } else {
+                    posHtml = `
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="background: #F1F5F9; color: #64748B; font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 6px;">SLOT</span>
+                            ${apt.queue_number ? `<span style="font-size: 10px; font-weight: 800; color: var(--rec-text-muted);">${escapeHtml(apt.queue_number)}</span>` : ''}
+                        </div>
+                    `;
+                }
+
+                // 2. Patient & Priority Column
+                let priorityBadge = '';
+                if (priority === 'emergency') {
+                    priorityBadge = `<span style="background: #FEE2E2; color: #DC2626; border: 1px solid #FCA5A5; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;" onclick="openManageQueueModal('${apt._id}')" title="Emergency triage priority (Click to edit)"><i class='bx bxs-hot'></i> Emergency</span>`;
+                } else if (priority === 'urgent') {
+                    priorityBadge = `<span style="background: #FEF3C7; color: #D97706; border: 1px solid #FCD34D; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;" onclick="openManageQueueModal('${apt._id}')" title="Urgent consultation (Click to edit)"><i class='bx bxs-bell-ring'></i> Urgent</span>`;
+                } else if (priority === 'senior' || priority === 'pwd') {
+                    priorityBadge = `<span style="background: #EEF2FF; color: #4F46E5; border: 1px solid #C7D2FE; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;" onclick="openManageQueueModal('${apt._id}')" title="Priority lane (Click to edit)"><i class='bx bxs-user-check'></i> ${priority.toUpperCase()} Priority</span>`;
+                } else {
+                    priorityBadge = `<span style="background: #F8FAFC; color: #64748B; border: 1px solid #E2E8F0; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;" onclick="openManageQueueModal('${apt._id}')" title="Normal queue (Click to edit)">Normal</span>`;
+                }
+
+                const walkinBadge = apt.is_walkin 
+                    ? `<span style="background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 4px; display: inline-flex; align-items: center; gap: 2px;"><i class='bx bx-walk'></i> Walk-in</span>` 
+                    : '';
+
+                // 3. Time & Wait Duration Column
+                let waitBadge = '';
+                if (isWaiting && apt.elapsed_wait_minutes !== undefined) {
+                    const waitM = parseInt(apt.elapsed_wait_minutes, 10);
+                    if (waitM >= 30) {
+                        waitBadge = `<div style="margin-top: 3px;"><span style="background: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px;"><i class='bx bx-stopwatch'></i> ${waitM}m wait</span></div>`;
+                    } else if (waitM >= 15) {
+                        waitBadge = `<div style="margin-top: 3px;"><span style="background: #FEF3C7; color: #B45309; border: 1px solid #FCD34D; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px;"><i class='bx bx-time'></i> ${waitM}m wait</span></div>`;
+                    } else {
+                        waitBadge = `<div style="margin-top: 3px;"><span style="background: #E0F2FE; color: #0369A1; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px;"><i class='bx bx-time'></i> ${waitM}m wait</span></div>`;
+                    }
+                } else if (isInChair) {
+                    waitBadge = `<div style="margin-top: 3px;"><span style="background: #DBEAFE; color: #1D4ED8; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px;"><i class='bx bx-pulse'></i> Active In Chair</span></div>`;
+                }
+
+                // 4. Status Badge
                 let statusLabel = 'Scheduled';
                 let pillClass = 'scheduled';
-                let actionBtn = '';
-
                 if (status === 'scheduled') {
                     statusLabel = 'Scheduled';
                     pillClass = 'scheduled';
-                    actionBtn = `
-                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <button class="btn-rec btn-rec-primary btn-rec-sm" onclick="updateApptStatus('${apt._id}', 'checked_in')">
-                                <i class='bx bx-check-circle'></i> Check In
-                            </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel this appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
-                                <i class='bx bx-x-circle'></i> Cancel
-                            </button>
-                        </div>
-                    `;
-                } else if (status === 'checked_in' || status === 'waiting') {
+                } else if (isWaiting) {
                     statusLabel = 'In Waiting Lobby';
                     pillClass = 'waiting';
-                    actionBtn = `
-                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <button class="btn-rec btn-rec-primary btn-rec-sm" style="background: #2563eb;" onclick="updateApptStatus('${apt._id}', 'in_progress')">
-                                <i class='bx bx-chair'></i> Call to Chair
-                            </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel / Remove from queue" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
-                                <i class='bx bx-x-circle'></i> Cancel
-                            </button>
-                        </div>
-                    `;
-                } else if (status === 'in_progress') {
+                } else if (isInChair) {
                     statusLabel = 'In Operatory Chair';
                     pillClass = 'in_progress';
-                    actionBtn = `
-                        <button class="btn-rec btn-rec-primary btn-rec-sm" style="background: #059669;" onclick="updateApptStatus('${apt._id}', 'completed')">
-                            <i class='bx bx-check-double'></i> Complete
-                        </button>
-                    `;
                 } else if (status === 'completed') {
                     statusLabel = 'Visit Completed';
                     pillClass = 'completed';
-                    actionBtn = `<span style="font-size: 11px; color: #059669; font-weight: 600;"><i class='bx bx-badge-check'></i> Done</span>`;
                 } else if (status === 'cancelled') {
                     statusLabel = 'Cancelled';
                     pillClass = 'cancelled';
-                    actionBtn = `<span style="font-size: 11px; color: #94a3b8; font-style: italic;"><i class='bx bx-x-circle'></i> Cancelled</span>`;
+                } else if (status === 'no_show') {
+                    statusLabel = 'No-Show';
+                    pillClass = 'cancelled';
                 }
 
-                const isWalkin = !!apt.is_walkin;
-                const queueBadge = apt.queue_number 
-                    ? `<span style="background: var(--rec-primary); color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-right: 4px;">${escapeHtml(apt.queue_number)}</span>` 
-                    : '';
-                const walkinBadge = isWalkin 
-                    ? `<span style="background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 4px; display: inline-flex; align-items: center; gap: 2px;"><i class='bx bx-walk'></i> Walk-in</span>` 
-                    : '';
+                // 5. Actions
+                let actionBtn = '';
+                if (status === 'scheduled') {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" title="Arrival Check In" onclick="updateApptStatus('${apt._id}', 'checked_in')">
+                                <i class='bx bx-check-circle'></i> Check In
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Manage Queue Details" onclick="openManageQueueModal('${apt._id}')">
+                                <i class='bx bx-slider'></i>
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i>
+                            </button>
+                        </div>
+                    `;
+                } else if (isWaiting) {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" style="background: #2563eb;" title="Call patient to dental chair" onclick="updateApptStatus('${apt._id}', 'in_progress')">
+                                <i class='bx bx-chair'></i> Call to Chair
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Manage Status, Chair & Priority" onclick="openManageQueueModal('${apt._id}')">
+                                <i class='bx bx-slider'></i> Manage
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel / Remove from queue" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i>
+                            </button>
+                        </div>
+                    `;
+                } else if (isInChair) {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" style="background: #059669;" title="Complete Consultation" onclick="updateApptStatus('${apt._id}', 'completed')">
+                                <i class='bx bx-check-double'></i> Complete
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Transfer Chair / Manage" onclick="openManageQueueModal('${apt._id}')">
+                                <i class='bx bx-slider'></i> Chair
+                            </button>
+                        </div>
+                    `;
+                } else if (status === 'completed') {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <span style="font-size: 11px; color: #059669; font-weight: 700;"><i class='bx bx-badge-check'></i> Done</span>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="View / Adjust Details" onclick="openManageQueueModal('${apt._id}')" style="margin-left: 6px;">
+                                <i class='bx bx-show'></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <span style="font-size: 11px; color: #94a3b8; font-style: italic;">${statusLabel}</span>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="View / Reopen Queue" onclick="openManageQueueModal('${apt._id}')" style="margin-left: 6px;">
+                                <i class='bx bx-refresh'></i>
+                            </button>
+                        </div>
+                    `;
+                }
 
                 return `
                     <tr>
-                        <td style="font-weight: 700; color: var(--rec-primary); white-space: nowrap;">
-                            ${queueBadge}<i class='bx bx-time mr-1'></i> ${escapeHtml(apt.time_slot || apt.appointment_time || '09:00 AM')}
+                        <td>
+                            ${posHtml}
                         </td>
                         <td>
-                            <div style="font-weight: 700; font-size: 13px; display: flex; align-items: center; flex-wrap: wrap;">
-                                ${escapeHtml(apt.patient_name || 'Patient')}
+                            <div style="font-weight: 700; font-size: 13px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+                                <span>${escapeHtml(apt.patient_name || 'Patient')}</span>
                                 ${walkinBadge}
                             </div>
-                            <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(apt.patient_phone || 'No phone')}</div>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                                ${priorityBadge}
+                                <span style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(apt.patient_phone || '')}</span>
+                            </div>
                         </td>
                         <td>
-                            <div style="font-weight: 600; font-size: 12px; color: var(--rec-text);">${escapeHtml(apt.doctor_name || 'Dr. Assigned')}</div>
+                            <div style="font-weight: 700; color: var(--rec-primary); font-size: 12px; white-space: nowrap;">
+                                <i class='bx bx-time mr-1'></i> ${escapeHtml(apt.time_slot || apt.appointment_time || '09:00 AM')}
+                            </div>
+                            ${waitBadge}
                         </td>
                         <td>
-                            <div style="font-size: 12px;">${escapeHtml(apt.service_name || 'Dental Consultation')}</div>
+                            <div style="font-weight: 600; font-size: 12px; color: var(--rec-text);">${escapeHtml(apt.doctor_name || 'Assigned Doctor')}</div>
+                            <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(apt.service_name || 'General Consultation')}</div>
                         </td>
                         <td>
-                            <span style="font-size: 11px; background: rgba(14, 177, 177, 0.08); padding: 3px 8px; border-radius: 6px; font-weight: 600;">
-                                ${escapeHtml(apt.operatory_chair || 'Operatory Chair 1')}
+                            <span style="font-size: 11px; background: rgba(14, 177, 177, 0.08); color: var(--rec-primary-dark); padding: 3px 8px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class='bx bx-chair'></i> ${escapeHtml(apt.operatory_chair || 'Operatory Chair 1')}
                             </span>
                         </td>
                         <td>
@@ -2084,6 +2358,12 @@
                     doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
             }
 
+            const manageDocSel = document.getElementById('manageQueueDoctor');
+            if (manageDocSel && doctors) {
+                manageDocSel.innerHTML = '<option value="">-- Keep Current / Any Available --</option>' +
+                    doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
+            }
+
             // System-wide Master Operating Hours Time Slots
             const masterSlots = (clinicSettings && clinicSettings.time_slots && clinicSettings.time_slots.length > 0)
                 ? clinicSettings.time_slots
@@ -2157,20 +2437,206 @@
             document.getElementById('viewHeading').textContent = headings[tabId] || "Receptionist Workspace";
         }
 
+        // ── R-006: Patient Queue Organization & Order Management ──────────────
+        let currentQueueFilter = 'all';
+
+        function setQueueFilter(filterName, btnEl) {
+            currentQueueFilter = filterName;
+            document.querySelectorAll('#queueFilterPills .filter-pill').forEach(btn => btn.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            filterQueueTable();
+        }
+
         // Filter today's queue
         function filterQueueTable() {
-            const q = document.getElementById('queueSearch').value.toLowerCase();
-            const filter = document.getElementById('queueStatusFilter').value;
+            const q = (document.getElementById('queueSearch')?.value || '').toLowerCase().trim();
+            const filterDropdown = document.getElementById('queueStatusFilter')?.value || 'all';
 
-            const filtered = cachedData.queue_today.filter(apt => {
+            const filtered = (cachedData.queue_today || []).filter(apt => {
                 const name = (apt.patient_name || '').toLowerCase();
+                const phone = (apt.patient_phone || '').toLowerCase();
+                const qNum = (apt.queue_number || '').toLowerCase();
+                const doc = (apt.doctor_name || '').toLowerCase();
                 const status = (apt.status || 'scheduled').toLowerCase();
-                const matchesText = name.includes(q);
-                const matchesStatus = filter === 'all' || (filter === 'checked_in' && (status === 'checked_in' || status === 'waiting')) || status === filter;
-                return matchesText && matchesStatus;
+
+                const matchesText = !q || name.includes(q) || phone.includes(q) || qNum.includes(q) || doc.includes(q);
+
+                // Matches pill filter
+                let matchesPill = true;
+                if (currentQueueFilter === 'waiting') {
+                    matchesPill = (status === 'checked_in' || status === 'waiting');
+                } else if (currentQueueFilter === 'in_progress') {
+                    matchesPill = (status === 'in_progress');
+                } else if (currentQueueFilter === 'scheduled') {
+                    matchesPill = (status === 'scheduled');
+                } else if (currentQueueFilter === 'completed') {
+                    matchesPill = (status === 'completed');
+                }
+
+                // Matches status dropdown filter
+                let matchesStatus = true;
+                if (filterDropdown !== 'all') {
+                    if (filterDropdown === 'checked_in') {
+                        matchesStatus = (status === 'checked_in' || status === 'waiting');
+                    } else {
+                        matchesStatus = (status === filterDropdown);
+                    }
+                }
+
+                return matchesText && matchesPill && matchesStatus;
             });
 
-            renderQueue(filtered);
+            renderQueue(filtered, false);
+        }
+
+        // Move queue order (Up or Down in Waiting Queue)
+        async function moveQueueOrder(appointmentId, direction) {
+            try {
+                const res = await fetch('api/receptionist/reorder_queue.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        appointment_id: appointmentId,
+                        action: 'move_' + direction,
+                        direction: direction
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('success', data.message);
+                    loadDashboardData();
+                } else if (data.status === 'info') {
+                    showToast('info', data.message);
+                } else {
+                    showToast('error', data.message || 'Unable to move queue order.');
+                }
+            } catch (err) {
+                console.error("Queue reorder error:", err);
+                showToast('error', 'Network error moving queue order.');
+            }
+        }
+
+        // Open Manage Queue & Status Modal
+        function openManageQueueModal(appointmentId) {
+            const apt = (cachedData.queue_today || []).find(a => (a._id || '') === appointmentId);
+            if (!apt) {
+                showToast('error', 'Appointment record not found in active queue.');
+                return;
+            }
+
+            document.getElementById('manageQueueApptId').value = apt._id;
+            document.getElementById('manageQueuePatientName').textContent = apt.patient_name || 'Patient';
+            document.getElementById('manageQueueService').textContent = (apt.service_name || 'Dental Consultation') + ' • ' + (apt.time_slot || apt.appointment_time || '');
+
+            const badgeEl = document.getElementById('manageQueueNumberBadge');
+            if (badgeEl) {
+                badgeEl.textContent = apt.queue_number || 'No Q#';
+            }
+
+            const statusSel = document.getElementById('manageQueueStatus');
+            if (statusSel) {
+                statusSel.value = apt.status || 'scheduled';
+            }
+
+            const prioritySel = document.getElementById('manageQueuePriority');
+            if (prioritySel) {
+                prioritySel.value = (apt.queue_priority || 'normal').toLowerCase();
+            }
+
+            const chairSel = document.getElementById('manageQueueChair');
+            if (chairSel) {
+                chairSel.value = apt.operatory_chair || 'Operatory Chair 1';
+            }
+
+            const docSel = document.getElementById('manageQueueDoctor');
+            if (docSel) {
+                docSel.value = apt.doctor_name || '';
+            }
+
+            const cancelReasonInput = document.getElementById('manageQueueCancelReason');
+            if (cancelReasonInput) {
+                cancelReasonInput.value = apt.cancellation_reason || '';
+            }
+
+            handleQueueStatusChange(statusSel ? statusSel.value : '');
+            openModal('manageQueueModal');
+        }
+
+        function handleQueueStatusChange(statusVal) {
+            const cancelGroup = document.getElementById('manageQueueCancelReasonGroup');
+            if (cancelGroup) {
+                cancelGroup.style.display = (statusVal === 'cancelled' || statusVal === 'no_show') ? 'block' : 'none';
+            }
+        }
+
+        // Submit Manage Queue & Status Modal
+        async function submitManageQueue(e) {
+            if (e && e.preventDefault) e.preventDefault();
+
+            const apptId = document.getElementById('manageQueueApptId')?.value;
+            if (!apptId) {
+                showToast('error', 'Missing appointment ID.');
+                return;
+            }
+
+            const status = document.getElementById('manageQueueStatus')?.value;
+            const priority = document.getElementById('manageQueuePriority')?.value;
+            const operatoryChair = document.getElementById('manageQueueChair')?.value;
+            const doctorName = document.getElementById('manageQueueDoctor')?.value;
+            const cancelReason = document.getElementById('manageQueueCancelReason')?.value;
+
+            const btn = document.getElementById('btnSaveManageQueue');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i> Saving...`;
+            }
+
+            try {
+                // Update status, operatory station, doctor, and priority
+                const statusRes = await fetch('api/receptionist/update_appointment_status.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        appointment_id: apptId,
+                        status: status,
+                        operatory_chair: operatoryChair,
+                        doctor_name: doctorName,
+                        queue_priority: priority,
+                        cancellation_reason: cancelReason
+                    })
+                });
+                const statusData = await statusRes.json();
+
+                if (statusData.status === 'success') {
+                    // Also trigger reorder/priority endpoint to maintain priority weight normalization
+                    await fetch('api/receptionist/reorder_queue.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            appointment_id: apptId,
+                            action: 'set_priority',
+                            priority: priority,
+                            operatory_chair: operatoryChair,
+                            doctor_name: doctorName
+                        })
+                    });
+
+                    closeModal('manageQueueModal');
+                    showToast('success', 'Queue organization and status successfully updated.');
+                    loadDashboardData();
+                } else {
+                    showToast('error', statusData.message || 'Failed to update queue status.');
+                }
+            } catch (err) {
+                console.error("Manage queue error:", err);
+                showToast('error', 'Network error updating queue.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
         }
 
         // ── R-004: Patient Search, History & Fast Returning Patient Handlers ──

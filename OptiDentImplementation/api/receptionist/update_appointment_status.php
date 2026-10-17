@@ -47,15 +47,46 @@ if (!$apt) {
     exit;
 }
 
+$todayDate = date('Y-m-d');
 $updateFields = [
     'status' => $newStatus,
     'updated_at' => date('Y-m-d H:i:s'),
     'updated_by' => $_SESSION['email'] ?? 'receptionist'
 ];
 
-if ($newStatus === 'checked_in') {
-    $updateFields['checked_in_at'] = date('Y-m-d H:i:s');
-} elseif ($newStatus === 'cancelled') {
+if (!empty($input['operatory_chair'])) {
+    $updateFields['operatory_chair'] = trim($input['operatory_chair']);
+}
+if (!empty($input['doctor_name'])) {
+    $updateFields['doctor_name'] = trim($input['doctor_name']);
+}
+if (!empty($input['queue_priority'])) {
+    $updateFields['queue_priority'] = strtolower(trim($input['queue_priority']));
+}
+
+if ($newStatus === 'checked_in' || $newStatus === 'waiting') {
+    if (empty($apt['checked_in_at'])) {
+        $updateFields['checked_in_at'] = date('Y-m-d H:i:s');
+    }
+    // Generate daily queue number if patient doesn't have one
+    if (empty($apt['queue_number'])) {
+        $todayAppts = $db->find('appointments', ['appointment_date' => $todayDate]);
+        $updateFields['queue_number'] = sprintf("Q-%03d", count($todayAppts) + 1);
+    }
+    if (empty($apt['queue_order'])) {
+        $waitingAppts = $db->find('appointments', [
+            'appointment_date' => $todayDate,
+            'status' => ['$in' => ['checked_in', 'waiting']]
+        ]);
+        $updateFields['queue_order'] = count($waitingAppts) + 1;
+    }
+} elseif ($newStatus === 'in_progress') {
+    if (empty($apt['in_chair_at'])) {
+        $updateFields['in_chair_at'] = date('Y-m-d H:i:s');
+    }
+} elseif ($newStatus === 'completed') {
+    $updateFields['completed_at'] = date('Y-m-d H:i:s');
+} elseif ($newStatus === 'cancelled' || $newStatus === 'no_show') {
     $updateFields['cancelled_at'] = date('Y-m-d H:i:s');
     $updateFields['cancelled_by'] = $_SESSION['email'] ?? 'receptionist';
     $updateFields['cancellation_reason'] = trim($input['reason'] ?? $input['cancellation_reason'] ?? 'Cancelled by receptionist');

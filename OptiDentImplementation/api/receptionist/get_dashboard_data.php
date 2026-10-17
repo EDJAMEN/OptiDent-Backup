@@ -47,25 +47,98 @@ foreach ($appointments as $apt) {
     $status = strtolower($apt['status'] ?? 'scheduled');
 
     if ($aptDate === $today) {
-        $queueToday[] = $apt;
+        // Calculate waiting duration
+        $waitMinutes = 0;
         if (in_array($status, ['checked_in', 'waiting'])) {
+            $checkedInAt = $apt['checked_in_at'] ?? $apt['created_at'] ?? '';
+            if (!empty($checkedInAt)) {
+                $waitMinutes = max(0, round((time() - strtotime($checkedInAt)) / 60));
+            }
             $checkedInCount++;
         } elseif ($status === 'in_progress') {
             $inChairCount++;
         } elseif ($status === 'completed') {
             $completedToday++;
         }
+
+        $apt['elapsed_wait_minutes'] = $waitMinutes;
+        $apt['queue_priority'] = strtolower($apt['queue_priority'] ?? 'normal');
+        $queueToday[] = $apt;
     } elseif ($aptDate > $today) {
         $upcomingAppointments[] = $apt;
     }
 }
 
-// Sort today's queue by appointment time
+// Sort today's queue by clinical workflow hierarchy & queue priority (R-006 Queue Management)
 usort($queueToday, function($a, $b) {
+    $statusOrder = [
+        'in_progress' => 1,
+        'checked_in'  => 2,
+        'waiting'     => 2,
+        'scheduled'   => 3,
+        'completed'   => 4,
+        'cancelled'   => 5,
+        'no_show'     => 5
+    ];
+
+    $sA = $statusOrder[strtolower($a['status'] ?? 'scheduled')] ?? 9;
+    $sB = $statusOrder[strtolower($b['status'] ?? 'scheduled')] ?? 9;
+
+    if ($sA !== $sB) {
+        return $sA - $sB;
+    }
+
+    // Within In-Progress / In-Chair: sort by called_to_chair_at or queue_number
+    if ($sA === 1) {
+        $tA = $a['in_chair_at'] ?? $a['called_to_chair_at'] ?? '';
+        $tB = $b['in_chair_at'] ?? $b['called_to_chair_at'] ?? '';
+        return strcmp($tA, $tB);
+    }
+
+    // Within Checked-In / Waiting Lobby: Sort by Priority, Queue Order, then Check-in time
+    if ($sA === 2) {
+        $priorityWeights = [
+            'emergency' => 1,
+            'urgent'    => 2,
+            'senior'    => 3,
+            'pwd'       => 3,
+            'normal'    => 4
+        ];
+        $pA = $priorityWeights[strtolower($a['queue_priority'] ?? 'normal')] ?? 4;
+        $pB = $priorityWeights[strtolower($b['queue_priority'] ?? 'normal')] ?? 4;
+        if ($pA !== $pB) {
+            return $pA - $pB;
+        }
+
+        // Check explicit queue_order
+        $oA = isset($a['queue_order']) ? (int)$a['queue_order'] : 999;
+        $oB = isset($b['queue_order']) ? (int)$b['queue_order'] : 999;
+        if ($oA !== $oB) {
+            return $oA - $oB;
+        }
+
+        $tA = $a['checked_in_at'] ?? $a['time_slot'] ?? $a['appointment_time'] ?? '';
+        $tB = $b['checked_in_at'] ?? $b['time_slot'] ?? $b['appointment_time'] ?? '';
+        return strcmp($tA, $tB);
+    }
+
+    // Within Scheduled: Sort by appointment time slot
     $tA = $a['time_slot'] ?? $a['appointment_time'] ?? '00:00';
     $tB = $b['time_slot'] ?? $b['appointment_time'] ?? '00:00';
     return strcmp($tA, $tB);
 });
+
+// Assign live queue position index for waiting patients (#1, #2, #3...)
+$waitingRank = 1;
+foreach ($queueToday as &$qItem) {
+    $st = strtolower($qItem['status'] ?? '');
+    if (in_array($st, ['checked_in', 'waiting'])) {
+        $qItem['queue_position'] = $waitingRank++;
+    } else {
+        $qItem['queue_position'] = null;
+    }
+}
+unset($qItem);
 
 // Sort upcoming appointments
 usort($upcomingAppointments, function($a, $b) {
