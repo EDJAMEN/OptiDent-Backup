@@ -281,6 +281,10 @@
                         <i class='bx bx-archive'></i>
                         <span>Data Archives (SA-007)</span>
                     </li>
+                    <li id="menu-tab-reports" onclick="switchTab('reports')">
+                        <i class='bx bx-bar-chart-alt-2'></i>
+                        <span>Reports & Monitoring (SA-009)</span>
+                    </li>
                     <li class="mt-auto" onclick="toggleTheme()"
                         style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 20px !important; cursor: pointer;">
                         <div class="theme-switch w-full">
@@ -1294,6 +1298,267 @@
                     </div>
                 </div>
 
+                <!-- ==========================================
+                     TAB 8: REPORTS & MONITORING (SA-009)
+                     ========================================== -->
+                <div id="tab-reports" class="admin-tab" style="display: none;">
+                    
+                    <!-- Top Action / Header Card -->
+                    <div class="card bg-white soft-shadow-sm mb-2" style="padding: 16px 20px;">
+                        <div class="flex items-center justify-between gap-1" style="flex-wrap: wrap;">
+                            <div>
+                                <div class="flex items-center gap-1 mb-1">
+                                    <h2 class="text-xl font-bold text-dark m-0">Operations & Governance Reports</h2>
+                                    <span class="badge" style="background: rgba(14, 177, 177, 0.12); color: #0eb1b1; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 4px;">SA-009 Intelligence</span>
+                                </div>
+                                <p class="text-xs text-dim m-0">
+                                    Real-time monitoring across patient registrations, appointments, operatory queues, cancellations, and system security events.
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-1" style="flex-wrap: wrap;">
+                                <button class="btn-primary text-xs" onclick="exportReportsPdf()" style="padding: 8px 16px; background: #0eb1b1; border-color: #0c9696; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class='bx bx-printer'></i> Official PDF Report
+                                </button>
+                                <button class="btn-outline text-xs" onclick="exportReportsCsv()" style="padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class='bx bx-download'></i> Export CSV
+                                </button>
+                                <button class="btn-outline text-xs" onclick="loadReportsWorkspace()" title="Refresh live report data" style="padding: 8px 12px;">
+                                    <i class='bx bx-refresh'></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Multi-Parameter Filters Toolbar -->
+                    <div class="card bg-white soft-shadow-sm mb-3" style="padding: 14px 18px;">
+                        <div class="flex items-center gap-2" style="flex-wrap: wrap;">
+                            <!-- Date Preset -->
+                            <div style="flex: 1; min-width: 170px;">
+                                <label class="text-xs font-bold text-dim uppercase d-block mb-1">Date Period</label>
+                                <select id="reportsDatePreset" class="form-control text-xs" onchange="onReportsDatePresetChange()" style="padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%;">
+                                    <option value="all_time">All Time Records</option>
+                                    <option value="today">Today Only</option>
+                                    <option value="yesterday">Yesterday</option>
+                                    <option value="this_week">This Week</option>
+                                    <option value="this_month">This Month</option>
+                                    <option value="last_30_days">Last 30 Days</option>
+                                    <option value="custom">Custom Date Range...</option>
+                                </select>
+                            </div>
+
+                            <!-- Custom Date Range (hidden unless custom selected) -->
+                            <div id="reportsCustomDateContainer" style="display: none; align-items: center; gap: 6px; flex: 2; min-width: 250px;">
+                                <div style="flex: 1;">
+                                    <label class="text-xs font-bold text-dim uppercase d-block mb-1">From Date</label>
+                                    <input type="date" id="reportsDateFrom" onchange="onReportsFilterChange()" class="form-control text-xs" style="padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%;">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label class="text-xs font-bold text-dim uppercase d-block mb-1">To Date</label>
+                                    <input type="date" id="reportsDateTo" onchange="onReportsFilterChange()" class="form-control text-xs" style="padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%;">
+                                </div>
+                            </div>
+
+                            <!-- Doctor Filter -->
+                            <div style="flex: 1; min-width: 170px;">
+                                <label class="text-xs font-bold text-dim uppercase d-block mb-1">Attending Doctor</label>
+                                <select id="reportsDoctorFilter" class="form-control text-xs" onchange="onReportsFilterChange()" style="padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%;">
+                                    <option value="all">All Attending Doctors</option>
+                                </select>
+                            </div>
+
+                            <!-- Appointment Status Filter -->
+                            <div style="flex: 1; min-width: 170px;">
+                                <label class="text-xs font-bold text-dim uppercase d-block mb-1">Appointment Status</label>
+                                <select id="reportsStatusFilter" class="form-control text-xs" onchange="onReportsFilterChange()" style="padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%;">
+                                    <option value="all">All Statuses</option>
+                                    <option value="completed">Completed Only</option>
+                                    <option value="scheduled">Scheduled / Booked</option>
+                                    <option value="in_progress">In Consultation / Chair</option>
+                                    <option value="cancelled">Cancelled / No-Show</option>
+                                </select>
+                            </div>
+
+                            <!-- Reset Button -->
+                            <div style="display: flex; align-items: flex-end; padding-bottom: 2px;">
+                                <button type="button" class="btn-outline text-xs" onclick="resetReportsFilters()" style="padding: 7px 12px; height: 32px;" title="Reset Filters">
+                                    <i class='bx bx-reset mr-1'></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6 Metric KPI Summary Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px;">
+                        <!-- Patients Card -->
+                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" onclick="setReportTableCategory('patients')" style="cursor: pointer; border-left: 4px solid #0eb1b1;">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs text-dim font-bold uppercase">Patients Registry</span>
+                                <i class='bx bx-group text-primary' style="font-size: 20px;"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-dark" id="reportKpiPatients">0</div>
+                            <div class="text-xs text-dim mt-1" id="reportKpiPatientsSub">Active clinical records</div>
+                        </div>
+
+                        <!-- Appointments Volume -->
+                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" onclick="setReportTableCategory('appointments')" style="cursor: pointer; border-left: 4px solid #3b82f6;">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs text-dim font-bold uppercase">Appointments</span>
+                                <i class='bx bx-calendar-check' style="font-size: 20px; color: #3b82f6;"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-dark" id="reportKpiAppointments">0</div>
+                            <div class="text-xs text-dim mt-1" id="reportKpiAppointmentsSub">0 completed &bull; 0 scheduled</div>
+                        </div>
+
+                        <!-- Completion Rate -->
+                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" style="border-left: 4px solid #10b981;">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs text-dim font-bold uppercase">Completion Rate</span>
+                                <i class='bx bx-check-double' style="font-size: 20px; color: #10b981;"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-dark" id="reportKpiCompletionRate">0%</div>
+                            <div class="text-xs text-dim mt-1" id="reportKpiCompletionSub">Successful treatments</div>
+                        </div>
+
+                        <!-- Live Queue Today -->
+                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" onclick="setReportTableCategory('queues')" style="cursor: pointer; border-left: 4px solid #f59e0b;">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs text-dim font-bold uppercase">Live Flow Queue</span>
+                                <i class='bx bx-time-five' style="font-size: 20px; color: #f59e0b;"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-dark" id="reportKpiQueue">0</div>
+                            <div class="text-xs text-dim mt-1" id="reportKpiQueueSub">Active patients in flow</div>
+                        </div>
+
+                        <!-- Cancellations & Attrition -->
+                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" onclick="setReportTableCategory('cancellations')" style="cursor: pointer; border-left: 4px solid #ef4444;">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs text-dim font-bold uppercase">Cancellations</span>
+                                <i class='bx bx-calendar-x' style="font-size: 20px; color: #ef4444;"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-dark" id="reportKpiCancellations">0</div>
+                            <div class="text-xs text-danger mt-1" id="reportKpiCancellationsSub">0% cancellation rate</div>
+                        </div>
+
+                        <!-- System Activities -->
+                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" onclick="setReportTableCategory('audit_logs')" style="cursor: pointer; border-left: 4px solid #8b5cf6;">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs text-dim font-bold uppercase">Audit Events</span>
+                                <i class='bx bx-shield-quarter' style="font-size: 20px; color: #8b5cf6;"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-dark" id="reportKpiAudit">0</div>
+                            <div class="text-xs text-dim mt-1" id="reportKpiAuditSub">System operations logged</div>
+                        </div>
+                    </div>
+
+                    <!-- 4 Visual Analytics Breakdown Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; margin-bottom: 20px;">
+                        
+                        <!-- Top Procedures -->
+                        <div class="card bg-white soft-shadow-sm p-3">
+                            <div class="flex items-center justify-between border-bottom pb-1 mb-2">
+                                <h3 class="font-bold text-sm text-dark m-0 flex items-center gap-1">
+                                    <i class='bx bx-pulse text-primary'></i> Top Dental Procedures
+                                </h3>
+                                <span class="text-xs text-dim">Volume &amp; Share</span>
+                            </div>
+                            <div id="reportProceduresBreakdown" class="flex flex-col gap-2" style="font-size: 12px; min-height: 120px;">
+                                <div class="text-dim text-center py-3"><i class='bx bx-loader-alt bx-spin mr-1'></i> Loading procedures...</div>
+                            </div>
+                        </div>
+
+                        <!-- Appointment Status Ratios -->
+                        <div class="card bg-white soft-shadow-sm p-3">
+                            <div class="flex items-center justify-between border-bottom pb-1 mb-2">
+                                <h3 class="font-bold text-sm text-dark m-0 flex items-center gap-1">
+                                    <i class='bx bx-pie-chart-alt-2' style="color: #3b82f6;"></i> Appointment Status Distribution
+                                </h3>
+                                <span class="text-xs text-dim">Status Ratios</span>
+                            </div>
+                            <div id="reportStatusBreakdown" class="flex flex-col gap-2" style="font-size: 12px; min-height: 120px;">
+                                <div class="text-dim text-center py-3"><i class='bx bx-loader-alt bx-spin mr-1'></i> Loading status ratios...</div>
+                            </div>
+                        </div>
+
+                        <!-- Doctor Workloads -->
+                        <div class="card bg-white soft-shadow-sm p-3">
+                            <div class="flex items-center justify-between border-bottom pb-1 mb-2">
+                                <h3 class="font-bold text-sm text-dark m-0 flex items-center gap-1">
+                                    <i class='bx bx-user-voice' style="color: #10b981;"></i> Attending Doctor Workload
+                                </h3>
+                                <span class="text-xs text-dim">Active Dentists</span>
+                            </div>
+                            <div id="reportDoctorBreakdown" class="flex flex-col gap-2" style="font-size: 12px; min-height: 120px;">
+                                <div class="text-dim text-center py-3"><i class='bx bx-loader-alt bx-spin mr-1'></i> Loading doctor workload...</div>
+                            </div>
+                        </div>
+
+                        <!-- Cancellation Root Causes -->
+                        <div class="card bg-white soft-shadow-sm p-3">
+                            <div class="flex items-center justify-between border-bottom pb-1 mb-2">
+                                <h3 class="font-bold text-sm text-dark m-0 flex items-center gap-1">
+                                    <i class='bx bx-x-circle text-danger'></i> Cancellation &amp; No-Show Reasons
+                                </h3>
+                                <span class="text-xs text-dim">Attrition Causes</span>
+                            </div>
+                            <div id="reportCancellationBreakdown" class="flex flex-col gap-2" style="font-size: 12px; min-height: 120px;">
+                                <div class="text-dim text-center py-3"><i class='bx bx-loader-alt bx-spin mr-1'></i> Loading cancellation analysis...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Data Tables Section -->
+                    <div class="card detail-card bg-white soft-shadow-sm p-0 overflow-hidden mb-3">
+                        <!-- Table Sub-Navigation -->
+                        <div class="flex items-center justify-between border-bottom px-3 py-2 bg-muted" style="flex-wrap: wrap; gap: 8px;">
+                            <div class="flex items-center gap-1" id="reportTableCategoryNav" style="flex-wrap: wrap;">
+                                <button id="btnReportCatAppointments" class="btn-text font-bold text-primary text-xs" onclick="setReportTableCategory('appointments')">
+                                    <i class='bx bx-calendar mr-1'></i> Appointments (<span id="catCountAppointments">0</span>)
+                                </button>
+                                <span class="text-dim">|</span>
+                                <button id="btnReportCatPatients" class="btn-text text-dim text-xs" onclick="setReportTableCategory('patients')">
+                                    <i class='bx bx-group mr-1'></i> Patients (<span id="catCountPatients">0</span>)
+                                </button>
+                                <span class="text-dim">|</span>
+                                <button id="btnReportCatQueues" class="btn-text text-dim text-xs" onclick="setReportTableCategory('queues')">
+                                    <i class='bx bx-time-five mr-1'></i> Live Queue (<span id="catCountQueues">0</span>)
+                                </button>
+                                <span class="text-dim">|</span>
+                                <button id="btnReportCatCancellations" class="btn-text text-dim text-xs" onclick="setReportTableCategory('cancellations')">
+                                    <i class='bx bx-calendar-x mr-1'></i> Cancellations (<span id="catCountCancellations">0</span>)
+                                </button>
+                                <span class="text-dim">|</span>
+                                <button id="btnReportCatAudit" class="btn-text text-dim text-xs" onclick="setReportTableCategory('audit_logs')">
+                                    <i class='bx bx-shield-quarter mr-1'></i> System Activity (<span id="catCountAudit">0</span>)
+                                </button>
+                            </div>
+
+                            <div class="flex items-center gap-1" style="min-width: 260px;">
+                                <i class='bx bx-search text-dim'></i>
+                                <input type="text" id="reportsSearchInput" oninput="filterReportsTableLive(this.value)"
+                                    placeholder="Search displayed report records..." class="form-control"
+                                    style="border: none; background: transparent; padding: 4px; width: 100%; outline: none; font-size: 13px;">
+                            </div>
+                        </div>
+
+                        <!-- Data Table Container -->
+                        <div class="table-responsive">
+                            <table class="data-table w-full" style="font-size: 13px;">
+                                <thead class="bg-muted" id="reportsTableHead">
+                                    <!-- Populated dynamically based on category -->
+                                </thead>
+                                <tbody id="reportsTableBody">
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-dim">
+                                            <i class='bx bx-loader-alt bx-spin mr-1'></i> Querying operations intelligence...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
             </main>
         </section>
     </main>
@@ -1663,6 +1928,9 @@
             if (document.getElementById('tab-archive')) {
                 document.getElementById('tab-archive').style.display = tabName === 'archive' ? 'block' : 'none';
             }
+            if (document.getElementById('tab-reports')) {
+                document.getElementById('tab-reports').style.display = tabName === 'reports' ? 'block' : 'none';
+            }
 
             document.getElementById('menu-tab-dashboard').className = tabName === 'dashboard' ? 'active' : '';
             document.getElementById('menu-tab-invitations').className = tabName === 'invitations' ? 'active' : '';
@@ -1681,6 +1949,9 @@
             if (document.getElementById('menu-tab-archive')) {
                 document.getElementById('menu-tab-archive').className = tabName === 'archive' ? 'active' : '';
             }
+            if (document.getElementById('menu-tab-reports')) {
+                document.getElementById('menu-tab-reports').className = tabName === 'reports' ? 'active' : '';
+            }
 
             if (tabName === 'invitations') {
                 loadInvitations();
@@ -1695,6 +1966,8 @@
                 loadVaultRecords();
             } else if (tabName === 'archive') {
                 loadArchivedRecords();
+            } else if (tabName === 'reports') {
+                loadReportsWorkspace();
             }
         }
 
@@ -3492,6 +3765,652 @@
         function closeArchiveDetailModal() {
             selectedArchiveRecordForDetail = null;
             document.getElementById('archiveDetailModal').style.display = 'none';
+        }
+
+        // ============================================================================
+        // SA-009: OPERATIONS & GOVERNANCE REPORTS CONTROLLER
+        // ============================================================================
+        const reportsState = {
+            category: 'appointments',
+            datePreset: 'all_time',
+            dateFrom: '',
+            dateTo: '',
+            doctor: 'all',
+            status: 'all',
+            data: null,
+            searchQuery: ''
+        };
+
+        let doctorsOptionsPopulated = false;
+
+        async function loadReportsWorkspace() {
+            const tableBody = document.getElementById('reportsTableBody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-dim">
+                            <i class='bx bx-loader-alt bx-spin mr-1'></i> Generating operations intelligence data...
+                        </td>
+                    </tr>
+                `;
+            }
+
+            try {
+                const params = new URLSearchParams({
+                    category: reportsState.category,
+                    date_preset: reportsState.datePreset,
+                    date_from: reportsState.dateFrom,
+                    date_to: reportsState.dateTo,
+                    doctor: reportsState.doctor,
+                    status: reportsState.status
+                });
+
+                const res = await fetch(`api/admin/get_reports_data.php?${params.toString()}`);
+                const json = await res.json();
+
+                if (!res.ok || json.status !== 'success') {
+                    showToast('error', json.message || 'Failed to load report analytics.');
+                    return;
+                }
+
+                reportsState.data = json;
+
+                // Populate Doctor Filter Options once
+                if (!doctorsOptionsPopulated && json.filters_options && json.filters_options.doctors) {
+                    const docSelect = document.getElementById('reportsDoctorFilter');
+                    if (docSelect) {
+                        const currentVal = docSelect.value;
+                        docSelect.innerHTML = `<option value="all">All Attending Doctors</option>`;
+                        json.filters_options.doctors.forEach(doc => {
+                            const opt = document.createElement('option');
+                            opt.value = doc.name;
+                            opt.textContent = `${doc.name} (${doc.specialization || 'General'})`;
+                            docSelect.appendChild(opt);
+                        });
+                        docSelect.value = currentVal;
+                    }
+                    doctorsOptionsPopulated = true;
+                }
+
+                // Render components
+                renderReportsKpis(json.metrics || {});
+                renderReportsBreakdowns(json.breakdowns || {}, json.metrics || {});
+                updateReportCategoryCounts(json.data || {});
+                renderReportsTable();
+
+            } catch (err) {
+                console.error("Reports API error:", err);
+                showToast('error', 'Network error connecting to reports engine.');
+            }
+        }
+
+        function onReportsDatePresetChange() {
+            const preset = document.getElementById('reportsDatePreset').value;
+            reportsState.datePreset = preset;
+            const customContainer = document.getElementById('reportsCustomDateContainer');
+            if (customContainer) {
+                customContainer.style.display = preset === 'custom' ? 'flex' : 'none';
+            }
+            if (preset !== 'custom') {
+                reportsState.dateFrom = '';
+                reportsState.dateTo = '';
+                loadReportsWorkspace();
+            }
+        }
+
+        function onReportsFilterChange() {
+            reportsState.doctor = document.getElementById('reportsDoctorFilter').value;
+            reportsState.status = document.getElementById('reportsStatusFilter').value;
+            if (reportsState.datePreset === 'custom') {
+                reportsState.dateFrom = document.getElementById('reportsDateFrom').value;
+                reportsState.dateTo = document.getElementById('reportsDateTo').value;
+            }
+            loadReportsWorkspace();
+        }
+
+        function resetReportsFilters() {
+            document.getElementById('reportsDatePreset').value = 'all_time';
+            document.getElementById('reportsDoctorFilter').value = 'all';
+            document.getElementById('reportsStatusFilter').value = 'all';
+            document.getElementById('reportsCustomDateContainer').style.display = 'none';
+            document.getElementById('reportsDateFrom').value = '';
+            document.getElementById('reportsDateTo').value = '';
+            document.getElementById('reportsSearchInput').value = '';
+            reportsState.datePreset = 'all_time';
+            reportsState.dateFrom = '';
+            reportsState.dateTo = '';
+            reportsState.doctor = 'all';
+            reportsState.status = 'all';
+            reportsState.searchQuery = '';
+            loadReportsWorkspace();
+        }
+
+        function setReportTableCategory(cat) {
+            reportsState.category = cat;
+            const categories = ['appointments', 'patients', 'queues', 'cancellations', 'audit_logs'];
+            categories.forEach(c => {
+                const btnId = c === 'appointments' ? 'btnReportCatAppointments' :
+                              c === 'patients' ? 'btnReportCatPatients' :
+                              c === 'queues' ? 'btnReportCatQueues' :
+                              c === 'cancellations' ? 'btnReportCatCancellations' : 'btnReportCatAudit';
+                const el = document.getElementById(btnId);
+                if (el) {
+                    if (c === cat) {
+                        el.className = 'btn-text font-bold text-primary text-xs';
+                    } else {
+                        el.className = 'btn-text text-dim text-xs';
+                    }
+                }
+            });
+            renderReportsTable();
+        }
+
+        function updateReportCategoryCounts(data) {
+            if (!data) return;
+            const apptCount = (data.appointments || []).length;
+            const patCount = (data.patients || []).length;
+            const queueCount = (data.queues || []).length;
+            const cancelCount = (data.cancellations || []).length;
+            const auditCount = (data.audit_logs || []).length;
+
+            const elAppt = document.getElementById('catCountAppointments');
+            const elPat = document.getElementById('catCountPatients');
+            const elQ = document.getElementById('catCountQueues');
+            const elC = document.getElementById('catCountCancellations');
+            const elA = document.getElementById('catCountAudit');
+
+            if (elAppt) elAppt.textContent = apptCount;
+            if (elPat) elPat.textContent = patCount;
+            if (elQ) elQ.textContent = queueCount;
+            if (elC) elC.textContent = cancelCount;
+            if (elA) elA.textContent = auditCount;
+        }
+
+        function renderReportsKpis(m) {
+            const elPat = document.getElementById('reportKpiPatients');
+            const elPatSub = document.getElementById('reportKpiPatientsSub');
+            if (elPat) elPat.textContent = (m.total_patients || 0).toLocaleString();
+            if (elPatSub) elPatSub.textContent = `+${m.new_patients_period || 0} registered in range`;
+
+            const elAppt = document.getElementById('reportKpiAppointments');
+            const elApptSub = document.getElementById('reportKpiAppointmentsSub');
+            if (elAppt) elAppt.textContent = (m.total_appointments || 0).toLocaleString();
+            if (elApptSub) elApptSub.textContent = `${m.completed_count || 0} completed • ${m.in_progress_count || 0} ongoing`;
+
+            const elComp = document.getElementById('reportKpiCompletionRate');
+            const elCompSub = document.getElementById('reportKpiCompletionSub');
+            if (elComp) elComp.textContent = `${m.completion_rate || 0}%`;
+            if (elCompSub) elCompSub.textContent = `${m.completed_count || 0} treatments completed`;
+
+            const elQ = document.getElementById('reportKpiQueue');
+            const elQSub = document.getElementById('reportKpiQueueSub');
+            if (elQ) elQ.textContent = m.today_queue_count || 0;
+            if (elQSub) elQSub.textContent = `${m.walkin_count || 0} walk-in patient(s)`;
+
+            const elCanc = document.getElementById('reportKpiCancellations');
+            const elCancSub = document.getElementById('reportKpiCancellationsSub');
+            if (elCanc) elCanc.textContent = m.cancelled_count || 0;
+            if (elCancSub) elCancSub.textContent = `${m.cancellation_rate || 0}% cancellation rate`;
+
+            const elAudit = document.getElementById('reportKpiAudit');
+            const elAuditSub = document.getElementById('reportKpiAuditSub');
+            if (elAudit) elAudit.textContent = (m.audit_events_count || 0).toLocaleString();
+            if (elAuditSub) elAuditSub.textContent = `${m.security_events_count || 0} security events`;
+        }
+
+        function renderReportsBreakdowns(b, m) {
+            // 1. Top Dental Procedures
+            const procContainer = document.getElementById('reportProceduresBreakdown');
+            if (procContainer) {
+                const services = b.services || [];
+                if (services.length === 0) {
+                    procContainer.innerHTML = `<div class="text-dim text-center py-3">No procedure visits recorded in this period.</div>`;
+                } else {
+                    let html = '';
+                    services.slice(0, 5).forEach(s => {
+                        html += `
+                            <div>
+                                <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
+                                    <strong class="text-dark">${escapeHtml(s.service_name)}</strong>
+                                    <span class="text-dim">${s.count} visit(s) &bull; <strong>${s.percentage}%</strong></span>
+                                </div>
+                                <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+                                    <div style="height: 100%; width: ${Math.min(100, s.percentage)}%; background: #0eb1b1; border-radius: 999px;"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    procContainer.innerHTML = html;
+                }
+            }
+
+            // 2. Appointment Status Ratios
+            const statContainer = document.getElementById('reportStatusBreakdown');
+            if (statContainer) {
+                const total = m.total_appointments || 0;
+                if (total === 0) {
+                    statContainer.innerHTML = `<div class="text-dim text-center py-3">No appointments found in this period.</div>`;
+                } else {
+                    const compPct = total > 0 ? Math.round((m.completed_count / total) * 100) : 0;
+                    const progPct = total > 0 ? Math.round((m.in_progress_count / total) * 100) : 0;
+                    const schPct  = total > 0 ? Math.round((m.scheduled_count / total) * 100) : 0;
+                    const canPct  = total > 0 ? Math.round((m.cancelled_count / total) * 100) : 0;
+
+                    statContainer.innerHTML = `
+                        <div>
+                            <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
+                                <span class="font-bold text-dark flex items-center gap-1"><span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Completed Treatments</span>
+                                <span>${m.completed_count || 0} (${compPct}%)</span>
+                            </div>
+                            <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+                                <div style="height: 100%; width: ${compPct}%; background: #10b981; border-radius: 999px;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
+                                <span class="font-bold text-dark flex items-center gap-1"><span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; display: inline-block;"></span> In Consultation / Operatory</span>
+                                <span>${m.in_progress_count || 0} (${progPct}%)</span>
+                            </div>
+                            <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+                                <div style="height: 100%; width: ${progPct}%; background: #3b82f6; border-radius: 999px;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
+                                <span class="font-bold text-dark flex items-center gap-1"><span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span> Scheduled / Upcoming</span>
+                                <span>${m.scheduled_count || 0} (${schPct}%)</span>
+                            </div>
+                            <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+                                <div style="height: 100%; width: ${schPct}%; background: #f59e0b; border-radius: 999px;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
+                                <span class="font-bold text-dark flex items-center gap-1"><span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block;"></span> Cancelled / No-Show</span>
+                                <span>${m.cancelled_count || 0} (${canPct}%)</span>
+                            </div>
+                            <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+                                <div style="height: 100%; width: ${canPct}%; background: #ef4444; border-radius: 999px;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // 3. Doctor Workload
+            const docContainer = document.getElementById('reportDoctorBreakdown');
+            if (docContainer) {
+                const docs = b.doctor_workload || [];
+                if (docs.length === 0) {
+                    docContainer.innerHTML = `<div class="text-dim text-center py-3">No attending doctor sessions in this period.</div>`;
+                } else {
+                    let html = '';
+                    docs.slice(0, 5).forEach(d => {
+                        const pct = d.total_appointments > 0 ? Math.round((d.completed / d.total_appointments) * 100) : 0;
+                        html += `
+                            <div>
+                                <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
+                                    <strong class="text-dark">${escapeHtml(d.name)}</strong>
+                                    <span class="text-dim">${d.total_appointments} total &bull; <strong style="color: #10b981;">${pct}% completed</strong></span>
+                                </div>
+                                <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+                                    <div style="height: 100%; width: ${Math.min(100, pct)}%; background: #10b981; border-radius: 999px;"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    docContainer.innerHTML = html;
+                }
+            }
+
+            // 4. Cancellation Root Causes
+            const cancContainer = document.getElementById('reportCancellationBreakdown');
+            if (cancContainer) {
+                const reasons = b.cancellation_reasons || [];
+                if (reasons.length === 0) {
+                    cancContainer.innerHTML = `<div class="text-dim text-center py-3">Excellent! Zero cancellations recorded in this period.</div>`;
+                } else {
+                    let html = '';
+                    reasons.slice(0, 5).forEach(r => {
+                        html += `
+                            <div>
+                                <div class="flex items-center justify-between mb-1" style="font-size: 11px;">
+                                    <strong class="text-dark">${escapeHtml(r.reason)}</strong>
+                                    <span class="text-dim">${r.count} case(s) &bull; <strong style="color: #ef4444;">${r.percentage}%</strong></span>
+                                </div>
+                                <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+                                    <div style="height: 100%; width: ${Math.min(100, r.percentage)}%; background: #ef4444; border-radius: 999px;"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    cancContainer.innerHTML = html;
+                }
+            }
+        }
+
+        function filterReportsTableLive(searchVal) {
+            reportsState.searchQuery = (searchVal || '').toLowerCase().trim();
+            renderReportsTable();
+        }
+
+        function renderReportsTable() {
+            const thead = document.getElementById('reportsTableHead');
+            const tbody = document.getElementById('reportsTableBody');
+            if (!thead || !tbody) return;
+
+            const data = reportsState.data ? reportsState.data.data : null;
+            if (!data) return;
+
+            const q = reportsState.searchQuery;
+            const cat = reportsState.category;
+
+            if (cat === 'appointments') {
+                thead.innerHTML = `
+                    <tr>
+                        <th style="padding: 10px 14px;">Date &amp; Time</th>
+                        <th style="padding: 10px 14px;">Patient Info</th>
+                        <th style="padding: 10px 14px;">Treatment / Procedure</th>
+                        <th style="padding: 10px 14px;">Attending Doctor</th>
+                        <th style="padding: 10px 14px;">Operatory Chair</th>
+                        <th style="padding: 10px 14px; text-align: right;">Status</th>
+                    </tr>
+                `;
+
+                let rows = data.appointments || [];
+                if (q) {
+                    rows = rows.filter(r => 
+                        (r.patient_name || '').toLowerCase().includes(q) ||
+                        (r.doctor_name || '').toLowerCase().includes(q) ||
+                        (r.service_name || '').toLowerCase().includes(q) ||
+                        (r.status || '').toLowerCase().includes(q) ||
+                        (r.appointment_date || '').toLowerCase().includes(q)
+                    );
+                }
+
+                if (rows.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-dim">No matching appointments found.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = rows.map(r => {
+                    const st = (r.status || 'scheduled').toLowerCase();
+                    let badgeStyle = 'background: rgba(245, 158, 11, 0.12); color: #d97706;';
+                    if (st === 'completed') badgeStyle = 'background: rgba(16, 185, 129, 0.12); color: #059669;';
+                    else if (['in_progress', 'ongoing', 'chair'].includes(st)) badgeStyle = 'background: rgba(59, 130, 246, 0.12); color: #2563eb;';
+                    else if (st === 'cancelled') badgeStyle = 'background: rgba(239, 68, 68, 0.12); color: #dc2626;';
+
+                    return `
+                        <tr>
+                            <td style="padding: 10px 14px;">
+                                <strong>${escapeHtml(r.appointment_date)}</strong>
+                                <div class="text-xs text-dim">${escapeHtml(r.appointment_time || '')}</div>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <strong>${escapeHtml(r.patient_name)}</strong>
+                                <div class="text-xs text-dim">${escapeHtml(r.patient_phone || r.patient_email || '')}</div>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span class="font-bold text-dark">${escapeHtml(r.service_name || 'Consultation')}</span>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span>${escapeHtml(r.doctor_name || 'Unassigned')}</span>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span class="badge" style="background: rgba(14, 177, 177, 0.08); color: #0eb1b1;">${escapeHtml(r.chair_room || 'Chair 1')}</span>
+                            </td>
+                            <td style="padding: 10px 14px; text-align: right;">
+                                <span class="badge uppercase font-bold" style="${badgeStyle}; padding: 3px 8px; border-radius: 4px; font-size: 10px;">
+                                    ${escapeHtml(st.replace('_', ' '))}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } else if (cat === 'patients') {
+                thead.innerHTML = `
+                    <tr>
+                        <th style="padding: 10px 14px;">Patient Full Name</th>
+                        <th style="padding: 10px 14px;">Contact Details</th>
+                        <th style="padding: 10px 14px;">Gender / Age</th>
+                        <th style="padding: 10px 14px;">Clinical &amp; Medical Alerts</th>
+                        <th style="padding: 10px 14px;">Lifetime Visits</th>
+                        <th style="padding: 10px 14px; text-align: right;">Registration Date</th>
+                    </tr>
+                `;
+
+                let rows = data.patients || [];
+                if (q) {
+                    rows = rows.filter(r => 
+                        (r.full_name || '').toLowerCase().includes(q) ||
+                        (r.email || '').toLowerCase().includes(q) ||
+                        (r.phone || '').toLowerCase().includes(q) ||
+                        (r.medical_alerts || '').toLowerCase().includes(q)
+                    );
+                }
+
+                if (rows.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-dim">No matching patients found in this period.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = rows.map(r => {
+                    const alerts = r.medical_alerts || 'None recorded';
+                    const hasAlert = alerts.toLowerCase() !== 'none recorded' && alerts.trim() !== '';
+
+                    return `
+                        <tr>
+                            <td style="padding: 10px 14px;">
+                                <strong>${escapeHtml(r.full_name)}</strong>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <div>${escapeHtml(r.email || 'N/A')}</div>
+                                <div class="text-xs text-dim">${escapeHtml(r.phone || '')}</div>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span>${escapeHtml(r.gender || 'Other')}</span>
+                                <span class="text-dim">(${r.age || '—'} yrs)</span>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span style="${hasAlert ? 'color: #dc2626; font-weight: 600;' : 'color: #64748b;'}">
+                                    ${hasAlert ? `<i class='bx bx-error-circle mr-1'></i>` : ''}${escapeHtml(alerts)}
+                                </span>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span class="badge" style="background: rgba(14, 177, 177, 0.1); color: #0eb1b1; font-weight: bold;">
+                                    ${r.visits_count || 0} visits
+                                </span>
+                            </td>
+                            <td style="padding: 10px 14px; text-align: right;" class="text-dim">
+                                ${escapeHtml((r.created_at || '').substring(0, 10))}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } else if (cat === 'queues') {
+                thead.innerHTML = `
+                    <tr>
+                        <th style="padding: 10px 14px;">Queue Identifier</th>
+                        <th style="padding: 10px 14px;">Patient Info</th>
+                        <th style="padding: 10px 14px;">Procedure</th>
+                        <th style="padding: 10px 14px;">Attending Doctor</th>
+                        <th style="padding: 10px 14px;">Chair / Operatory</th>
+                        <th style="padding: 10px 14px; text-align: right;">Type &amp; Status</th>
+                    </tr>
+                `;
+
+                let rows = data.queues || [];
+                if (q) {
+                    rows = rows.filter(r => 
+                        (r.patient_name || '').toLowerCase().includes(q) ||
+                        (r.doctor_name || '').toLowerCase().includes(q) ||
+                        (r.queue_number || '').toLowerCase().includes(q)
+                    );
+                }
+
+                if (rows.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-dim">No patients currently in active flow.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = rows.map(r => `
+                    <tr>
+                        <td style="padding: 10px 14px;">
+                            <strong style="color: #0eb1b1;">${escapeHtml(r.queue_number || 'Q-001')}</strong>
+                            <div class="text-xs text-dim">${escapeHtml(r.appointment_time || '')}</div>
+                        </td>
+                        <td style="padding: 10px 14px;">
+                            <strong>${escapeHtml(r.patient_name)}</strong>
+                            <div class="text-xs text-dim">${escapeHtml(r.patient_phone || '')}</div>
+                        </td>
+                        <td style="padding: 10px 14px;">
+                            <span>${escapeHtml(r.service_name || 'Consultation')}</span>
+                        </td>
+                        <td style="padding: 10px 14px;">
+                            <span>${escapeHtml(r.doctor_name || 'Doctor')}</span>
+                        </td>
+                        <td style="padding: 10px 14px;">
+                            <span class="badge" style="background: rgba(59, 130, 246, 0.1); color: #2563eb;">${escapeHtml(r.chair_room || 'Chair 1')}</span>
+                        </td>
+                        <td style="padding: 10px 14px; text-align: right;">
+                            <span class="badge uppercase font-bold" style="background: ${r.is_walkin ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)'}; color: ${r.is_walkin ? '#dc2626' : '#059669'}; padding: 3px 8px; border-radius: 4px; font-size: 10px;">
+                                ${r.is_walkin ? 'Walk-in' : 'Booked'}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } else if (cat === 'cancellations') {
+                thead.innerHTML = `
+                    <tr>
+                        <th style="padding: 10px 14px;">Appointment Date</th>
+                        <th style="padding: 10px 14px;">Patient Name</th>
+                        <th style="padding: 10px 14px;">Attending Doctor</th>
+                        <th style="padding: 10px 14px;">Procedure</th>
+                        <th style="padding: 10px 14px;">Categorized Reason</th>
+                        <th style="padding: 10px 14px; text-align: right;">Incident Recorded</th>
+                    </tr>
+                `;
+
+                let rows = data.cancellations || [];
+                if (q) {
+                    rows = rows.filter(r => 
+                        (r.patient_name || '').toLowerCase().includes(q) ||
+                        (r.doctor_name || '').toLowerCase().includes(q) ||
+                        (r.cancellation_reason || '').toLowerCase().includes(q)
+                    );
+                }
+
+                if (rows.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-dim">No cancellations recorded in this period.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = rows.map(r => `
+                    <tr>
+                        <td style="padding: 10px 14px;">
+                            <strong>${escapeHtml(r.appointment_date)}</strong>
+                            <div class="text-xs text-dim">${escapeHtml(r.appointment_time || '')}</div>
+                        </td>
+                        <td style="padding: 10px 14px;">
+                            <strong>${escapeHtml(r.patient_name)}</strong>
+                        </td>
+                        <td style="padding: 10px 14px;">
+                            <span>${escapeHtml(r.doctor_name || 'Doctor')}</span>
+                        </td>
+                        <td style="padding: 10px 14px;">
+                            <span>${escapeHtml(r.service_name || 'Consultation')}</span>
+                        </td>
+                        <td style="padding: 10px 14px;">
+                            <span class="badge" style="background: rgba(239, 68, 68, 0.1); color: #dc2626; font-weight: 600;">
+                                <i class='bx bx-x-circle mr-1'></i> ${escapeHtml(r.cancellation_reason || 'Not specified')}
+                            </span>
+                        </td>
+                        <td style="padding: 10px 14px; text-align: right;" class="text-dim">
+                            ${escapeHtml((r.cancelled_at || '').substring(0, 16))}
+                        </td>
+                    </tr>
+                `).join('');
+
+            } else if (cat === 'audit_logs') {
+                thead.innerHTML = `
+                    <tr>
+                        <th style="padding: 10px 14px;">Timestamp</th>
+                        <th style="padding: 10px 14px;">Action Code</th>
+                        <th style="padding: 10px 14px;">Target Entity</th>
+                        <th style="padding: 10px 14px;">IP Address</th>
+                        <th style="padding: 10px 14px; text-align: right;">Security Context</th>
+                    </tr>
+                `;
+
+                let rows = data.audit_logs || [];
+                if (q) {
+                    rows = rows.filter(r => 
+                        (r.action || '').toLowerCase().includes(q) ||
+                        (r.target || '').toLowerCase().includes(q) ||
+                        (r.ip_address || '').toLowerCase().includes(q)
+                    );
+                }
+
+                if (rows.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-dim">No system audit events recorded.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = rows.map(r => {
+                    const act = r.action || 'SYSTEM_EVENT';
+                    const isSec = act.includes('LOGIN') || act.includes('PASSWORD') || act.includes('ROLE') || act.includes('PERM');
+                    return `
+                        <tr>
+                            <td style="padding: 10px 14px;" class="text-dim">
+                                ${escapeHtml(r.created_at)}
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span class="badge" style="background: ${isSec ? 'rgba(239,68,68,0.1)' : 'rgba(99,102,241,0.1)'}; color: ${isSec ? '#dc2626' : '#6366f1'}; font-weight: bold;">
+                                    ${escapeHtml(act)}
+                                </span>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <code>${escapeHtml(r.target || 'system')}</code>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span class="text-dim">${escapeHtml(r.ip_address || '127.0.0.1')}</span>
+                            </td>
+                            <td style="padding: 10px 14px; text-align: right;">
+                                <span class="badge" style="background: rgba(14, 177, 177, 0.1); color: #0eb1b1;">Logged</span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function exportReportsPdf() {
+            const reportType = reportsState.category === 'all' ? 'comprehensive' : reportsState.category;
+            const params = new URLSearchParams({
+                report: reportType,
+                date_preset: reportsState.datePreset,
+                date_from: reportsState.dateFrom,
+                date_to: reportsState.dateTo,
+                doctor: reportsState.doctor,
+                status: reportsState.status
+            });
+            window.open(`api/admin/export_pdf.php?${params.toString()}`, '_blank');
+        }
+
+        function exportReportsCsv() {
+            const reportType = reportsState.category === 'all' ? 'appointments' : reportsState.category;
+            const params = new URLSearchParams({
+                type: reportType,
+                date_preset: reportsState.datePreset,
+                date_from: reportsState.dateFrom,
+                date_to: reportsState.dateTo,
+                doctor: reportsState.doctor,
+                status: reportsState.status
+            });
+            window.location.href = `api/admin/export_csv.php?${params.toString()}`;
         }
     </script>
 
