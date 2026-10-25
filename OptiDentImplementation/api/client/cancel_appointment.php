@@ -20,11 +20,24 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/audit_logger.php';
+require_once __DIR__ . '/../config/clinic_hours_helper.php';
 
 $role = strtolower($_SESSION['role'] ?? '');
 if (!in_array($role, ['patient', 'client'])) {
     http_response_code(401);
     echo json_encode(["status" => "error", "message" => "Access denied. Patient session required."]);
+    exit;
+}
+
+// System Integration Switch: Check if patient self-cancellation/rescheduling is enabled
+$clinicProfile = ClinicHoursHelper::getActiveClinicProfile($db);
+$integrations = $clinicProfile['integrations'] ?? [];
+if (isset($integrations['patient_rescheduling_enabled']) && $integrations['patient_rescheduling_enabled'] === false) {
+    http_response_code(403);
+    echo json_encode([
+        "status" => "error",
+        "message" => "Self-service appointment cancellation is currently suspended by clinic administration. Please contact the front desk directly for assistance."
+    ]);
     exit;
 }
 

@@ -249,6 +249,17 @@
             font-size: 13px;
         }
 
+        .appt-checkbox-col {
+            display: none;
+            width: 38px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .selection-mode-active .appt-checkbox-col {
+            display: table-cell !important;
+        }
+
         .rec-table th {
             background: var(--rec-primary-light);
             padding: 12px 14px;
@@ -336,6 +347,123 @@
             padding: 4px 8px;
             font-size: 11px;
             border-radius: 6px;
+        }
+
+        /* ── Minimal Action Dropdown Menu ────────────────────────────── */
+        .patient-action-wrap {
+            position: relative;
+            display: inline-block;
+        }
+
+        .btn-rec-action {
+            height: 29px;
+            padding: 0 10px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #475569;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+            user-select: none;
+        }
+
+        .btn-rec-action:hover, .btn-rec-action.active {
+            background: #F8FAFC;
+            border-color: #0EB1B1;
+            color: #0EB1B1;
+        }
+
+        .btn-rec-action i {
+            font-size: 13px;
+            transition: transform 0.2s ease;
+        }
+
+        .patient-action-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 4px);
+            z-index: 100;
+            min-width: 175px;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 9px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+            padding: 5px;
+            display: none;
+            text-align: left;
+        }
+
+        .patient-action-menu.open {
+            display: block;
+            animation: actionMenuFadeIn 0.12s ease-out;
+        }
+
+        .rec-table tbody tr:has(.patient-action-menu.open) {
+            position: relative;
+            z-index: 50;
+        }
+
+        @keyframes actionMenuFadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .action-item {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 7px 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.12s ease, color 0.12s ease;
+            text-decoration: none;
+        }
+
+        .action-item i {
+            font-size: 15px;
+            color: #64748B;
+            transition: color 0.12s ease;
+        }
+
+        .action-item:hover {
+            background: #F8FAFC;
+            color: #0F172A;
+        }
+
+        .action-item:hover i {
+            color: #0EB1B1;
+        }
+
+        .action-item.action-medical {
+            color: #0EB1B1;
+            font-weight: 600;
+        }
+
+        .action-item.action-medical i {
+            color: #0EB1B1;
+        }
+
+        .action-item.action-medical:hover {
+            background: rgba(14, 177, 177, 0.08);
+            color: #098b8b;
+        }
+
+        .action-divider {
+            height: 1px;
+            background: #F1F5F9;
+            margin: 4px 0;
         }
 
         /* ── Modals ──────────────────────────────────────────────────── */
@@ -957,6 +1085,7 @@
                             <input type="text" id="apptSearchInput" class="form-control" style="width: 220px;" placeholder="Search patient, phone, doctor..." oninput="filterAppointmentsTable()">
                             <select id="apptStatusFilter" class="form-control" style="width: 150px;" onchange="filterAppointmentsTable()">
                                 <option value="all">All Statuses</option>
+                                <option value="pending">Pending Approval</option>
                                 <option value="scheduled">Scheduled</option>
                                 <option value="in_progress">In Treatment</option>
                                 <option value="completed">Completed</option>
@@ -967,6 +1096,9 @@
                             </button>
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="loadDashboardData()" title="Refresh appointments">
                                 <i class='bx bx-refresh'></i>
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" id="btnToolbarDeleteAppt" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" onclick="handleBulkDeleteTrigger()" title="Delete selected appointments">
+                                <i class='bx bx-trash'></i> Delete
                             </button>
                         </div>
                     </div>
@@ -990,10 +1122,37 @@
                         </button>
                     </div>
 
-                    <div class="table-container">
+                    <!-- Appointment Bulk Action Bar -->
+                    <div id="apptBulkActionBar" style="display: none; align-items: center; justify-content: space-between; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 8px 14px; margin-bottom: 12px; gap: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 13px; font-weight: 700; color: #991B1B; display: flex; align-items: center; gap: 6px;">
+                                <i class='bx bx-check-square' style="font-size: 18px;"></i>
+                                <span id="bulkSelectedCountText">0 selected</span>
+                            </span>
+                            <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" style="background: white; border-color: #E2E8F0; font-size: 11.5px; font-weight: 600;" onclick="selectAllEverything()">
+                                <i class='bx bx-select-multiple'></i> Select Everything (<span id="bulkTotalAllCount">0</span>)
+                            </button>
+                            <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" style="background: white; border-color: #E2E8F0; font-size: 11.5px;" onclick="clearApptSelection()">
+                                <i class='bx bx-revision'></i> Clear
+                            </button>
+                            <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" style="background: white; border-color: #E2E8F0; font-size: 11.5px;" onclick="exitApptDeleteMode()">
+                                <i class='bx bx-x'></i> Cancel Delete
+                            </button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button type="button" class="btn-rec btn-rec-sm" style="background: #DC2626; color: white; font-weight: 600;" onclick="confirmBulkDeleteAppointments()">
+                                <i class='bx bx-trash'></i> Delete Selected (<span id="bulkDeleteBtnCount">0</span>)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container" id="appointmentsTableContainer">
                         <table class="rec-table">
                             <thead>
                                 <tr>
+                                    <th class="appt-checkbox-col" style="width: 36px; text-align: center;">
+                                        <input type="checkbox" id="selectAllApptsCheckbox" onchange="toggleSelectAllAppts(this.checked)" title="Select all on this view" style="cursor: pointer; accent-color: #DC2626;">
+                                    </th>
                                     <th>Date & Time Slot</th>
                                     <th>Patient Information</th>
                                     <th>Attending Doctor</th>
@@ -1004,7 +1163,7 @@
                                 </tr>
                             </thead>
                             <tbody id="appointmentsTableBody">
-                                <tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--rec-text-muted);">Loading appointment bookings...</td></tr>
+                                <tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--rec-text-muted);">Loading appointment bookings...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1120,58 +1279,135 @@
                 </div>
             </section>
 
-            <!-- ── TAB 5: MY ACCOUNT / PROFILE ─────────────────────── -->
+            <!-- ── TAB 5: MY ACCOUNT / PROFILE (R-012) ─────────────────────── -->
             <section id="tab-profile" class="tab-section">
-                <div class="content-card" style="max-width: 680px;">
-                    <h3 style="margin: 0 0 1rem 0; font-size: 16px; font-weight: 700;">Receptionist Front-Desk Profile & Credentials</h3>
-                    
-                    <form id="form-receptionist-profile" onsubmit="updateProfile(event)">
-                        <div class="form-grid-2">
-                            <div class="form-group">
-                                <label>Legal Full Name</label>
-                                <input type="text" id="profFullName" class="form-control" disabled style="background: #f1f5f9;">
+                <div style="max-width: 780px;">
+                    <!-- Minimal Profile Header Card with Live Avatar Preview -->
+                    <div class="content-card" style="margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 1.25rem;">
+                            <div id="profAvatarPreview" class="rec-avatar-circle" style="width: 58px; height: 58px; font-size: 20px; font-weight: 800; background: var(--rec-primary); color: white; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 4px 12px rgba(14, 177, 177, 0.25); flex-shrink: 0;">
+                                FD
                             </div>
-                            <div class="form-group">
-                                <label>Assigned Clinic Email</label>
-                                <input type="email" id="profEmail" class="form-control" disabled style="background: #f1f5f9;">
-                            </div>
-                        </div>
-
-                        <div class="form-grid-2">
-                            <div class="form-group">
-                                <label>Front-Desk Station / Position</label>
-                                <input type="text" id="profPosition" class="form-control" disabled style="background: #f1f5f9;">
-                            </div>
-                            <div class="form-group">
-                                <label>Contact Phone Number</label>
-                                <input type="tel" id="profPhone" class="form-control" placeholder="e.g. +63 917 123 4567">
+                            <div>
+                                <h3 id="profHeaderName" style="margin: 0; font-size: 18px; font-weight: 800; color: var(--rec-text);">Receptionist Name</h3>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap;">
+                                    <span id="profHeaderRole" style="background: var(--rec-primary-light); color: var(--rec-primary); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px;">Front Desk Receptionist</span>
+                                    <span style="font-size: 11px; color: var(--rec-text-muted);"><i class='bx bx-envelope'></i> <span id="profHeaderEmail">email@clinic.com</span></span>
+                                </div>
                             </div>
                         </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                            <span style="font-size: 11px; color: #059669; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class='bx bxs-check-circle'></i> Active Clinic Account
+                            </span>
+                            <span id="profHeaderLastLogin" style="font-size: 10.5px; color: var(--rec-text-muted);">Session Active</span>
+                        </div>
+                    </div>
 
-                        <div style="border-top: 1px solid var(--rec-border); margin: 1.25rem 0; padding-top: 1.25rem;">
-                            <h4 style="margin: 0 0 10px 0; font-size: 13px; font-weight: 700; color: var(--rec-primary);">Change Security Password</h4>
-                            
-                            <div class="form-group">
-                                <label>Current Password</label>
-                                <input type="password" id="profCurrentPass" class="form-control" placeholder="Required to set new password">
+                    <!-- Main Account Customization Card -->
+                    <div class="content-card">
+                        <form id="form-receptionist-profile" onsubmit="updateProfile(event)">
+                            <!-- SECTION 1: Personal & Station Details -->
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.5rem;">
+                                <h4 style="margin: 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--rec-primary); display: flex; align-items: center; gap: 6px;">
+                                    <i class='bx bx-user-circle'></i> Profile & Front-Desk Info
+                                </h4>
+                                <span style="font-size: 11px; color: var(--rec-text-muted);">Instant account customization</span>
                             </div>
 
                             <div class="form-grid-2">
                                 <div class="form-group">
-                                    <label>New Password</label>
-                                    <input type="password" id="profNewPass" class="form-control" placeholder="Min. 6 characters">
+                                    <label>Full Name *</label>
+                                    <input type="text" id="profFullName" class="form-control" required placeholder="e.g. Maria Santos" oninput="onProfileNameInput(this.value)">
                                 </div>
                                 <div class="form-group">
-                                    <label>Confirm New Password</label>
-                                    <input type="password" id="profConfirmPass" class="form-control" placeholder="Re-type new password">
+                                    <label>Clinic Email Address *</label>
+                                    <input type="email" id="profEmail" class="form-control" required placeholder="receptionist@clinic.com">
                                 </div>
                             </div>
-                        </div>
 
-                        <button type="submit" class="btn-rec btn-rec-primary" style="padding: 10px 20px;">
-                            <i class='bx bx-save'></i> Save Account Changes
-                        </button>
-                    </form>
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label>Contact Phone Number</label>
+                                    <input type="tel" id="profPhone" class="form-control" placeholder="e.g. +63 917 123 4567">
+                                </div>
+                                <div class="form-group">
+                                    <label>Front-Desk Station / Position</label>
+                                    <input type="text" id="profPosition" class="form-control" placeholder="e.g. Front Desk Lead Receptionist" oninput="onProfilePositionInput(this.value)">
+                                </div>
+                            </div>
+
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label>Duty Shift / Clinic Hours</label>
+                                    <input type="text" id="profScheduleDays" class="form-control" placeholder="e.g. Mon - Fri (8:00 AM - 5:00 PM)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Avatar Theme Accent</label>
+                                    <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
+                                        <button type="button" class="prof-color-dot" data-color="#0eb1b1" style="width: 26px; height: 26px; border-radius: 50%; background: #0eb1b1; border: 2px solid white; box-shadow: 0 0 0 2px #0eb1b1; cursor: pointer; transition: transform 0.15s;" onclick="selectAvatarColor('#0eb1b1')" title="Teal (Default)"></button>
+                                        <button type="button" class="prof-color-dot" data-color="#4F46E5" style="width: 26px; height: 26px; border-radius: 50%; background: #4F46E5; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s;" onclick="selectAvatarColor('#4F46E5')" title="Indigo"></button>
+                                        <button type="button" class="prof-color-dot" data-color="#059669" style="width: 26px; height: 26px; border-radius: 50%; background: #059669; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s;" onclick="selectAvatarColor('#059669')" title="Emerald"></button>
+                                        <button type="button" class="prof-color-dot" data-color="#7C3AED" style="width: 26px; height: 26px; border-radius: 50%; background: #7C3AED; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s;" onclick="selectAvatarColor('#7C3AED')" title="Purple"></button>
+                                        <button type="button" class="prof-color-dot" data-color="#EA580C" style="width: 26px; height: 26px; border-radius: 50%; background: #EA580C; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s;" onclick="selectAvatarColor('#EA580C')" title="Amber / Orange"></button>
+                                        <input type="hidden" id="profAvatarColor" value="#0eb1b1">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Staff Bio / Handover Desk Notes</label>
+                                <textarea id="profBio" class="form-control" rows="2" placeholder="Brief notes, desk handover instructions, or staff greeting..."></textarea>
+                            </div>
+
+                            <!-- SECTION 2: Security & Password -->
+                            <div style="border-top: 1px solid var(--rec-border); margin: 1.5rem 0 1rem 0; padding-top: 1.25rem;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                                    <h4 style="margin: 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--rec-primary); display: flex; align-items: center; gap: 6px;">
+                                        <i class='bx bx-lock-alt'></i> Security & Password
+                                    </h4>
+                                    <span style="font-size: 11px; color: var(--rec-text-muted);">Leave blank if keeping current password</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Current Password</label>
+                                    <div style="position: relative;">
+                                        <input type="password" id="profCurrentPass" class="form-control" style="padding-right: 36px;" placeholder="Required only when changing password">
+                                        <button type="button" onclick="togglePassVisibility('profCurrentPass', this)" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--rec-text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center;" title="Show/Hide password">
+                                            <i class='bx bx-show' style="font-size: 16px;"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-grid-2">
+                                    <div class="form-group">
+                                        <label>New Password</label>
+                                        <div style="position: relative;">
+                                            <input type="password" id="profNewPass" class="form-control" style="padding-right: 36px;" placeholder="Min. 6 characters">
+                                            <button type="button" onclick="togglePassVisibility('profNewPass', this)" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--rec-text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center;" title="Show/Hide password">
+                                                <i class='bx bx-show' style="font-size: 16px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Confirm New Password</label>
+                                        <div style="position: relative;">
+                                            <input type="password" id="profConfirmPass" class="form-control" style="padding-right: 36px;" placeholder="Re-type new password">
+                                            <button type="button" onclick="togglePassVisibility('profConfirmPass', this)" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--rec-text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center;" title="Show/Hide password">
+                                                <i class='bx bx-show' style="font-size: 16px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                                <button type="submit" id="btnSaveProfile" class="btn-rec btn-rec-primary" style="padding: 10px 24px; font-size: 13px;">
+                                    <i class='bx bx-save'></i> Save Account Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </section>
         </main>
@@ -1241,6 +1477,43 @@
                     <div class="form-group">
                         <label>Residential City / Address</label>
                         <input type="text" id="regPatientAddress" class="form-control" placeholder="e.g. Malaybalay City, Bukidnon">
+                    </div>
+                </div>
+
+                <!-- Section 2: Medical & Safety Information (R-009) -->
+                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--rec-primary); letter-spacing: 0.5px; margin: 14px 0 8px 0; display: flex; align-items: center; gap: 4px;">
+                    <i class='bx bx-shield-plus'></i> Medical & Safety Information
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Medical Alerts / Known Allergies</label>
+                        <input type="text" id="regPatientAlerts" class="form-control" placeholder="e.g. Penicillin allergy, Hypertension, None">
+                    </div>
+                    <div class="form-group">
+                        <label>Blood Type</label>
+                        <select id="regPatientBlood" class="form-control">
+                            <option value="Unknown">Unknown / Not Tested</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Emergency Contact Person</label>
+                        <input type="text" id="regPatientEmergContact" class="form-control" placeholder="e.g. Juan Santos (Spouse)">
+                    </div>
+                    <div class="form-group">
+                        <label>Emergency Contact Phone</label>
+                        <input type="tel" id="regPatientEmergPhone" class="form-control" placeholder="0917 555 1234">
                     </div>
                 </div>
 
@@ -1379,12 +1652,15 @@
             </div>
 
             <form id="form-book-appointment" onsubmit="submitBookAppointment(event)">
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 0.75rem;">
                     <label>Patient Selection *</label>
                     <select id="bookPatientSelect" class="form-control" required onchange="handlePatientSelectionChange()">
                         <option value="">-- Choose Registered Patient --</option>
                     </select>
                 </div>
+
+                <!-- Patient Medical Info Banner (R-009) -->
+                <div id="bookPatientMedicalBanner" style="display: none; margin-bottom: 1rem;"></div>
 
                 <div class="form-grid-2">
                     <div class="form-group">
@@ -1452,49 +1728,103 @@
         </div>
     </div>
 
-    <!-- ── MODAL: CANCEL APPOINTMENT ──────────────────────────────── -->
+    <!-- ── MODAL: CANCEL APPOINTMENT (R-010) ────────────────────────── -->
     <div id="cancelAppointmentModal" class="rec-modal-overlay">
-        <div class="rec-modal-content" style="max-width: 480px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
-                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #dc2626; display: flex; align-items: center; gap: 8px;">
-                    <i class='bx bx-x-circle'></i> Cancel Clinic Appointment
-                </h3>
+        <div class="rec-modal-content" style="max-width: 440px; padding: 1.5rem; border-radius: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0F172A; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-calendar-x' style="color: #EF4444; font-size: 20px;"></i> Cancel Appointment
+                    </h3>
+                    <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">
+                        Record cancellation reason to properly reflect schedule changes.
+                    </p>
+                </div>
                 <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('cancelAppointmentModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
             </div>
 
             <form id="form-cancel-appointment" onsubmit="submitCancelAppointment(event)">
                 <input type="hidden" id="cancelApptId">
 
-                <div style="background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: #991B1B;">
-                    <div style="font-weight: 700; margin-bottom: 2px;">Are you sure you want to cancel this appointment?</div>
-                    <div>Patient: <strong id="cancelApptPatientName">Patient Name</strong></div>
+                <!-- Clean appointment details summary -->
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 700; color: #1E293B;" id="cancelApptPatientName">Patient Name</span>
+                        <span id="cancelApptDateBadge" style="font-size: 10.5px; font-weight: 700; color: var(--rec-primary); background: rgba(14, 177, 177, 0.1); padding: 2px 7px; border-radius: 4px;">Today</span>
+                    </div>
+                    <div style="font-size: 11.5px; color: #64748B; margin-top: 5px; display: flex; gap: 12px; flex-wrap: wrap;">
+                        <span><i class='bx bx-time'></i> <span id="cancelApptTime">09:00 AM</span></span>
+                        <span><i class='bx bx-user-check'></i> <span id="cancelApptDoctor">Attending Doctor</span></span>
+                        <span><i class='bx bx-shield-plus'></i> <span id="cancelApptService">Consultation</span></span>
+                    </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 12px;">
-                    <label>Reason for Cancellation *</label>
-                    <select id="cancelReasonSelect" class="form-control" onchange="handleCancelReasonSelect(this.value)">
+                    <label style="font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 6px; display: block;">Cancellation Reason <span style="color: #EF4444;">*</span></label>
+                    <select id="cancelReasonSelect" class="form-control" onchange="handleCancelReasonSelect(this.value)" style="font-size: 12.5px; height: 38px;">
                         <option value="Patient requested cancellation">Patient requested cancellation</option>
                         <option value="Patient feeling unwell / postponed">Patient feeling unwell / postponed</option>
-                        <option value="Doctor unavailable / schedule conflict">Doctor unavailable / schedule conflict</option>
+                        <option value="Schedule conflict / personal reasons">Schedule conflict / personal reasons</option>
                         <option value="Patient did not show up (No-show)">Patient did not show up (No-show)</option>
-                        <option value="Emergency / personal circumstances">Emergency / personal circumstances</option>
+                        <option value="Doctor unavailable / clinic conflict">Doctor unavailable / clinic conflict</option>
                         <option value="Duplicate appointment booking">Duplicate appointment booking</option>
                         <option value="Other">Other reason (specify below)...</option>
                     </select>
                 </div>
 
                 <div class="form-group" id="cancelCustomReasonGroup" style="display: none; margin-bottom: 12px;">
-                    <label>Specify Custom Cancellation Reason *</label>
-                    <input type="text" id="cancelCustomReason" class="form-control" placeholder="Describe the reason for cancellation...">
+                    <label style="font-size: 11.5px; font-weight: 600; color: #334155; margin-bottom: 4px; display: block;">Specify Reason <span style="color: #EF4444;">*</span></label>
+                    <input type="text" id="cancelCustomReason" class="form-control" style="font-size: 12px;" placeholder="Describe cancellation reason...">
+                </div>
+
+                <div style="font-size: 11px; color: #64748B; display: flex; align-items: center; gap: 5px; margin-top: 10px;">
+                    <i class='bx bx-info-circle text-primary'></i> The time slot will immediately be released in the dentist schedule.
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
                     <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('cancelAppointmentModal')">Keep Appointment</button>
-                    <button type="submit" id="btnConfirmCancelAppt" class="btn-rec" style="background: #dc2626; color: white;">
-                        <i class='bx bx-x-circle'></i> Confirm Cancellation
+                    <button type="submit" id="btnConfirmCancelAppt" class="btn-rec" style="background: #EF4444; color: white; font-weight: 600;">
+                        <i class='bx bx-calendar-x'></i> Confirm Cancellation
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: DELETE APPOINTMENT ────────────────────────────────── -->
+    <div id="deleteAppointmentModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 440px; padding: 1.5rem; border-radius: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #DC2626; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-trash' style="font-size: 20px;"></i> <span id="deleteModalTitle">Delete Selected Appointments</span>
+                    </h3>
+                    <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);" id="deleteModalSubtitle">Permanently remove selected booking(s) from the roster.</p>
+                </div>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('deleteAppointmentModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <input type="hidden" id="deleteApptIdsJson">
+
+            <!-- Selected Record Info Box -->
+            <div id="bulkDeleteInfoBox" style="background: #FEF2F2; border: 1px solid #FEE2E2; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
+                <div style="font-size: 13px; font-weight: 700; color: #991B1B; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-layer' style="font-size: 18px;"></i>
+                    <span id="bulkDeleteHeading">0 appointments selected</span>
+                </div>
+                <div style="font-size: 11.5px; color: #B91C1C; margin-top: 4px;" id="bulkDeleteSubtext">All selected appointments will be removed from your active schedule.</div>
+            </div>
+
+            <p style="font-size: 12px; color: #475569; margin: 0 0 1rem 0; line-height: 1.5;" id="deleteModalWarning">
+                Are you sure you want to permanently delete these appointments? This will release their assigned time slots.
+            </p>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('deleteAppointmentModal')">Cancel</button>
+                <button type="button" id="btnConfirmDeleteAppt" class="btn-rec" style="background: #DC2626; color: white; font-weight: 600;" onclick="executeDeleteAppointment()">
+                    <i class='bx bx-trash'></i> <span id="btnDeleteConfirmText">Delete Selected</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2108,6 +2438,78 @@
         </div>
     </div>
 
+    <!-- ── MODAL: PATIENT MEDICAL INFORMATION ACCESS (R-009) ─────── -->
+    <div id="patientMedicalModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 540px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-shield-plus text-primary' style="font-size: 20px;"></i> Patient Medical Information
+                    </h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--rec-text-muted);">
+                        Essential clinical safety alerts, blood profile, and emergency contacts.
+                    </p>
+                </div>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeModal('patientMedicalModal')"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <!-- Patient Quick Header -->
+            <div style="background: var(--rec-primary-light); border: 1px solid rgba(14, 177, 177, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div>
+                    <div style="font-size: 16px; font-weight: 800; color: var(--rec-text);" id="medModalPatientName">Patient Name</div>
+                    <div style="font-size: 11px; color: var(--rec-text-muted); margin-top: 2px;" id="medModalDemographics">Age: -- &bull; Gender: -- &bull; Phone: --</div>
+                </div>
+                <div id="medModalBloodBadge">
+                    <span style="background: white; border: 1px solid rgba(14, 177, 177, 0.35); color: var(--rec-primary-dark); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;">Blood: Unknown</span>
+                </div>
+            </div>
+
+            <!-- Medical Alerts & Allergies Box -->
+            <div style="margin-bottom: 1rem;">
+                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--rec-text-muted); letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                    <i class='bx bx-error-circle text-primary'></i> Medical Alerts & Allergies
+                </div>
+                <div id="medModalAlertBox" style="padding: 10px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 600; line-height: 1.4;">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+
+            <!-- Emergency Contact Information -->
+            <div style="margin-bottom: 1rem;">
+                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--rec-text-muted); letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                    <i class='bx bx-phone-call text-primary'></i> Emergency Contact
+                </div>
+                <div style="background: white; border: 1px solid var(--rec-border); border-radius: 8px; padding: 10px 14px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--rec-text);" id="medModalEmergName">None recorded</div>
+                        <div style="font-size: 11px; color: var(--rec-text-muted); margin-top: 2px;" id="medModalEmergPhone">No phone provided</div>
+                    </div>
+                    <div id="medModalEmergCallBtn"></div>
+                </div>
+            </div>
+
+            <!-- Relevant Clinical Notes / Recent Symptoms -->
+            <div style="margin-bottom: 1.25rem;">
+                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--rec-text-muted); letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                    <i class='bx bx-note text-primary'></i> Recent Intake / Symptoms Notes
+                </div>
+                <div id="medModalNotesBox" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: var(--rec-text); max-height: 100px; overflow-y: auto;">
+                    No intake notes recorded.
+                </div>
+            </div>
+
+            <!-- Minimal Action Buttons -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" id="medModalBtnEditAlerts" onclick="openEditAlertsQuick()">
+                    <i class='bx bx-edit'></i> Update Alerts
+                </button>
+                <button type="button" class="btn-rec btn-rec-primary btn-rec-sm" onclick="closeModal('patientMedicalModal')">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Banner -->
     <div id="toastBanner" class="toast-banner">
         <i id="toastIcon" class='bx bx-check-circle' style="font-size: 20px;"></i>
@@ -2169,7 +2571,7 @@
                     renderSidebarUser(data.receptionist);
                     renderMetrics(data.metrics);
                     renderQueue(data.queue_today);
-                    renderAppointments(data.upcoming_appointments, data.queue_today);
+                    renderAppointments(data.all_appointments || data.upcoming_appointments, data.queue_today);
                     renderDoctors(data.doctors);
                     populateBookingDropdowns(data.patients, data.doctors, data.clinic_settings);
                     populateProfileForm(data.receptionist);
@@ -2276,11 +2678,16 @@
         }
 
         function renderSidebarUser(rec) {
+            if (!rec) return;
             document.getElementById('sidebarName').textContent = rec.full_name || 'Receptionist';
             document.getElementById('sidebarPosition').textContent = rec.position || 'Front Desk Receptionist';
             const names = (rec.full_name || 'Front Desk').split(' ');
-            const initials = names.map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            document.getElementById('sidebarAvatar').textContent = initials;
+            const initials = names.map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'FD';
+            const avatar = document.getElementById('sidebarAvatar');
+            if (avatar) {
+                avatar.textContent = initials;
+                if (rec.avatar_color) avatar.style.backgroundColor = rec.avatar_color;
+            }
         }
 
         function renderMetrics(m) {
@@ -2414,17 +2821,28 @@
 
                 // 5. Actions
                 let actionBtn = '';
-                if (status === 'scheduled') {
+                if (status === 'pending') {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
+                                <i class='bx bx-calendar-edit'></i> Reschedule
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
+                            </button>
+                        </div>
+                    `;
+                } else if (status === 'scheduled') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
                             <button class="btn-rec btn-rec-primary btn-rec-sm" title="Arrival Check In" onclick="updateApptStatus('${apt._id}', 'checked_in')">
                                 <i class='bx bx-check-circle'></i> Check In
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Manage Queue Details" onclick="openManageQueueModal('${apt._id}')">
-                                <i class='bx bx-slider'></i>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
+                                <i class='bx bx-calendar-edit'></i> Reschedule
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
-                                <i class='bx bx-x-circle'></i>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
                     `;
@@ -2434,11 +2852,11 @@
                             <button class="btn-rec btn-rec-primary btn-rec-sm" style="background: #2563eb;" title="Call patient to dental chair" onclick="updateApptStatus('${apt._id}', 'in_progress')">
                                 <i class='bx bx-chair'></i> Call to Chair
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Manage Status, Chair & Priority" onclick="openManageQueueModal('${apt._id}')">
-                                <i class='bx bx-slider'></i> Manage
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
+                                <i class='bx bx-calendar-edit'></i> Reschedule
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel / Remove from queue" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
-                                <i class='bx bx-x-circle'></i>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel / Remove from queue (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
                     `;
@@ -2448,7 +2866,7 @@
                             <button class="btn-rec btn-rec-primary btn-rec-sm" style="background: #059669;" title="Complete Consultation" onclick="updateApptStatus('${apt._id}', 'completed')">
                                 <i class='bx bx-check-double'></i> Complete
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Transfer Chair / Manage" onclick="openManageQueueModal('${apt._id}')">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Chair / Manage" onclick="openManageQueueModal('${apt._id}')">
                                 <i class='bx bx-slider'></i> Chair
                             </button>
                         </div>
@@ -2456,23 +2874,28 @@
                 } else if (status === 'completed') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <span style="font-size: 11px; color: #059669; font-weight: 700;"><i class='bx bx-badge-check'></i> Done</span>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="View / Adjust Details" onclick="openManageQueueModal('${apt._id}')" style="margin-left: 6px;">
-                                <i class='bx bx-show'></i>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="View Details" onclick="openManageQueueModal('${apt._id}')">
+                                <i class='bx bx-show'></i> Details
+                            </button>
+                        </div>
+                    `;
+                } else if (status === 'cancelled' || status === 'no_show') {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #059669; border-color: #A7F3D0;" title="Rebook or Reschedule Appointment" onclick="openRescheduleModal('${apt._id}')">
+                                <i class='bx bx-calendar-plus'></i> Reschedule
                             </button>
                         </div>
                     `;
                 } else {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <span style="font-size: 11px; color: #94a3b8; font-style: italic;">${statusLabel}</span>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="View / Reopen Queue" onclick="openManageQueueModal('${apt._id}')" style="margin-left: 6px;">
-                                <i class='bx bx-refresh'></i>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
                     `;
                 }
-
                 return `
                     <tr>
                         <td>
@@ -2487,6 +2910,13 @@
                                 ${priorityBadge}
                                 <span style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(apt.patient_phone || '')}</span>
                             </div>
+                            ${apt.medical_alerts && apt.medical_alerts !== 'None' && apt.medical_alerts !== 'None recorded' ? `
+                                <div style="margin-top: 3px;">
+                                    <span style="background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; cursor: pointer;" title="Medical Alert (R-009): ${escapeHtml(apt.medical_alerts)}" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')">
+                                        <i class='bx bxs-error-circle'></i> Alert: ${escapeHtml(apt.medical_alerts)}
+                                    </span>
+                                </div>
+                            ` : ''}
                         </td>
                         <td>
                             <div style="font-weight: 700; color: var(--rec-primary); font-size: 12px; white-space: nowrap;">
@@ -2537,14 +2967,21 @@
             }
 
             tbody.innerHTML = patients.map(p => {
+                const safeId = escapeHtml(p._id || '');
+                const safeName = escapeHtml(p.full_name || '');
+                const safePhone = escapeHtml(p.phone || '');
+                const safeAlerts = escapeHtml(p.medical_alerts || '');
+
                 const initials = (p.full_name || 'P').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
                 const hasAlert = p.has_alert || (p.medical_alerts && p.medical_alerts !== 'None' && p.medical_alerts !== 'None recorded');
                 
                 const alertTag = hasAlert 
-                    ? `<div style="background: #FEE2E2; border: 1px solid #FCA5A5; color: #DC2626; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;" title="${escapeHtml(p.medical_alerts)}">
-                         <i class='bx bxs-error-circle'></i> <span style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(p.medical_alerts)}</span>
-                       </div>`
-                    : `<span style="font-size: 11px; color: var(--rec-text-muted);"><i class='bx bx-check-circle' style="color: #10B981;"></i> None recorded</span>`;
+                    ? `<span style="background: #FEF2F2; color: #DC2626; border: 1px solid #FEE2E2; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.15s ease;" title="Click to view medical information (R-009)" onclick="openPatientMedicalModal('${safeId}', '${safeName}')">
+                         <i class='bx bxs-error-circle'></i> <span style="max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(p.medical_alerts)}</span>
+                       </span>`
+                    : `<span style="font-size: 11px; color: #94A3B8; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="openPatientMedicalModal('${safeId}', '${safeName}')" title="Click to view medical profile (R-009)">
+                         <i class='bx bx-check-circle' style="color: #10B981; font-size: 13px;"></i> None
+                       </span>`;
 
                 const returnBadge = (p.total_visits >= 2 || p.is_returning)
                     ? `<span style="background: #E0F2FE; color: #0369A1; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;"><i class='bx bx-revision'></i> Returning (${p.total_visits})</span>`
@@ -2558,16 +2995,11 @@
                        </div>`
                     : '';
 
-                const safeId = escapeHtml(p._id || '');
-                const safeName = escapeHtml(p.full_name || '');
-                const safePhone = escapeHtml(p.phone || '');
-                const safeAlerts = escapeHtml(p.medical_alerts || '');
-
                 return `
                     <tr>
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div class="rec-avatar-circle" style="width: 36px; height: 36px; font-size: 13px; border-radius: 8px; flex-shrink: 0;">
+                                <div style="width: 34px; height: 34px; border-radius: 8px; background: #F0FDFA; color: #0D9488; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid #CCFBF1;">
                                     ${escapeHtml(initials)}
                                 </div>
                                 <div>
@@ -2608,19 +3040,34 @@
                             ${todayTag}
                         </td>
                         <td style="text-align: right; white-space: nowrap;">
-                            <div style="display: inline-flex; gap: 4px;">
-                                <button class="btn-rec btn-rec-primary btn-rec-sm" title="Fast Check-in to Today's Queue" onclick="openCheckInReturningModal('${safeId}', '${safeName}', '${safePhone}', '${safeAlerts}')">
-                                    <i class='bx bx-walk'></i> Check-in
+                            <div class="patient-action-wrap">
+                                <button type="button" class="btn-rec-action" onclick="togglePatientActionDropdown(this, event)" title="Patient Actions">
+                                    <span>Actions</span>
+                                    <i class='bx bx-chevron-down'></i>
                                 </button>
-                                <button class="btn-rec btn-rec-secondary btn-rec-sm" title="View Full Visit History & Medical Alerts" onclick="openPatientHistoryModal('${safeId}')">
-                                    <i class='bx bx-history'></i> History
-                                </button>
-                                <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Schedule Appointment" onclick="quickBookForPatient('${safeName}')">
-                                    <i class='bx bx-calendar-plus'></i> Book
-                                </button>
-                                <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Update Contact / Medical Details" onclick="openEditPatientModal('${safeId}')">
-                                    <i class='bx bx-edit'></i> Edit
-                                </button>
+                                <div class="patient-action-menu">
+                                    <button type="button" class="action-item action-medical" onclick="openPatientMedicalModal('${safeId}', '${safeName}'); closeAllPatientActionDropdowns();">
+                                        <i class='bx bx-shield-plus'></i>
+                                        <span>Medical Info (R-009)</span>
+                                    </button>
+                                    <button type="button" class="action-item" onclick="openCheckInReturningModal('${safeId}', '${safeName}', '${safePhone}', '${safeAlerts}'); closeAllPatientActionDropdowns();">
+                                        <i class='bx bx-walk'></i>
+                                        <span>Fast Check-in</span>
+                                    </button>
+                                    <button type="button" class="action-item" onclick="quickBookForPatient('${safeName}'); closeAllPatientActionDropdowns();">
+                                        <i class='bx bx-calendar-plus'></i>
+                                        <span>Book Appointment</span>
+                                    </button>
+                                    <div class="action-divider"></div>
+                                    <button type="button" class="action-item" onclick="openPatientHistoryModal('${safeId}'); closeAllPatientActionDropdowns();">
+                                        <i class='bx bx-history'></i>
+                                        <span>Visit History</span>
+                                    </button>
+                                    <button type="button" class="action-item" onclick="openEditPatientModal('${safeId}'); closeAllPatientActionDropdowns();">
+                                        <i class='bx bx-edit'></i>
+                                        <span>Edit Details</span>
+                                    </button>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -2628,11 +3075,60 @@
             }).join('');
         }
 
+        function togglePatientActionDropdown(btn, event) {
+            event.stopPropagation();
+            const wrap = btn.closest('.patient-action-wrap');
+            const menu = wrap.querySelector('.patient-action-menu');
+            const tr = wrap.closest('tr');
+            const isOpen = menu.classList.contains('open');
+
+            closeAllPatientActionDropdowns();
+
+            if (!isOpen) {
+                const rect = btn.getBoundingClientRect();
+                if (window.innerHeight - rect.bottom < 190) {
+                    menu.style.top = 'auto';
+                    menu.style.bottom = 'calc(100% + 4px)';
+                } else {
+                    menu.style.top = 'calc(100% + 4px)';
+                    menu.style.bottom = 'auto';
+                }
+                if (tr) tr.style.zIndex = '50';
+                menu.classList.add('open');
+                btn.classList.add('active');
+                const icon = btn.querySelector('i');
+                if (icon) icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        function closeAllPatientActionDropdowns() {
+            document.querySelectorAll('.patient-action-menu.open').forEach(m => m.classList.remove('open'));
+            document.querySelectorAll('#patientsTableBody tr').forEach(r => r.style.zIndex = '');
+            document.querySelectorAll('.btn-rec-action.active').forEach(b => {
+                b.classList.remove('active');
+                const icon = b.querySelector('i');
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.patient-action-wrap')) {
+                closeAllPatientActionDropdowns();
+            }
+        });
+
         let currentApptFilter = 'all';
         let cachedAllAppointments = [];
+        let currentFilteredAppointments = [];
+        let selectedApptIds = new Set();
 
-        function renderAppointments(upcoming, todayQueue) {
-            const all = [...(todayQueue || []), ...(upcoming || [])];
+        function renderAppointments(allOrUpcoming, todayQueue) {
+            let all = [];
+            if (Array.isArray(allOrUpcoming) && allOrUpcoming.length > 0) {
+                all = allOrUpcoming;
+            } else {
+                all = [...(todayQueue || []), ...(allOrUpcoming || [])];
+            }
             cachedAllAppointments = all;
 
             // Calculate filter pill counts
@@ -2655,6 +3151,7 @@
             if (document.getElementById('countApptToday')) document.getElementById('countApptToday').textContent = countToday;
             if (document.getElementById('countApptCompleted')) document.getElementById('countApptCompleted').textContent = countCompleted;
             if (document.getElementById('countApptCancelled')) document.getElementById('countApptCancelled').textContent = countCancelled;
+            if (document.getElementById('bulkTotalAllCount')) document.getElementById('bulkTotalAllCount').textContent = countAll;
 
             filterAppointmentsTable();
         }
@@ -2703,8 +3200,11 @@
                 return matchesText && matchesPill && matchesStatus;
             });
 
+            currentFilteredAppointments = filtered;
+
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);"><i class='bx bx-calendar-x' style="font-size: 32px; display: block; margin-bottom: 6px; color: var(--rec-primary);"></i>No appointment records match the selected filter.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);"><i class='bx bx-calendar-x' style="font-size: 32px; display: block; margin-bottom: 6px; color: var(--rec-primary);"></i>No appointment records match the selected filter.</td></tr>`;
+                updateApptSelectionUI();
                 return;
             }
 
@@ -2715,7 +3215,18 @@
                 const isToday = (date === todayIso);
 
                 let actionBtn = '';
-                if (status === 'scheduled') {
+                if (status === 'pending') {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
+                                <i class='bx bx-calendar-edit'></i> Reschedule
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel this appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
+                            </button>
+                        </div>
+                    `;
+                } else if (status === 'scheduled') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
                             ${isToday ? `
@@ -2725,11 +3236,8 @@
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
                                 <i class='bx bx-calendar-edit'></i> Reschedule
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Edit Procedure & Details" onclick="openManageApptModal('${apt._id}')">
-                                <i class='bx bx-edit'></i>
-                            </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel this appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
-                                <i class='bx bx-x-circle'></i>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel this appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
                     `;
@@ -2742,49 +3250,53 @@
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule to Another Date" onclick="openRescheduleModal('${apt._id}')">
                                 <i class='bx bx-calendar-edit'></i> Reschedule
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Edit Procedure & Details" onclick="openManageApptModal('${apt._id}')">
-                                <i class='bx bx-edit'></i>
-                            </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #dc2626; border-color: #fca5a5;" title="Cancel appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
-                                <i class='bx bx-x-circle'></i>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
                     `;
                 } else if (status === 'in_progress') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <span style="font-size: 11px; color: #2563eb; font-weight: 700;"><i class='bx bx-chair'></i> In Chair</span>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Edit Procedure & Details" onclick="openManageApptModal('${apt._id}')" style="margin-left: 4px;">
-                                <i class='bx bx-edit'></i>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Edit Procedure & Details" onclick="openManageApptModal('${apt._id}')">
+                                <i class='bx bx-edit'></i> Manage
                             </button>
                         </div>
                     `;
                 } else if (status === 'completed') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <span style="font-size: 11px; color: #059669; font-weight: 700;"><i class='bx bx-check'></i> Done</span>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="View / Edit Details" onclick="openManageApptModal('${apt._id}')" style="margin-left: 4px;">
-                                <i class='bx bx-show'></i>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="View Details" onclick="openManageApptModal('${apt._id}')">
+                                <i class='bx bx-show'></i> Details
                             </button>
                         </div>
                     `;
                 } else if (status === 'cancelled' || status === 'no_show') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <span style="font-size: 11px; color: #94a3b8; font-style: italic;">${escapeHtml(status.toUpperCase())}</span>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #059669; border-color: #A7F3D0; margin-left: 4px;" title="Rebook or Reschedule Appointment" onclick="openRescheduleModal('${apt._id}')">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #059669; border-color: #A7F3D0;" title="Rebook or Reschedule Appointment" onclick="openRescheduleModal('${apt._id}')">
                                 <i class='bx bx-calendar-plus'></i> Reschedule
                             </button>
                         </div>
                     `;
+                } else {
+                    actionBtn = `
+                        <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                                <i class='bx bx-x-circle'></i> Cancel
+                            </button>
+                        </div>
+                    `;
                 }
-
                 const reschedBadge = apt.rescheduled_at
                     ? `<span style="background: #EEF2FF; color: #4F46E5; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px;" title="Rescheduled on ${escapeHtml(apt.rescheduled_at)}"><i class='bx bx-revision'></i> Rescheduled</span>`
                     : '';
 
                 return `
                     <tr>
+                        <td class="appt-checkbox-col" style="text-align: center; vertical-align: middle;">
+                            <input type="checkbox" class="appt-checkbox" value="${apt._id}" ${selectedApptIds.has(apt._id) ? 'checked' : ''} onchange="onApptCheckboxChange(this, '${apt._id}')" style="cursor: pointer; width: 15px; height: 15px; accent-color: #DC2626;">
+                        </td>
                         <td>
                             <div style="font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 4px;">
                                 <span>${escapeHtml(date)}</span>
@@ -2795,10 +3307,18 @@
                             </div>
                         </td>
                         <td>
-                            <div style="font-weight: 700; font-size: 13px; color: var(--rec-text);">
-                                ${escapeHtml(apt.patient_name || 'Patient')}
+                            <div style="font-weight: 700; font-size: 13px; color: var(--rec-text); display: flex; align-items: center; gap: 5px;">
+                                <span>${escapeHtml(apt.patient_name || 'Patient')}</span>
+                                ${apt.medical_alerts && apt.medical_alerts !== 'None' && apt.medical_alerts !== 'None recorded' ? `
+                                    <span style="background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; cursor: pointer;" title="Medical Alert (R-009): ${escapeHtml(apt.medical_alerts)}" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')">
+                                        <i class='bx bxs-error-circle'></i> Alert
+                                    </span>
+                                ` : ''}
                             </div>
-                            <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(apt.patient_phone || '')}</div>
+                            <div style="font-size: 11px; color: var(--rec-text-muted); display: flex; align-items: center; gap: 6px;">
+                                <span>${escapeHtml(apt.patient_phone || '')}</span>
+                                <a href="javascript:void(0)" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')" style="font-size: 10px; color: var(--rec-primary); text-decoration: none;" title="View patient medical alerts & emergency info (R-009)"><i class='bx bx-shield-plus'></i> Medical Info</a>
+                            </div>
                         </td>
                         <td>
                             <div style="font-weight: 600; font-size: 12px; color: var(--rec-text);">${escapeHtml(apt.doctor_name || 'Attending Doctor')}</div>
@@ -2816,6 +3336,11 @@
                             <span class="status-pill ${status}">
                                 <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
                             </span>
+                            ${status === 'cancelled' && apt.cancellation_reason ? `
+                                <div style="font-size: 10px; color: #DC2626; margin-top: 3px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Reason: ${escapeHtml(apt.cancellation_reason)}">
+                                    <i class='bx bx-info-circle'></i> ${escapeHtml(apt.cancellation_reason)}
+                                </div>
+                            ` : ''}
                         </td>
                         <td style="text-align: right; white-space: nowrap;">
                             ${actionBtn}
@@ -2823,6 +3348,128 @@
                     </tr>
                 `;
             }).join('');
+
+            updateApptSelectionUI();
+        }
+
+        // Selection & Bulk Action Handlers
+        let isApptDeleteMode = false;
+
+        function onApptCheckboxChange(cb, id) {
+            if (cb.checked) {
+                selectedApptIds.add(id);
+            } else {
+                selectedApptIds.delete(id);
+            }
+            updateApptSelectionUI();
+        }
+
+        function toggleSelectAllAppts(isChecked) {
+            const checkboxes = document.querySelectorAll('.appt-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = isChecked;
+                if (isChecked) {
+                    selectedApptIds.add(cb.value);
+                } else {
+                    selectedApptIds.delete(cb.value);
+                }
+            });
+            updateApptSelectionUI();
+        }
+
+        function selectAllEverything() {
+            (cachedAllAppointments || []).forEach(apt => {
+                if (apt._id) selectedApptIds.add(apt._id);
+            });
+            document.querySelectorAll('.appt-checkbox').forEach(cb => {
+                cb.checked = true;
+            });
+            updateApptSelectionUI();
+            showToast('info', `All ${selectedApptIds.size} appointments selected.`);
+        }
+
+        function clearApptSelection() {
+            selectedApptIds.clear();
+            const master = document.getElementById('selectAllApptsCheckbox');
+            if (master) {
+                master.checked = false;
+                master.indeterminate = false;
+            }
+            document.querySelectorAll('.appt-checkbox').forEach(cb => cb.checked = false);
+            updateApptSelectionUI();
+        }
+
+        function updateApptSelectionUI() {
+            const bar = document.getElementById('apptBulkActionBar');
+            const count = selectedApptIds.size;
+            const countText = document.getElementById('bulkSelectedCountText');
+            const btnCount = document.getElementById('bulkDeleteBtnCount');
+            const totalAllSpan = document.getElementById('bulkTotalAllCount');
+            const masterCb = document.getElementById('selectAllApptsCheckbox');
+
+            if (totalAllSpan) totalAllSpan.textContent = cachedAllAppointments?.length || 0;
+
+            if (isApptDeleteMode) {
+                if (bar) bar.style.display = 'flex';
+                if (countText) countText.textContent = `${count} selected`;
+                if (btnCount) btnCount.textContent = count;
+            } else {
+                if (bar) bar.style.display = 'none';
+            }
+
+            const visibleCheckboxes = Array.from(document.querySelectorAll('.appt-checkbox'));
+            if (masterCb && visibleCheckboxes.length > 0) {
+                const allChecked = visibleCheckboxes.every(cb => cb.checked);
+                const someChecked = visibleCheckboxes.some(cb => cb.checked);
+                masterCb.checked = allChecked;
+                masterCb.indeterminate = !allChecked && someChecked;
+            } else if (masterCb) {
+                masterCb.checked = false;
+                masterCb.indeterminate = false;
+            }
+        }
+
+        function enterApptDeleteMode() {
+            isApptDeleteMode = true;
+            const container = document.getElementById('appointmentsTableContainer');
+            if (container) container.classList.add('selection-mode-active');
+            const bar = document.getElementById('apptBulkActionBar');
+            if (bar) bar.style.display = 'flex';
+            const delBtn = document.getElementById('btnToolbarDeleteAppt');
+            if (delBtn) {
+                delBtn.style.background = '#DC2626';
+                delBtn.style.color = '#FFFFFF';
+                delBtn.style.borderColor = '#DC2626';
+            }
+            updateApptSelectionUI();
+            showToast('info', 'Select appointments to delete, or click "Select Everything".');
+        }
+
+        function exitApptDeleteMode() {
+            isApptDeleteMode = false;
+            clearApptSelection();
+            const container = document.getElementById('appointmentsTableContainer');
+            if (container) container.classList.remove('selection-mode-active');
+            const bar = document.getElementById('apptBulkActionBar');
+            if (bar) bar.style.display = 'none';
+            const delBtn = document.getElementById('btnToolbarDeleteAppt');
+            if (delBtn) {
+                delBtn.style.background = '';
+                delBtn.style.color = '#DC2626';
+                delBtn.style.borderColor = '#FCA5A5';
+            }
+        }
+
+        function handleBulkDeleteTrigger() {
+            if (selectedApptIds.size > 0) {
+                confirmBulkDeleteAppointments();
+                return;
+            }
+            if (!isApptDeleteMode) {
+                enterApptDeleteMode();
+            } else {
+                showToast('info', 'Please select the appointment(s) you wish to delete using the checkboxes, or click "Select Everything".');
+            }
         }
 
         // ── R-008: Dentist Schedule Monitoring & Slot Availability Matrix ─────
@@ -3418,7 +4065,7 @@
             const patientSel = document.getElementById('bookPatientSelect');
             if (patientSel) {
                 patientSel.innerHTML = '<option value="">-- Choose Registered Patient --</option>' +
-                    patients.map(p => `<option value="${escapeHtml(p.full_name)}" data-email="${escapeHtml(p.email)}" data-phone="${escapeHtml(p.phone)}">${escapeHtml(p.full_name)} (${escapeHtml(p.phone || 'No phone')})</option>`).join('');
+                    patients.map(p => `<option value="${escapeHtml(p.full_name)}" data-id="${escapeHtml(p._id || '')}" data-email="${escapeHtml(p.email || '')}" data-phone="${escapeHtml(p.phone || '')}" data-alerts="${escapeHtml(p.medical_alerts || 'None recorded')}" data-blood="${escapeHtml(p.blood_type || 'Unknown')}" data-emerg="${escapeHtml(p.emergency_contact || 'None')}">${escapeHtml(p.full_name)} (${escapeHtml(p.phone || 'No phone')})</option>`).join('');
             }
 
             const docSel = document.getElementById('bookDoctorSelect');
@@ -3494,11 +4141,241 @@
             }
         }
 
+        // ── R-009: Patient Medical Information Access Handlers ─────────
+        let currentMedicalModalPatientId = null;
+
+        function handlePatientSelectionChange() {
+            const sel = document.getElementById('bookPatientSelect');
+            const banner = document.getElementById('bookPatientMedicalBanner');
+            if (!sel || !banner) return;
+
+            const opt = sel.options[sel.selectedIndex];
+            if (!opt || !opt.value) {
+                banner.style.display = 'none';
+                banner.innerHTML = '';
+                return;
+            }
+
+            const patientId = opt.getAttribute('data-id') || '';
+            const patientName = opt.value;
+            const alerts = opt.getAttribute('data-alerts') || 'None recorded';
+            const blood = opt.getAttribute('data-blood') || 'Unknown';
+            const emerg = opt.getAttribute('data-emerg') || 'None';
+
+            const hasAlert = alerts && alerts !== 'None' && alerts !== 'None recorded' && alerts !== 'None reported.';
+
+            banner.style.display = 'block';
+            if (hasAlert) {
+                banner.innerHTML = `
+                    <div style="background: #FEF2F2; border: 1.5px solid #F87171; border-radius: 8px; padding: 8px 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
+                        <div style="display: flex; gap: 8px; align-items: flex-start;">
+                            <i class='bx bxs-error-circle' style="color: #DC2626; font-size: 18px; margin-top: 1px; flex-shrink: 0;"></i>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 800; color: #DC2626; text-transform: uppercase; letter-spacing: 0.3px;">
+                                    Medical Safety Alert (R-009)
+                                </div>
+                                <div style="font-size: 12.5px; font-weight: 700; color: #991B1B; margin-top: 1px;">
+                                    ${escapeHtml(alerts)}
+                                </div>
+                                <div style="font-size: 11px; color: #7F1D1D; margin-top: 2px;">
+                                    Blood: <strong>${escapeHtml(blood)}</strong> &bull; Emergency: <strong>${escapeHtml(emerg)}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" style="font-size: 11px; padding: 2px 7px; flex-shrink: 0;" onclick="openPatientMedicalModal('${escapeHtml(patientId)}', '${escapeHtml(patientName)}')">
+                            <i class='bx bx-shield-plus'></i> Medical Details
+                        </button>
+                    </div>
+                `;
+            } else {
+                banner.innerHTML = `
+                    <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 7px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                        <div style="font-size: 11.5px; color: #166534; display: flex; align-items: center; gap: 6px;">
+                            <i class='bx bx-check-circle' style="color: #16A34A; font-size: 16px;"></i>
+                            <span>No medical alerts recorded &bull; Blood: <strong>${escapeHtml(blood)}</strong> &bull; Emergency: <strong>${escapeHtml(emerg)}</strong></span>
+                        </div>
+                        <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" style="font-size: 11px; padding: 2px 7px; flex-shrink: 0;" onclick="openPatientMedicalModal('${escapeHtml(patientId)}', '${escapeHtml(patientName)}')">
+                            <i class='bx bx-shield-plus'></i> Details
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        async function openPatientMedicalModal(patientId, fallbackName = '') {
+            let p = null;
+            if (cachedData && cachedData.patients) {
+                p = cachedData.patients.find(x => (patientId && x._id === patientId) || (fallbackName && x.full_name === fallbackName));
+            }
+
+            currentMedicalModalPatientId = patientId || (p ? p._id : null);
+
+            document.getElementById('medModalPatientName').textContent = p ? p.full_name : (fallbackName || 'Patient');
+            document.getElementById('medModalDemographics').textContent = 'Loading medical records...';
+            document.getElementById('medModalAlertBox').innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Loading clinical alerts...";
+            document.getElementById('medModalEmergName').textContent = 'Loading...';
+            document.getElementById('medModalEmergPhone').textContent = '';
+            document.getElementById('medModalEmergCallBtn').innerHTML = '';
+            document.getElementById('medModalNotesBox').textContent = 'Loading past intake notes...';
+
+            openModal('patientMedicalModal');
+
+            try {
+                const queryParam = patientId ? `id=${encodeURIComponent(patientId)}` : `name=${encodeURIComponent(fallbackName)}`;
+                const res = await fetch(`api/receptionist/get_patient_details.php?${queryParam}`);
+                const data = await res.json();
+
+                if (data.status === 'success' && data.patient) {
+                    const pat = data.patient;
+                    currentMedicalModalPatientId = pat._id;
+
+                    document.getElementById('medModalPatientName').textContent = pat.full_name || 'Patient';
+                    const ageStr = pat.age ? `${pat.age} yrs` : (pat.dob || 'Age unlisted');
+                    document.getElementById('medModalDemographics').innerHTML = `
+                        <span>${ageStr}</span> &bull; <span>${escapeHtml(pat.gender || 'Not Specified')}</span> &bull; <span><i class='bx bx-phone'></i> ${escapeHtml(pat.phone || 'No phone')}</span>
+                    `;
+
+                    document.getElementById('medModalBloodBadge').innerHTML = `
+                        <span style="background: white; border: 1px solid rgba(14, 177, 177, 0.35); color: var(--rec-primary-dark); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;">
+                            <i class='bx bx-droplet' style="color: #ef4444;"></i> Blood: ${escapeHtml(pat.blood_type || 'Unknown')}
+                        </span>
+                    `;
+
+                    const alerts = pat.medical_alerts || 'None recorded';
+                    const hasAlert = pat.has_alert || (alerts !== 'None' && alerts !== 'None recorded' && alerts !== 'None reported.');
+
+                    const alertBox = document.getElementById('medModalAlertBox');
+                    if (hasAlert) {
+                        alertBox.style.background = '#FEF2F2';
+                        alertBox.style.border = '1.5px solid #F87171';
+                        alertBox.style.color = '#991B1B';
+                        alertBox.innerHTML = `
+                            <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                <i class='bx bxs-error-circle' style="color: #DC2626; font-size: 18px; margin-top: 1px; flex-shrink: 0;"></i>
+                                <div>
+                                    <div style="font-weight: 800; text-transform: uppercase; font-size: 11px; color: #DC2626; letter-spacing: 0.3px;">Critical Medical Safety Warning</div>
+                                    <div style="font-size: 13px; font-weight: 700; margin-top: 2px;">${escapeHtml(alerts)}</div>
+                                    <div style="font-size: 11px; color: #7F1D1D; font-weight: normal; margin-top: 4px;">Inform the attending dentist prior to administering local anesthesia or prescribing medication.</div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        alertBox.style.background = '#F0FDF4';
+                        alertBox.style.border = '1px solid #BBF7D0';
+                        alertBox.style.color = '#166534';
+                        alertBox.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class='bx bx-check-circle' style="color: #16A34A; font-size: 18px; flex-shrink: 0;"></i>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 12px;">No Known Medical Alerts or Allergies</div>
+                                    <div style="font-size: 11px; color: #15803D; font-weight: normal; margin-top: 1px;">Patient has no recorded medical contraindications.</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    // Emergency Contact
+                    const emergName = pat.emergency_contact_name || 'None recorded';
+                    const emergPhone = pat.emergency_contact_phone || '';
+                    document.getElementById('medModalEmergName').textContent = emergName;
+                    document.getElementById('medModalEmergPhone').textContent = emergPhone ? `Phone: ${emergPhone}` : 'No phone specified';
+
+                    if (emergPhone) {
+                        document.getElementById('medModalEmergCallBtn').innerHTML = `
+                            <a href="tel:${escapeHtml(emergPhone)}" class="btn-rec btn-rec-secondary btn-rec-sm" style="color: var(--rec-primary); border-color: rgba(14,177,177,0.3); font-size: 11px; text-decoration: none;">
+                                <i class='bx bx-phone'></i> Call
+                            </a>
+                        `;
+                    } else {
+                        document.getElementById('medModalEmergCallBtn').innerHTML = '';
+                    }
+
+                    // Past clinical notes
+                    const history = data.history || [];
+                    const notes = history.filter(h => h.notes).map(h => `&bull; <strong>${escapeHtml(h.date)} (${escapeHtml(h.service_name)}):</strong> ${escapeHtml(h.notes)}`).join('<br>');
+                    document.getElementById('medModalNotesBox').innerHTML = notes || 'No past clinical intake notes on record.';
+                }
+            } catch (err) {
+                console.error("Error loading patient medical details:", err);
+            }
+        }
+
+        function openEditAlertsQuick() {
+            if (!currentMedicalModalPatientId) return;
+            closeModal('patientMedicalModal');
+            openEditPatientModal(currentMedicalModalPatientId);
+        }
+
+        // ── R-012: Receptionist Profile & Account Customization Handlers ──
+        function onProfileNameInput(val) {
+            const displayName = (val || '').trim() || 'Receptionist';
+            const headerName = document.getElementById('profHeaderName');
+            if (headerName) headerName.textContent = displayName;
+            const names = displayName.split(' ');
+            const initials = names.map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'FD';
+            const preview = document.getElementById('profAvatarPreview');
+            if (preview) preview.textContent = initials;
+        }
+
+        function onProfilePositionInput(val) {
+            const headerRole = document.getElementById('profHeaderRole');
+            if (headerRole) headerRole.textContent = (val || '').trim() || 'Front Desk Receptionist';
+        }
+
+        function selectAvatarColor(color) {
+            const hidden = document.getElementById('profAvatarColor');
+            if (hidden) hidden.value = color;
+            const preview = document.getElementById('profAvatarPreview');
+            if (preview) {
+                preview.style.backgroundColor = color;
+                preview.style.boxShadow = `0 4px 12px ${color}40`;
+            }
+            document.querySelectorAll('.prof-color-dot').forEach(btn => {
+                if (btn.getAttribute('data-color') === color) {
+                    btn.style.boxShadow = `0 0 0 2px white, 0 0 0 4px ${color}`;
+                    btn.style.transform = 'scale(1.15)';
+                } else {
+                    btn.style.boxShadow = 'none';
+                    btn.style.transform = 'scale(1)';
+                }
+            });
+        }
+
+        function togglePassVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const isPass = input.type === 'password';
+            input.type = isPass ? 'text' : 'password';
+            const icon = btn.querySelector('i');
+            if (icon) {
+                icon.className = isPass ? 'bx bx-hide' : 'bx bx-show';
+            }
+        }
+
         function populateProfileForm(rec) {
-            document.getElementById('profFullName').value = rec.full_name || '';
-            document.getElementById('profEmail').value = rec.email || '';
-            document.getElementById('profPosition').value = rec.position || 'Front Desk Receptionist';
-            document.getElementById('profPhone').value = rec.phone || '';
+            if (!rec) return;
+            if (document.getElementById('profFullName')) document.getElementById('profFullName').value = rec.full_name || '';
+            if (document.getElementById('profEmail')) document.getElementById('profEmail').value = rec.email || '';
+            if (document.getElementById('profPosition')) document.getElementById('profPosition').value = rec.position || 'Front Desk Receptionist';
+            if (document.getElementById('profPhone')) document.getElementById('profPhone').value = rec.phone || '';
+            if (document.getElementById('profScheduleDays')) document.getElementById('profScheduleDays').value = rec.schedule_days || 'Mon - Fri (8:00 AM - 5:00 PM)';
+            if (document.getElementById('profBio')) document.getElementById('profBio').value = rec.bio || '';
+            
+            // Header elements
+            if (document.getElementById('profHeaderName')) document.getElementById('profHeaderName').textContent = rec.full_name || 'Receptionist';
+            if (document.getElementById('profHeaderEmail')) document.getElementById('profHeaderEmail').textContent = rec.email || '';
+            if (document.getElementById('profHeaderRole')) document.getElementById('profHeaderRole').textContent = rec.position || 'Front Desk Receptionist';
+            if (document.getElementById('profHeaderLastLogin')) {
+                document.getElementById('profHeaderLastLogin').textContent = rec.last_login ? `Last login: ${rec.last_login}` : 'Session Active';
+            }
+
+            // Avatar & Accent
+            const color = rec.avatar_color || '#0eb1b1';
+            selectAvatarColor(color);
+            onProfileNameInput(rec.full_name || 'Receptionist');
+            
+            // Update sidebar user display
+            renderSidebarUser(rec);
         }
 
         // Tab Switching
@@ -3807,7 +4684,7 @@
                 }
             } catch (err) {
                 console.error("Patient search error:", err);
-                if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #DC2626;">Network error during patient search.</td></tr>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #DC2626;">Error loading patients: ${escapeHtml(err.message || 'Network error during search.')}</td></tr>`;
             }
         }
 
@@ -4182,16 +5059,47 @@
             }
         }
 
-        // ── Appointment Cancellation Handlers ──
-        function openCancelModal(appointmentId, patientName) {
+        // ── Appointment Cancellation Handlers (R-010) ──
+        function openCancelModal(appointmentId, fallbackName = '') {
             const idInput = document.getElementById('cancelApptId');
             const nameEl = document.getElementById('cancelApptPatientName');
+            const dateBadge = document.getElementById('cancelApptDateBadge');
+            const timeEl = document.getElementById('cancelApptTime');
+            const doctorEl = document.getElementById('cancelApptDoctor');
+            const serviceEl = document.getElementById('cancelApptService');
             const reasonSel = document.getElementById('cancelReasonSelect');
             const customGroup = document.getElementById('cancelCustomReasonGroup');
             const customInput = document.getElementById('cancelCustomReason');
 
-            if (idInput) idInput.value = appointmentId || '';
-            if (nameEl) nameEl.textContent = patientName || 'Patient';
+            const targetId = String(appointmentId?.$oid || appointmentId || '').trim();
+            if (idInput) idInput.value = targetId;
+
+            // Find full appointment details across cached collections
+            const allAppointments = [
+                ...(cachedData?.queue_today || []),
+                ...(cachedData?.upcoming_appointments || []),
+                ...(cachedAllAppointments || [])
+            ];
+            const apt = allAppointments.find(a => {
+                const aId = String(a._id?.$oid || a._id || '').trim();
+                return aId === targetId;
+            }) || {};
+
+            const patientName = apt.patient_name || fallbackName || 'Patient';
+            const dateStr = (apt.appointment_date || apt.date || '').substring(0, 10);
+            const timeStr = apt.time_slot || apt.appointment_time || 'Scheduled Time';
+            const docName = apt.doctor_name || 'Attending Doctor';
+            const servName = apt.service_name || 'Consultation';
+
+            if (nameEl) nameEl.textContent = patientName;
+            if (dateBadge) {
+                const todayIso = new Date().toISOString().split('T')[0];
+                dateBadge.textContent = dateStr === todayIso ? 'Today' : (dateStr || 'Upcoming');
+            }
+            if (timeEl) timeEl.textContent = timeStr;
+            if (doctorEl) doctorEl.textContent = docName;
+            if (serviceEl) serviceEl.textContent = servName;
+
             if (reasonSel) reasonSel.value = 'Patient requested cancellation';
             if (customInput) customInput.value = '';
             if (customGroup) customGroup.style.display = 'none';
@@ -4263,16 +5171,96 @@
             }
         }
 
+        // ── Delete Appointment Handlers (Multi-Select & Bulk Delete) ──
+        function confirmBulkDeleteAppointments() {
+            if (selectedApptIds.size === 0) {
+                showToast('info', 'Please select at least one appointment to delete using the checkboxes.');
+                return;
+            }
+            const jsonInput = document.getElementById('deleteApptIdsJson');
+            const heading = document.getElementById('bulkDeleteHeading');
+            const subtext = document.getElementById('bulkDeleteSubtext');
+            const title = document.getElementById('deleteModalTitle');
+            const subtitle = document.getElementById('deleteModalSubtitle');
+            const warning = document.getElementById('deleteModalWarning');
+            const btnText = document.getElementById('btnDeleteConfirmText');
+
+            if (jsonInput) jsonInput.value = JSON.stringify(Array.from(selectedApptIds));
+
+            if (title) title.textContent = 'Delete Selected Appointments';
+            if (subtitle) subtitle.textContent = `Permanently remove ${selectedApptIds.size} selected booking(s).`;
+            if (heading) heading.textContent = `${selectedApptIds.size} appointment(s) selected for deletion`;
+            if (subtext) subtext.textContent = `All ${selectedApptIds.size} selected record(s) will be removed from your active schedule.`;
+            if (warning) warning.textContent = `Are you sure you want to permanently delete these ${selectedApptIds.size} selected appointment(s)? This will release their assigned time slots.`;
+            if (btnText) btnText.textContent = `Delete Selected (${selectedApptIds.size})`;
+
+            openModal('deleteAppointmentModal');
+        }
+
+        async function executeDeleteAppointment() {
+            let idsToDelete = [];
+            const jsonStr = document.getElementById('deleteApptIdsJson')?.value;
+            if (jsonStr) {
+                try { idsToDelete = JSON.parse(jsonStr); } catch (e) {}
+            }
+            if (!idsToDelete || idsToDelete.length === 0) {
+                idsToDelete = Array.from(selectedApptIds);
+            }
+
+            if (!idsToDelete || idsToDelete.length === 0) return;
+
+            const btn = document.getElementById('btnConfirmDeleteAppt');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Deleting...";
+            }
+
+            try {
+                const res = await fetch('api/receptionist/delete_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ appointment_ids: idsToDelete })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    closeModal('deleteAppointmentModal');
+                    exitApptDeleteMode();
+                    showToast('success', data.message || `${idsToDelete.length} appointment(s) deleted.`);
+                    await loadDashboardData();
+                } else {
+                    showToast('error', data.message || 'Failed to delete appointment(s).');
+                }
+            } catch (err) {
+                console.error("Delete error:", err);
+                showToast('error', 'Network error while deleting appointment(s).');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        }
+
         // ── R-007: Appointment Rescheduling & Record Management Handlers ──
         function openRescheduleModal(appointmentId) {
-            const all = [...(cachedData.queue_today || []), ...(cachedData.upcoming_appointments || [])];
-            const apt = all.find(a => (a._id || '') === appointmentId);
+            const all = [
+                ...(cachedData?.queue_today || []),
+                ...(cachedData?.upcoming_appointments || []),
+                ...(cachedAllAppointments || [])
+            ];
+            const targetId = String(appointmentId?.$oid || appointmentId || '').trim();
+            const apt = all.find(a => {
+                const aId = String(a._id?.$oid || a._id || '').trim();
+                return aId === targetId;
+            });
             if (!apt) {
                 showToast('error', 'Appointment record not found.');
                 return;
             }
 
-            document.getElementById('reschedApptId').value = apt._id;
+            const cleanId = String(apt._id?.$oid || apt._id || targetId);
+            document.getElementById('reschedApptId').value = cleanId;
             document.getElementById('reschedPatientName').textContent = apt.patient_name || 'Patient';
             const curDate = (apt.appointment_date || apt.date || '').substring(0, 10);
             const curTime = apt.time_slot || apt.appointment_time || '09:00 AM';
@@ -4449,14 +5437,23 @@
 
         // Manage Appointment Details (Procedure, notes, doctor, chair)
         function openManageApptModal(appointmentId) {
-            const all = [...(cachedData.queue_today || []), ...(cachedData.upcoming_appointments || [])];
-            const apt = all.find(a => (a._id || '') === appointmentId);
+            const all = [
+                ...(cachedData?.queue_today || []),
+                ...(cachedData?.upcoming_appointments || []),
+                ...(cachedAllAppointments || [])
+            ];
+            const targetId = String(appointmentId?.$oid || appointmentId || '').trim();
+            const apt = all.find(a => {
+                const aId = String(a._id?.$oid || a._id || '').trim();
+                return aId === targetId;
+            });
             if (!apt) {
                 showToast('error', 'Appointment record not found.');
                 return;
             }
 
-            document.getElementById('manageApptId').value = apt._id;
+            const cleanId = String(apt._id?.$oid || apt._id || targetId);
+            document.getElementById('manageApptId').value = cleanId;
             document.getElementById('manageApptPatientName').value = apt.patient_name || 'Patient';
             document.getElementById('manageApptService').value = apt.service_name || 'Dental Consultation';
 
@@ -4815,6 +5812,7 @@
                 blood_type: document.getElementById('regPatientBlood')?.value || 'Unknown',
                 allergies: document.getElementById('regPatientAlerts')?.value?.trim() || 'None recorded',
                 emergency_contact_name: document.getElementById('regPatientEmergContact')?.value?.trim() || '',
+                emergency_contact_phone: document.getElementById('regPatientEmergPhone')?.value?.trim() || '',
                 add_to_queue: isWalkinQueue,
                 appointment_date: apptDate,
                 time_slot: apptTime,
@@ -4928,6 +5926,7 @@
         function quickBookForPatient(patientName) {
             openModal('bookAppointmentModal');
             document.getElementById('bookPatientSelect').value = patientName;
+            handlePatientSelectionChange();
         }
 
         function bookWithDoctor(doctorName) {
@@ -4935,40 +5934,93 @@
             document.getElementById('bookDoctorSelect').value = doctorName;
         }
 
-        // Profile update
+        // ── Profile update (R-012 Receptionist Profile Management) ────────
         async function updateProfile(e) {
-            e.preventDefault();
-            const currentPass = document.getElementById('profCurrentPass').value;
-            const newPass = document.getElementById('profNewPass').value;
-            const confirmPass = document.getElementById('profConfirmPass').value;
-            const phone = document.getElementById('profPhone').value.trim();
+            if (e && e.preventDefault) e.preventDefault();
 
-            if (newPass && newPass !== confirmPass) {
-                showToast('error', 'New passwords do not match.');
+            const fullName = document.getElementById('profFullName')?.value.trim() || '';
+            const email = document.getElementById('profEmail')?.value.trim() || '';
+            const phone = document.getElementById('profPhone')?.value.trim() || '';
+            const position = document.getElementById('profPosition')?.value.trim() || '';
+            const scheduleDays = document.getElementById('profScheduleDays')?.value.trim() || '';
+            const bio = document.getElementById('profBio')?.value.trim() || '';
+            const avatarColor = document.getElementById('profAvatarColor')?.value.trim() || '#0eb1b1';
+
+            const currentPass = document.getElementById('profCurrentPass')?.value || '';
+            const newPass = document.getElementById('profNewPass')?.value || '';
+            const confirmPass = document.getElementById('profConfirmPass')?.value || '';
+
+            if (!fullName) {
+                showToast('error', 'Full Name is required.');
                 return;
             }
 
+            if (!email) {
+                showToast('error', 'A valid email address is required.');
+                return;
+            }
+
+            if (newPass) {
+                if (newPass.length < 6) {
+                    showToast('error', 'New password must be at least 6 characters.');
+                    return;
+                }
+                if (newPass !== confirmPass) {
+                    showToast('error', 'New passwords do not match.');
+                    return;
+                }
+                if (!currentPass) {
+                    showToast('error', 'Please enter your current password to confirm password change.');
+                    return;
+                }
+            }
+
+            const btn = document.getElementById('btnSaveProfile');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Saving Account...";
+            }
+
             try {
-                const res = await fetch('api/receptionist/change_password.php', {
+                const res = await fetch('api/receptionist/update_profile.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        full_name: fullName,
+                        email: email,
+                        phone: phone,
+                        position: position,
+                        schedule_days: scheduleDays,
+                        bio: bio,
+                        avatar_color: avatarColor,
                         current_password: currentPass,
-                        new_password: newPass,
-                        phone: phone
+                        new_password: newPass
                     })
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
                     showToast('success', data.message || 'Profile saved successfully.');
-                    document.getElementById('profCurrentPass').value = '';
-                    document.getElementById('profNewPass').value = '';
-                    document.getElementById('profConfirmPass').value = '';
+                    if (document.getElementById('profCurrentPass')) document.getElementById('profCurrentPass').value = '';
+                    if (document.getElementById('profNewPass')) document.getElementById('profNewPass').value = '';
+                    if (document.getElementById('profConfirmPass')) document.getElementById('profConfirmPass').value = '';
+
+                    if (data.receptionist) {
+                        if (cachedData) cachedData.receptionist = { ...(cachedData.receptionist || {}), ...data.receptionist };
+                        renderSidebarUser(data.receptionist);
+                        populateProfileForm(data.receptionist);
+                    }
                 } else {
                     showToast('error', data.message || 'Failed to update profile.');
                 }
             } catch (err) {
+                console.error("Profile update error:", err);
                 showToast('error', 'Network error saving profile.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
             }
         }
 

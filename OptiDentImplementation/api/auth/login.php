@@ -55,6 +55,39 @@ if (!$user) {
 
 // 3. Verify Role Authorization
 $userRole = strtolower($user['role'] ?? '');
+$isSuperAdmin = in_array($userRole, ['super_admin', 'admin']) || !empty($user['is_master']);
+
+// 3a. Check System-Wide Maintenance & Integration Gates
+try {
+    $systemSettings = $db->findOne('system_settings', ['setting_type' => 'clinic_profile']);
+    if ($systemSettings) {
+        $maintenanceActive = !empty($systemSettings['maintenance_mode']);
+        $integrations = !empty($systemSettings['integrations']) && is_array($systemSettings['integrations']) ? $systemSettings['integrations'] : [];
+        $googleAuthEnabled = isset($integrations['google_auth_enabled']) ? (bool)$integrations['google_auth_enabled'] : true;
+        $allowNonAdminLogins = isset($integrations['allow_non_admin_logins']) ? (bool)$integrations['allow_non_admin_logins'] : true;
+
+        if ($maintenanceActive && !$isSuperAdmin) {
+            http_response_code(503);
+            echo json_encode([
+                "status" => "error",
+                "message" => "The clinic system is currently in Maintenance Mode. General logins are temporarily suspended. Please contact Super Admin."
+            ]);
+            exit;
+        }
+
+        if ((!$googleAuthEnabled || !$allowNonAdminLogins) && !$isSuperAdmin) {
+            http_response_code(403);
+            echo json_encode([
+                "status" => "error",
+                "message" => "Google Authentication & General User Logins are currently disabled by the Super Admin. Only Super Admin emergency access is authorized at this time."
+            ]);
+            exit;
+        }
+    }
+} catch (\Exception $e) {
+    // Non-fatal, proceed with login
+}
+
 if (!empty($requiredRole) && $requiredRole !== 'any') {
     if ($requiredRole === 'super_admin' && !in_array($userRole, ['super_admin', 'admin'])) {
         http_response_code(403);

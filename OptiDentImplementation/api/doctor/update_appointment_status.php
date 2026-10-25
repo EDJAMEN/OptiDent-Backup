@@ -35,7 +35,7 @@ if (!$input) $input = $_POST;
 $appointmentId = trim($input['appointment_id'] ?? '');
 $rawStatus = strtolower(trim($input['status'] ?? ''));
 $statusAliases = [
-    'pending' => 'scheduled',
+    'approved' => 'scheduled',
     'waiting' => 'scheduled',
     'ongoing' => 'in_progress',
     'in_progress' => 'in_progress',
@@ -57,7 +57,7 @@ if (empty($appointmentId) || empty($newStatus)) {
     exit;
 }
 
-$allowedStatuses = ['scheduled', 'in_progress', 'completed', 'cancelled'];
+$allowedStatuses = ['pending', 'scheduled', 'in_progress', 'completed', 'cancelled'];
 if (!in_array($newStatus, $allowedStatuses)) {
     http_response_code(400);
     echo json_encode(["status" => "error", "message" => "Invalid status: {$newStatus}"]);
@@ -78,6 +78,12 @@ $updateData = [
     'last_updated_at' => date('Y-m-d H:i:s'),
     'updated_by_doctor' => $userEmail
 ];
+
+if ($newStatus === 'scheduled' && (($appointment['status'] ?? '') === 'pending' || $rawStatus === 'approved')) {
+    $updateData['approval_status'] = 'approved';
+    $updateData['approved_by_doctor'] = $userEmail;
+    $updateData['approved_at'] = date('Y-m-d H:i:s');
+}
 
 if ($newStatus === 'in_progress') {
     $updateData['consultation_started_at'] = date('Y-m-d H:i:s');

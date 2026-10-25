@@ -72,6 +72,23 @@ try {
     ];
 
     $existing = $db->findOne('system_settings', ['setting_type' => 'clinic_profile']);
+    $existingIntegrations = !empty($existing['integrations']) && is_array($existing['integrations']) ? $existing['integrations'] : [
+        'google_auth_enabled'       => true,
+        'allow_non_admin_logins'    => true,
+        'smtp_email_enabled'        => true,
+        'sms_gateway_enabled'       => false,
+        'patient_self_registration' => true,
+        'patient_online_booking'    => true,
+        'maintenance_mode'          => false
+    ];
+
+    if (!empty($data['integrations']) && is_array($data['integrations'])) {
+        $updatedFields['integrations'] = array_merge($existingIntegrations, $data['integrations']);
+    } else {
+        $updatedFields['integrations'] = $existingIntegrations;
+    }
+    $updatedFields['integrations']['maintenance_mode'] = $maintenance;
+
     if ($existing) {
         $db->updateOne('system_settings', ['setting_type' => 'clinic_profile'], $updatedFields);
     } else {

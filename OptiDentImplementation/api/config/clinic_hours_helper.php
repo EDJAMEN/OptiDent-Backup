@@ -165,7 +165,17 @@ class ClinicHoursHelper {
             'max_login_attempts'      => 5,
             'password_min_length'     => 8,
             'system_version'          => '1.5.0-PROD',
-            'time_slots'              => ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM']
+            'time_slots'              => ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'],
+            'integrations'            => [
+                'google_auth_enabled'          => true,
+                'allow_non_admin_logins'       => true,
+                'smtp_email_enabled'           => true,
+                'sms_gateway_enabled'          => false,
+                'patient_self_registration'    => true,
+                'patient_online_booking'       => true,
+                'patient_rescheduling_enabled' => true,
+                'maintenance_mode'             => false
+            ]
         ];
 
         if (!$settings) {
@@ -183,12 +193,19 @@ class ClinicHoursHelper {
 
         $operatingHours = $settings['operating_hours'] ?? self::compileHoursText($operatingDays, $openingTime, $closingTime);
 
+        $existingIntegrations = !empty($settings['integrations']) && is_array($settings['integrations']) ? $settings['integrations'] : [];
+        $mergedIntegrations = array_merge($defaults['integrations'], $existingIntegrations);
+        if (isset($settings['maintenance_mode'])) {
+            $mergedIntegrations['maintenance_mode'] = (bool)$settings['maintenance_mode'];
+        }
+
         $settings['operating_days']  = $operatingDays;
         $settings['opening_time']    = $openingTime;
         $settings['closing_time']    = $closingTime;
         $settings['lunch_break']     = $lunchBreak;
         $settings['operating_hours'] = $operatingHours;
         $settings['time_slots']      = array_values($timeSlots);
+        $settings['integrations']    = $mergedIntegrations;
 
         return $settings;
     }

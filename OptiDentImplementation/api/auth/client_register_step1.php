@@ -33,6 +33,23 @@ $verificationCode = trim($input['verification_code'] ?? $input['code'] ?? '');
 $password = trim($input['password'] ?? '');
 $confirmPassword = trim($input['confirm_password'] ?? '');
 
+// Check if patient self-registration is enabled in system settings
+try {
+    $systemSettings = $db->findOne('system_settings', ['setting_type' => 'clinic_profile']);
+    if ($systemSettings) {
+        $integrations = !empty($systemSettings['integrations']) && is_array($systemSettings['integrations']) ? $systemSettings['integrations'] : [];
+        $selfRegEnabled = isset($integrations['patient_self_registration']) ? (bool)$integrations['patient_self_registration'] : true;
+        if (!$selfRegEnabled) {
+            http_response_code(403);
+            echo json_encode([
+                "status" => "error",
+                "message" => "Online patient self-registration is currently paused by clinic administration. Please visit the clinic front desk for walk-in registration."
+            ]);
+            exit;
+        }
+    }
+} catch (\Exception $e) {}
+
 // 2. Validate Inputs
 if (empty($fullName)) {
     http_response_code(400);

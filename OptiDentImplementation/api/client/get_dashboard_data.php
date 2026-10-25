@@ -80,17 +80,44 @@ foreach ($allAppts as $apt) {
     $aptDate = substr($apt['appointment_date'] ?? $apt['date'] ?? '', 0, 10);
     $status = strtolower($apt['status'] ?? 'scheduled');
 
+    $teethRaw = $apt['teeth_selected'] ?? [];
+    $teethArray = is_array($teethRaw) ? $teethRaw : (!empty($teethRaw) ? explode(',', (string)$teethRaw) : []);
+    $teethArray = array_values(array_map('trim', array_filter($teethArray)));
+
+    $surfacesRaw = $apt['tooth_surfaces'] ?? [];
+    $surfacesArray = is_array($surfacesRaw) ? $surfacesRaw : (!empty($surfacesRaw) ? explode(',', (string)$surfacesRaw) : []);
+    $surfacesArray = array_values(array_map('trim', array_filter($surfacesArray)));
+
+    $docName = $apt['attending_doctor'] ?? $apt['doctor_name'] ?? $apt['dentist_name'] ?? 'Assigned Doctor';
+    $chairName = $apt['operatory_chair'] ?? $apt['chair_room'] ?? 'Operatory Chair 1';
+
     $item = [
         '_id' => (string)$apt['_id'],
         'date' => $aptDate,
         'time' => $apt['time_slot'] ?? $apt['appointment_time'] ?? '09:00 AM',
-        'doctor_name' => $apt['doctor_name'] ?? 'Assigned Doctor',
+        'doctor_name' => $docName,
+        'attending_doctor' => $docName,
         'service_name' => $apt['service_name'] ?? 'Dental Consultation',
-        'operatory_chair' => $apt['operatory_chair'] ?? 'Operatory Chair 1',
+        'treatment_category' => $apt['treatment_category'] ?? 'General Dentistry',
+        'operatory_chair' => $chairName,
         'status' => $status,
         'queue_number' => $apt['queue_number'] ?? null,
         'is_walkin' => !empty($apt['is_walkin']),
-        'notes' => $apt['notes'] ?? '',
+        'notes' => $apt['procedure_notes'] ?? $apt['notes'] ?? '',
+        'diagnosis' => $apt['diagnosis'] ?? $apt['chief_complaint'] ?? '',
+        'teeth_selected' => $teethArray,
+        'tooth_surfaces' => $surfacesArray,
+        'vital_signs' => $apt['vital_signs'] ?? null,
+        'anesthesia' => $apt['anesthesia'] ?? '',
+        'procedure_notes' => $apt['procedure_notes'] ?? $apt['notes'] ?? '',
+        'prescription' => $apt['prescription'] ?? '',
+        'post_op_instructions' => $apt['post_op_instructions'] ?? '',
+        'follow_up_date' => $apt['follow_up_date'] ?? '',
+        'cancellation_reason' => $apt['cancellation_reason'] ?? $apt['decline_reason'] ?? '',
+        'decline_reason' => $apt['decline_reason'] ?? $apt['cancellation_reason'] ?? '',
+        'approval_status' => $apt['approval_status'] ?? '',
+        'approved_by' => $apt['approved_by'] ?? '',
+        'completed_at' => $apt['completed_at'] ?? '',
         'created_at' => $apt['created_at'] ?? ''
     ];
 
@@ -103,6 +130,16 @@ foreach ($allAppts as $apt) {
         $upcoming[] = $item;
     } else {
         $past[] = $item;
+    }
+}
+
+// Aggregate treated teeth
+$allTreatedTeeth = [];
+foreach ($myAppointments as $ma) {
+    foreach (($ma['teeth_selected'] ?? []) as $t) {
+        if (!empty($t) && !in_array($t, $allTreatedTeeth)) {
+            $allTreatedTeeth[] = $t;
+        }
     }
 }
 
@@ -212,6 +249,8 @@ echo json_encode([
         "has_alert" => ($alerts !== 'None' && $alerts !== 'None recorded' && !empty($alerts)),
         "emergency_contact_name" => $user['emergency_contact_name'] ?? '',
         "emergency_contact_phone" => $user['emergency_contact_phone'] ?? '',
+        "profile_picture" => $user['profile_picture'] ?? $user['avatar'] ?? '',
+        "avatar_color" => $user['avatar_color'] ?? '#0eb1b1',
         "reward_points" => $user['reward_points'] ?? 0,
         "created_at" => $user['created_at'] ?? ''
     ],
@@ -223,6 +262,7 @@ echo json_encode([
     ],
     "upcoming_appointments" => $upcoming,
     "past_appointments" => $past,
+    "treated_teeth_summary" => $allTreatedTeeth,
     "doctors" => $doctors,
     "services" => $services,
     "clinic_settings" => [
@@ -232,6 +272,7 @@ echo json_encode([
         "lunch_break"     => $clinicProfile['lunch_break'] ?? true,
         "operating_hours" => $clinicProfile['operating_hours'] ?? 'Mon - Sat: 08:00 AM - 05:00 PM | Sun: Closed',
         "time_slots"      => $clinicProfile['time_slots'] ?? [],
-        "timezone"        => $clinicProfile['timezone'] ?? 'Asia/Manila'
+        "timezone"        => $clinicProfile['timezone'] ?? 'Asia/Manila',
+        "integrations"    => $clinicProfile['integrations'] ?? []
     ]
 ]);

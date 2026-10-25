@@ -511,7 +511,56 @@
             color: #ffffff;
         }
 
-        /* ── D-007 Status Dropdown Selector ────────────────────────── */
+        /* ── Minimal Status Badges & Selects (No Emojis) ───────────── */
+        .doc-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 11.5px;
+            font-weight: 600;
+            line-height: 1.3;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+
+        .doc-status-pill i {
+            font-size: 13px;
+        }
+
+        .doc-status-pill.status-pending {
+            background: rgba(245, 158, 11, 0.12);
+            color: #b45309;
+            border: 1px solid rgba(245, 158, 11, 0.28);
+        }
+
+        .doc-status-pill.status-scheduled {
+            background: rgba(14, 177, 177, 0.10);
+            color: #0a8f8f;
+            border: 1px solid rgba(14, 177, 177, 0.25);
+        }
+
+        .doc-status-pill.status-in_progress {
+            background: rgba(16, 185, 129, 0.12);
+            color: #047857;
+            border: 1px solid rgba(16, 185, 129, 0.28);
+        }
+
+        .doc-status-pill.status-completed {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+
+        .doc-status-pill.status-cancelled {
+            background: rgba(239, 68, 68, 0.10);
+            color: #b91c1c;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        /* Queue Status Select (Minimal, Clean, No Emojis) */
         .doc-status-select-wrap {
             display: inline-flex;
             align-items: center;
@@ -521,51 +570,50 @@
         .doc-status-select {
             appearance: none;
             -webkit-appearance: none;
-            padding: 6px 26px 6px 10px;
+            padding: 4px 24px 4px 10px;
             font-size: 11.5px;
-            font-weight: 700;
-            border-radius: 20px;
+            font-weight: 600;
+            border-radius: 9999px;
             cursor: pointer;
             outline: none;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             font-family: inherit;
         }
 
         .doc-status-select.status-scheduled {
-            background-color: rgba(14, 177, 177, 0.12);
+            background-color: rgba(14, 177, 177, 0.10);
             color: #0a8f8f;
-            border: 1.5px solid rgba(14, 177, 177, 0.35);
+            border: 1px solid rgba(14, 177, 177, 0.25);
         }
 
         .doc-status-select.status-in_progress {
-            background-color: rgba(16, 185, 129, 0.15);
+            background-color: rgba(16, 185, 129, 0.12);
             color: #047857;
-            border: 1.5px solid #10b981;
-            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.18);
+            border: 1px solid rgba(16, 185, 129, 0.28);
         }
 
         .doc-status-select.status-completed {
-            background-color: rgba(16, 185, 129, 0.2);
-            color: #065f46;
-            border: 1.5px solid #059669;
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
         }
 
         .doc-status-select.status-cancelled {
-            background-color: rgba(239, 68, 68, 0.12);
+            background-color: rgba(239, 68, 68, 0.10);
             color: #b91c1c;
-            border: 1.5px solid rgba(239, 68, 68, 0.35);
+            border: 1px solid rgba(239, 68, 68, 0.25);
         }
 
         .doc-status-select:hover {
-            filter: brightness(0.95);
+            filter: brightness(0.97);
         }
 
         .doc-status-arrow {
             position: absolute;
             right: 8px;
             pointer-events: none;
-            font-size: 14px;
-            font-weight: 800;
+            font-size: 13px;
+            font-weight: 700;
             color: inherit;
         }
 
@@ -648,6 +696,13 @@
                     <a class="nav-item active" id="nav-queue" onclick="switchDocTab('queue')">
                         <i class='bx bx-list-check'></i>
                         <span>Today's Queue</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" id="nav-requests" onclick="switchDocTab('requests')">
+                        <i class='bx bx-calendar-check'></i>
+                        <span>Appointment Requests</span>
+                        <span id="sidebarPendingBadge" style="margin-left: auto; font-size: 10px; background: rgba(245, 158, 11, 0.18); color: #b45309; padding: 2px 7px; border-radius: 9999px; font-weight: 700; display: none;">0</span>
                     </a>
                 </li>
                 <li>
@@ -815,9 +870,46 @@
                     </div>
                 </div>
             </section>
+ 
+             <!-- TAB: Appointment Requests & Approval (D-008) -->
+             <section id="tab-requests" class="doc-tab-content" style="display: none;">
+                 <div class="workspace-card">
+                     <div class="flex-between mb-3 flex-wrap gap-2">
+                         <div>
+                             <h3 class="font-bold text-lg" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                                 <i class='bx bx-calendar-check text-primary'></i> Appointment Requests
+                             </h3>
+                             <p class="text-dim text-xs mt-1" style="margin: 0;">Review and approve pending patient consultation requests.</p>
+                         </div>
+                         <span class="badge-count" id="requestsCountLabel"><i class='bx bx-time'></i> 0 pending request(s)</span>
+                     </div>
 
-            <!-- TAB 2: Upcoming Appointments -->
-            <section id="tab-upcoming" class="doc-tab-content" style="display: none;">
+                     <div style="overflow-x: auto;">
+                         <table class="table-custom w-full">
+                             <thead>
+                                 <tr>
+                                     <th style="width: 170px;">Requested Schedule</th>
+                                     <th style="width: 200px;">Patient Details</th>
+                                     <th>Service Requested</th>
+                                     <th>Patient Notes / Reason</th>
+                                     <th class="text-right" style="width: 190px;">Approval Action</th>
+                                 </tr>
+                             </thead>
+                             <tbody id="requestsTableBody">
+                                 <tr>
+                                     <td colspan="5" class="text-center py-4 text-dim">
+                                         <i class='bx bx-loader-alt bx-spin' style="font-size: 24px;"></i>
+                                         <p class="text-xs mt-1">Checking appointment requests...</p>
+                                     </td>
+                                 </tr>
+                             </tbody>
+                         </table>
+                     </div>
+                 </div>
+             </section>
+
+             <!-- TAB 2: Upcoming Appointments -->
+             <section id="tab-upcoming" class="doc-tab-content" style="display: none;">
                 <div class="workspace-card">
                     <h3 class="font-bold text-lg mb-3" style="display: flex; align-items: center; gap: 8px;">
                         <i class='bx bx-calendar-week text-primary'></i> Upcoming Scheduled Visits
@@ -832,12 +924,12 @@
                                     <th>Service Requested</th>
                                     <th>Chief Complaint</th>
                                     <th style="width: 150px;">Status</th>
-                                    <th class="text-right" style="width: 170px;">Status Tracking</th>
+                                    <th class="text-right" style="width: 170px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="upcomingTableBody">
                                 <tr>
-                                    <td colspan="6" class="text-center py-3 text-dim">No upcoming appointments found.
+                                    <td colspan="7" class="text-center py-3 text-dim">No upcoming appointments found.
                                     </td>
                                 </tr>
                             </tbody>
@@ -1778,8 +1870,10 @@
                 </button>
             </div>
         </div>
-    <!-- MODAL: Confirmation for Doctor Schedule Update (D-006) -->
-    <div id="confirmDoctorScheduleModal" class="doc-modal-overlay">
+    </div>
+
+    <!-- MODAL: Review Parameters for Doctor Schedule Update (D-006 - Step 1) -->
+    <div id="confirmDoctorScheduleModal" class="doc-modal-overlay" style="z-index: 1200;">
         <div class="doc-modal-content" style="max-width: 540px;">
             <div class="flex justify-between items-center border-bottom pb-2 mb-3">
                 <div class="flex items-center gap-2">
@@ -1787,8 +1881,8 @@
                         <i class='bx bx-calendar-check'></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-base" style="margin: 0;">Confirm Schedule &amp; Hours Update</h3>
-                        <p class="text-dim text-xs mt-0" style="margin: 0;">Task D-006 &bull; Duty Availability Enforcement</p>
+                        <h3 class="font-bold text-base" style="margin: 0;">Review Schedule &amp; Hours Update</h3>
+                        <p class="text-dim text-xs mt-0" style="margin: 0;">Task D-006 &bull; Duty Availability Enforcement (Step 1 of 2)</p>
                     </div>
                 </div>
                 <button type="button" class="btn-icon" onclick="closeConfirmDoctorScheduleModal()"><i class='bx bx-x' style="font-size: 24px;"></i></button>
@@ -1840,8 +1934,45 @@
                 <button type="button" class="btn-outline flex-1" onclick="closeConfirmDoctorScheduleModal()" style="height: 38px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer;">
                     Cancel
                 </button>
-                <button type="button" id="executeSaveDocScheduleBtn" class="btn-primary flex-1" onclick="executeDoctorScheduleSave()" style="height: 38px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer;">
-                    <i class='bx bx-check-circle mr-1'></i> Confirm &amp; Enforce Schedule
+                <button type="button" id="proceedToSecondConfirmBtn" class="btn-primary flex-1" onclick="openSecondConfirmScheduleModal()" style="height: 38px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer;">
+                    Proceed to Confirmation <i class='bx bx-right-arrow-alt ml-1'></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── SECONDARY FINAL CONFIRMATION MODAL (D-006 - Step 2) ── -->
+    <div id="secondConfirmScheduleModal" class="doc-modal-overlay" style="z-index: 1250;">
+        <div class="doc-modal-content" style="max-width: 460px; padding: 2rem; border-radius: 20px; text-align: center; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.35); border: 1.5px solid var(--doctor-border);">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(14, 177, 177, 0.12); color: var(--doctor-primary); display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 16px auto;">
+                <i class='bx bx-calendar-check'></i>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--doctor-text); margin: 0 0 8px 0;">
+                Confirm Schedule Implementation?
+            </h3>
+            <p id="secondConfirmScheduleMessage" style="font-size: 13px; color: var(--doctor-text-muted); line-height: 1.55; margin: 0 0 16px 0;">
+                Are you completely sure you want to enforce your duty hours across the entire clinic system?
+            </p>
+            <div style="background: rgba(14, 177, 177, 0.05); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; font-size: 12px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span class="text-dim">Duty Days:</span>
+                    <strong id="secondConfirmDays" style="color: var(--doctor-text);">Mon - Fri</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span class="text-dim">Duty Hours:</span>
+                    <strong id="secondConfirmHours" style="color: var(--doctor-text);">09:00 AM - 05:00 PM</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-dim">Daily Time Slots:</span>
+                    <strong id="secondConfirmSlots" class="text-primary font-bold">7 Slots / Day</strong>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button type="button" class="btn-secondary" onclick="backToReviewScheduleModal()" style="flex: 1; padding: 11px 18px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer;">
+                    Go Back &amp; Review
+                </button>
+                <button type="button" id="executeSaveDocScheduleBtn" onclick="executeDoctorScheduleSave()" style="flex: 1.35; padding: 11px 18px; border-radius: 10px; font-weight: 700; font-size: 13px; background: var(--doctor-primary); color: #ffffff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 14px rgba(14, 177, 177, 0.35); transition: all 0.15s ease;">
+                    <i class='bx bx-check-circle'></i> Yes, Enforce Schedule
                 </button>
             </div>
         </div>
@@ -1883,6 +2014,159 @@
                 <button type="button" class="btn-outline flex-1" onclick="closeDoctorCancelModal()">Keep Appointment</button>
                 <button type="button" id="confirmDoctorCancelBtn" class="btn-primary flex-1" onclick="executeDoctorCancel()" style="background: #ef4444; border-color: #dc2626; font-weight: 700;">
                     <i class='bx bx-x-circle mr-1'></i> Confirm Cancellation
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: Decline Appointment Request (D-009) ────────────────── -->
+    <div id="doctorDeclineModal" class="doc-modal-overlay" style="z-index: 1200;">
+        <div class="doc-modal-content" style="max-width: 480px; padding: 1.5rem; border-radius: 16px;">
+            <div class="flex justify-between items-center border-bottom pb-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        <i class='bx bx-calendar-x'></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base" style="margin: 0; color: #b91c1c;">Decline Appointment Request</h3>
+                        <p class="text-dim text-xs mt-0" style="margin: 0;">Task D-009 &bull; Inform patient of schedule non-accommodation</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-icon" onclick="closeDoctorDeclineModal()"><i class='bx bx-x' style="font-size: 24px;"></i></button>
+            </div>
+
+            <div style="background: var(--doctor-primary-light); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 12px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span class="text-dim">Patient:</span>
+                    <strong id="declinePatientName" style="color: var(--doctor-text);">Loading...</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span class="text-dim">Requested Schedule:</span>
+                    <strong id="declineScheduleText" class="text-primary font-bold">Loading...</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-dim">Requested Service:</span>
+                    <span id="declineServiceName" class="text-dim">Loading...</span>
+                </div>
+            </div>
+
+            <input type="hidden" id="declineAppointmentId">
+
+            <div class="mb-3">
+                <label class="text-xs font-bold text-dim uppercase">Reason for Non-Accommodation (Informs Patient)</label>
+                <select id="declinePresetReason" class="custom-input mb-1" onchange="handleDeclinePresetReasonChange(this.value)" style="width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-top: 4px;">
+                    <option value="Doctor schedule conflict / fully booked">Doctor schedule conflict / fully booked</option>
+                    <option value="Requested time slot is outside clinical hours">Requested time slot is outside clinical hours</option>
+                    <option value="Doctor unavailable on this requested date">Doctor unavailable on this requested date</option>
+                    <option value="Operatory chair / clinical room undergoing maintenance">Operatory chair / clinical room undergoing maintenance</option>
+                    <option value="Requires prior dental diagnostic clearance">Requires prior dental diagnostic clearance</option>
+                    <option value="Other">Other reason (Specify below)</option>
+                </select>
+                <textarea id="declineReasonText" class="custom-input mt-1" rows="3" placeholder="Provide reason details so the patient understands why their schedule cannot be accommodated..." style="width: 100%; border-radius: 8px; font-size: 12px; resize: vertical;">Doctor schedule conflict / fully booked</textarea>
+            </div>
+
+            <div class="flex gap-2" style="border-top: 1px solid var(--doctor-border); padding-top: 12px;">
+                <button type="button" class="btn-outline flex-1" onclick="closeDoctorDeclineModal()" style="border-radius: 8px; font-size: 13px; font-weight: 600;">Keep Request</button>
+                <button type="button" id="confirmDoctorDeclineBtn" class="btn-primary flex-1" onclick="executeDoctorDecline()" style="background: #ef4444; border-color: #dc2626; font-weight: 700; border-radius: 8px; font-size: 13px;">
+                    <i class='bx bx-x-circle mr-1'></i> Decline Request
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: Doctor Approve Review - Step 1 (D-008) ────────────── -->
+    <div id="doctorApproveModal" class="doc-modal-overlay" style="z-index: 1200;">
+        <div class="doc-modal-content" style="max-width: 480px; padding: 1.5rem; border-radius: 16px;">
+            <div class="flex justify-between items-center border-bottom pb-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(14, 177, 177, 0.12); color: var(--doctor-primary); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        <i class='bx bx-calendar-check'></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base" style="margin: 0; color: var(--doctor-text);">Review Appointment Request</h3>
+                        <p class="text-dim text-xs mt-0" style="margin: 0;">Task D-008 &bull; Step 1 of 2: Consultation Schedule Review</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-icon" onclick="closeDoctorApproveModal()"><i class='bx bx-x' style="font-size: 24px;"></i></button>
+            </div>
+
+            <input type="hidden" id="approveApptId">
+
+            <!-- Summary Card -->
+            <div style="background: rgba(14, 177, 177, 0.06); border: 1px solid rgba(14, 177, 177, 0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; font-size: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                    <div>
+                        <span class="text-dim text-xs" style="display: block; font-weight: 600; text-transform: uppercase; font-size: 10px;">Patient Name</span>
+                        <strong id="approvePatientName" style="color: var(--doctor-text);">Loading...</strong>
+                    </div>
+                    <div>
+                        <span class="text-dim text-xs" style="display: block; font-weight: 600; text-transform: uppercase; font-size: 10px;">Contact / Phone</span>
+                        <span id="approvePatientContact" class="text-dim">Loading...</span>
+                    </div>
+                    <div>
+                        <span class="text-dim text-xs" style="display: block; font-weight: 600; text-transform: uppercase; font-size: 10px;">Date &amp; Time</span>
+                        <strong id="approveScheduleTime" class="text-primary font-bold">Loading...</strong>
+                    </div>
+                    <div>
+                        <span class="text-dim text-xs" style="display: block; font-weight: 600; text-transform: uppercase; font-size: 10px;">Operatory Room</span>
+                        <span id="approveOperatoryChair" class="text-dim">Operatory Chair 1</span>
+                    </div>
+                </div>
+                <div style="border-top: 1px dashed rgba(14, 177, 177, 0.25); padding-top: 6px;">
+                    <span class="text-dim text-xs" style="display: block; font-weight: 600; text-transform: uppercase; font-size: 10px;">Service Requested</span>
+                    <strong id="approveServiceName" class="text-primary font-semibold">Loading...</strong>
+                </div>
+            </div>
+
+            <!-- Optional Doctor Note -->
+            <div class="mb-3">
+                <label class="text-xs font-bold text-dim uppercase">Doctor Note / Preparation Instructions (Optional)</label>
+                <input type="text" id="approveDoctorNotes" class="custom-input mt-1" placeholder="e.g. Please arrive 10 minutes before consultation window" style="width: 100%; border-radius: 8px; font-size: 12px; padding: 8px 10px;">
+            </div>
+
+            <div class="flex gap-2" style="border-top: 1px solid var(--doctor-border); padding-top: 12px;">
+                <button type="button" class="btn-outline flex-1" onclick="closeDoctorApproveModal()" style="border-radius: 8px; font-size: 13px; font-weight: 600;">Cancel</button>
+                <button type="button" class="btn-primary flex-1" onclick="proceedToSecondConfirmApprove()" style="font-weight: 700; border-radius: 8px; font-size: 13px;">
+                    Proceed to Confirmation <i class='bx bx-right-arrow-alt ml-1'></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: Secondary Final Approval Confirmation - Step 2 (D-008) ── -->
+    <div id="doctorApproveConfirmModal" class="doc-modal-overlay" style="z-index: 1250;">
+        <div class="doc-modal-content" style="max-width: 440px; padding: 1.75rem; border-radius: 18px; text-align: center;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 12px auto;">
+                <i class='bx bx-check-shield'></i>
+            </div>
+            <h3 style="font-size: 17px; font-weight: 800; color: var(--doctor-text); margin: 0 0 6px 0;">
+                Confirm Schedule Approval?
+            </h3>
+            <p style="font-size: 12.5px; color: var(--doctor-text-muted); line-height: 1.5; margin: 0 0 14px 0;">
+                Are you sure you want to approve this consultation schedule? The patient will be confirmed for their appointment.
+            </p>
+
+            <div style="background: rgba(14, 177, 177, 0.05); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span class="text-dim">Patient:</span>
+                    <strong id="secondConfirmApprovePatient" style="color: var(--doctor-text);">Patient Name</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span class="text-dim">Confirmed Date:</span>
+                    <strong id="secondConfirmApproveDate" class="text-primary font-bold">2026-10-28</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-dim">Time Slot:</span>
+                    <strong id="secondConfirmApproveTime" style="color: var(--doctor-text);">10:00 AM</strong>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" class="btn-secondary" onclick="backToApproveReviewModal()" style="flex: 1; padding: 10px 14px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer;">
+                    Go Back
+                </button>
+                <button type="button" id="executeApproveBtn" onclick="executeDoctorApprove()" style="flex: 1.4; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; background: #10b981; color: #ffffff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                    <i class='bx bx-check-circle'></i> Yes, Approve Schedule
                 </button>
             </div>
         </div>
@@ -2083,6 +2367,7 @@
                     cachedDashboardData = data;
                     renderDoctorHeader(data.doctor);
                     renderMetrics(data.metrics);
+                    renderRequests(data.pending_requests || []);
                     renderQueue(data.queue_today);
                     renderUpcoming(data.upcoming_appointments);
                     renderCompleted(data.completed_procedures);
@@ -2113,6 +2398,236 @@
             document.getElementById('metricCompleted').textContent = m.completed_total || 0;
         }
 
+        // ── D-008: Render Pending Appointment Requests ─────────────────
+        function renderRequests(list) {
+            const tbody = document.getElementById('requestsTableBody');
+            const badge = document.getElementById('sidebarPendingBadge');
+            const label = document.getElementById('requestsCountLabel');
+            const count = list ? list.length : 0;
+
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+            if (label) {
+                label.innerHTML = `<i class='bx bx-time mr-1'></i> ${count} pending request(s)`;
+            }
+
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-dim">
+                            <i class='bx bx-check-circle' style="font-size: 32px; color: #10b981; display: block; margin-bottom: 6px;"></i>
+                            <div style="font-weight: 600; font-size: 14px; color: var(--doctor-text);">No Pending Requests</div>
+                            <div style="font-size: 12px; color: var(--doctor-text-muted); margin-top: 2px;">All patient consultation schedules are confirmed.</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = list.map(apt => {
+                const scheduleDate = apt.appointment_date || apt.date || 'TBD';
+                const scheduleTime = apt.time_slot || apt.appointment_time || 'TBD';
+                const notes = apt.notes || apt.chief_complaint || 'Self-service appointment request';
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="font-bold text-sm" style="white-space: nowrap;">${escapeHtml(scheduleDate)}</div>
+                            <div class="text-xs text-primary font-semibold">${escapeHtml(scheduleTime)}</div>
+                        </td>
+                        <td>
+                            <div class="font-bold text-sm" style="color: var(--doctor-text);">${escapeHtml(apt.patient_name)}</div>
+                            <div class="text-xs text-dim">${escapeHtml(apt.patient_phone || apt.patient_email || '')}</div>
+                        </td>
+                        <td>
+                            <div class="font-semibold text-sm text-primary">${escapeHtml(apt.service_name || 'Dental Consultation')}</div>
+                            <div class="text-xs text-dim">${escapeHtml(apt.operatory_chair || 'Dental Operatory')}</div>
+                        </td>
+                        <td>
+                            <div class="text-xs text-dim" style="max-width: 280px; line-height: 1.35;">${escapeHtml(notes)}</div>
+                        </td>
+                        <td class="text-right" style="white-space: nowrap;">
+                            <div style="display: inline-flex; align-items: center; gap: 6px; justify-content: flex-end;">
+                                <button type="button" class="btn-primary" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;" onclick="openApproveModal('${apt._id}')">
+                                    <i class='bx bx-check'></i> Approve
+                                </button>
+                                <button type="button" class="btn-outline" style="padding: 6px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="openDeclineModal('${apt._id}')">
+                                    <i class='bx bx-x'></i> Decline
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ── Helper to find an appointment by ID across all cached lists ─
+        function findAppointmentById(apptId) {
+            const all = [
+                ...(cachedDashboardData?.pending_requests || []),
+                ...(cachedDashboardData?.queue_today || []),
+                ...(cachedDashboardData?.upcoming_appointments || [])
+            ];
+            return all.find(a => (a._id === apptId || (a.id && a.id === apptId))) || null;
+        }
+
+        // ── D-008: Two-Step Approval Workflow with Secondary Confirmation ─
+        function openApproveModal(apptId) {
+            const apt = findAppointmentById(apptId);
+            if (!apt) return;
+
+            document.getElementById('approveApptId').value = apptId;
+            document.getElementById('approvePatientName').textContent = apt.patient_name || 'Patient';
+            document.getElementById('approvePatientContact').textContent = apt.patient_phone || apt.patient_email || 'No contact provided';
+            
+            const schDate = apt.appointment_date || apt.date || 'TBD';
+            const schTime = apt.time_slot || apt.appointment_time || 'TBD';
+            document.getElementById('approveScheduleTime').textContent = `${schDate} • ${schTime}`;
+            document.getElementById('approveOperatoryChair').textContent = apt.operatory_chair || 'Operatory Chair 1';
+            document.getElementById('approveServiceName').textContent = apt.service_name || 'Dental Consultation';
+            document.getElementById('approveDoctorNotes').value = '';
+
+            document.getElementById('doctorApproveModal').style.display = 'flex';
+        }
+
+        function closeDoctorApproveModal() {
+            document.getElementById('doctorApproveModal').style.display = 'none';
+        }
+
+        function proceedToSecondConfirmApprove() {
+            const pName = document.getElementById('approvePatientName').textContent;
+            const sch = document.getElementById('approveScheduleTime').textContent;
+            const parts = sch.split('•').map(s => s.trim());
+            const schDate = parts[0] || 'Scheduled Date';
+            const schTime = parts[1] || 'Scheduled Time';
+
+            document.getElementById('secondConfirmApprovePatient').textContent = pName;
+            document.getElementById('secondConfirmApproveDate').textContent = schDate;
+            document.getElementById('secondConfirmApproveTime').textContent = schTime;
+
+            document.getElementById('doctorApproveModal').style.display = 'none';
+            document.getElementById('doctorApproveConfirmModal').style.display = 'flex';
+        }
+
+        function backToApproveReviewModal() {
+            document.getElementById('doctorApproveConfirmModal').style.display = 'none';
+            document.getElementById('doctorApproveModal').style.display = 'flex';
+        }
+
+        function closeSecondConfirmApproveModal() {
+            document.getElementById('doctorApproveConfirmModal').style.display = 'none';
+        }
+
+        async function executeDoctorApprove() {
+            const btn = document.getElementById('executeApproveBtn');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Approving Schedule...";
+
+            const apptId = document.getElementById('approveApptId').value;
+            const notes = document.getElementById('approveDoctorNotes')?.value?.trim() || '';
+
+            try {
+                const res = await fetch('api/doctor/approve_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        appointment_id: apptId,
+                        action: 'approve',
+                        notes: notes
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    closeSecondConfirmApproveModal();
+                    closeDoctorApproveModal();
+                    showDoctorToast(data.message || 'Appointment approved! Schedule confirmed.', 'success');
+                    loadDoctorDashboard();
+                } else {
+                    showDoctorToast(data.message || 'Failed to approve appointment.', 'error');
+                }
+            } catch (err) {
+                showDoctorToast('Network error while approving appointment.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        // ── D-009: Appointment Decline Workflow with Patient Reason ───
+        function openDeclineModal(apptId) {
+            const apt = findAppointmentById(apptId);
+            if (!apt) return;
+
+            document.getElementById('declineAppointmentId').value = apptId;
+            document.getElementById('declinePatientName').textContent = apt.patient_name || 'Patient';
+            
+            const schDate = apt.appointment_date || apt.date || 'TBD';
+            const schTime = apt.time_slot || apt.appointment_time || 'TBD';
+            document.getElementById('declineScheduleText').textContent = `${schDate} at ${schTime}`;
+            document.getElementById('declineServiceName').textContent = apt.service_name || 'Consultation';
+
+            document.getElementById('declinePresetReason').value = 'Doctor schedule conflict / fully booked';
+            document.getElementById('declineReasonText').value = 'Doctor schedule conflict / fully booked';
+
+            document.getElementById('doctorDeclineModal').style.display = 'flex';
+        }
+
+        function closeDoctorDeclineModal() {
+            document.getElementById('doctorDeclineModal').style.display = 'none';
+        }
+
+        function handleDeclinePresetReasonChange(val) {
+            const textEl = document.getElementById('declineReasonText');
+            if (!textEl) return;
+            if (val === 'Other') {
+                textEl.value = '';
+                textEl.placeholder = 'Type specific reason for non-accommodation...';
+                textEl.focus();
+            } else {
+                textEl.value = val;
+            }
+        }
+
+        async function executeDoctorDecline() {
+            const btn = document.getElementById('confirmDoctorDeclineBtn');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Declining...";
+
+            const apptId = document.getElementById('declineAppointmentId').value;
+            const preset = document.getElementById('declinePresetReason').value;
+            const customNotes = document.getElementById('declineReasonText').value.trim();
+            const finalReason = customNotes || preset;
+
+            try {
+                const res = await fetch('api/doctor/approve_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        appointment_id: apptId,
+                        action: 'decline',
+                        notes: finalReason
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    closeDoctorDeclineModal();
+                    showDoctorToast(data.message || 'Appointment request declined. Patient informed.', 'info');
+                    loadDoctorDashboard();
+                } else {
+                    showDoctorToast(data.message || 'Failed to decline appointment.', 'error');
+                }
+            } catch (err) {
+                showDoctorToast('Network error while declining appointment.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
         function renderQueue(queue) {
             const tbody = document.getElementById('queueTableBody');
             document.getElementById('queueCountLabel').innerHTML = `<i class='bx bx-user-check mr-1'></i> ${queue.length} patient(s) today`;
@@ -2124,6 +2639,7 @@
 
             tbody.innerHTML = queue.map(apt => {
                 const status = (apt.status || 'scheduled').toLowerCase();
+                const isPending = (status === 'pending' || status === 'pending_approval' || (apt.approval_status || '') === 'pending');
                 const isOngoing = (status === 'in_progress');
                 const isCompleted = (status === 'completed');
                 const isCancelled = (status === 'cancelled');
@@ -2133,27 +2649,47 @@
                 else if (isCompleted) statusClass = 'status-completed';
                 else if (isCancelled) statusClass = 'status-cancelled';
 
-                const statusInteractiveSelector = `
-                    <div class="doc-status-select-wrap" title="Click to change consultation status">
-                        <select class="doc-status-select ${statusClass}" onchange="handleDoctorStatusChange('${apt._id}', this.value, '${status}')">
-                            <option value="scheduled" ${(!isOngoing && !isCompleted && !isCancelled) ? 'selected' : ''}>⏳ Pending (Queue)</option>
-                            <option value="in_progress" ${isOngoing ? 'selected' : ''}>⚡ In Process (Ongoing)</option>
-                            <option value="completed" ${isCompleted ? 'selected' : ''}>✓ Complete (Charted)</option>
-                            <option value="cancelled" ${isCancelled ? 'selected' : ''}>✕ Cancelled</option>
-                        </select>
-                        <i class='bx bx-chevron-down doc-status-arrow'></i>
-                    </div>
-                    ${isOngoing ? `<div style="font-size: 10px; color: #047857; font-weight: 700; margin-top: 4px; display: flex; align-items: center; gap: 4px;"><i class='bx bxs-circle' style="font-size: 6px; color: #10b981;"></i> In Operatory Chair</div>` : ''}
-                    ${isCompleted ? `<div style="font-size: 10px; color: #047857; font-weight: 600; margin-top: 3px;"><i class='bx bx-check-double'></i> Treatment Finished</div>` : ''}
-                    ${isCancelled ? `<div style="font-size: 10px; color: #b91c1c; font-style: italic; margin-top: 3px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(apt.cancellation_reason || 'Cancelled')}">${escapeHtml(apt.cancellation_reason || 'Cancelled')}</div>` : ''}
-                `;
+                let statusInteractiveSelector = '';
+                if (isPending) {
+                    statusInteractiveSelector = `
+                        <span class="doc-status-pill status-pending" title="Awaiting Doctor Review & Approval">
+                            <i class='bx bx-time'></i> Pending Approval
+                        </span>
+                    `;
+                } else {
+                    statusInteractiveSelector = `
+                        <div class="doc-status-select-wrap" title="Change consultation status">
+                            <select class="doc-status-select ${statusClass}" onchange="handleDoctorStatusChange('${apt._id}', this.value, '${status}')">
+                                <option value="scheduled" ${(!isOngoing && !isCompleted && !isCancelled) ? 'selected' : ''}>Scheduled</option>
+                                <option value="in_progress" ${isOngoing ? 'selected' : ''}>In Process</option>
+                                <option value="completed" ${isCompleted ? 'selected' : ''}>Completed</option>
+                                <option value="cancelled" ${isCancelled ? 'selected' : ''}>Cancelled</option>
+                            </select>
+                            <i class='bx bx-chevron-down doc-status-arrow'></i>
+                        </div>
+                        ${isOngoing ? `<div style="font-size: 10px; color: #047857; font-weight: 600; margin-top: 3px; display: flex; align-items: center; gap: 4px;"><i class='bx bxs-circle' style="font-size: 6px; color: #10b981;"></i> In Operatory Chair</div>` : ''}
+                        ${isCompleted ? `<div style="font-size: 10px; color: #047857; font-weight: 600; margin-top: 3px;"><i class='bx bx-check-double'></i> Treatment Finished</div>` : ''}
+                        ${isCancelled ? `<div style="font-size: 10px; color: #b91c1c; font-style: italic; margin-top: 3px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(apt.cancellation_reason || 'Cancelled')}">${escapeHtml(apt.cancellation_reason || 'Cancelled')}</div>` : ''}
+                    `;
+                }
 
                 const alertHtml = apt.medical_alerts && apt.medical_alerts !== 'None reported.'
                     ? `<span class="alert-tag danger"><i class='bx bx-error-circle'></i> ${escapeHtml(apt.medical_alerts)}</span>`
                     : `<span class="text-xs text-dim">None</span>`;
 
                 let actionButtons = '';
-                if (isOngoing) {
+                if (isPending) {
+                    actionButtons = `
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            <button type="button" class="btn-primary" style="white-space: nowrap; padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;" onclick="openApproveModal('${apt._id}')">
+                                <i class='bx bx-check'></i> Approve
+                            </button>
+                            <button type="button" class="btn-outline" style="white-space: nowrap; padding: 6px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="openDeclineModal('${apt._id}')">
+                                <i class='bx bx-x'></i> Decline
+                            </button>
+                        </div>
+                    `;
+                } else if (isOngoing) {
                     actionButtons = `
                         <div style="display: inline-flex; align-items: center; gap: 6px;">
                             <button class="btn-primary" style="white-space: nowrap; padding: 7px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;" onclick="openChartingModal('${apt._id}')">
@@ -2225,29 +2761,57 @@
             }
             tbody.innerHTML = list.map(apt => {
                 const status = (apt.status || 'scheduled').toLowerCase();
+                const isPending = (status === 'pending' || status === 'pending_approval' || (apt.approval_status || '') === 'pending');
                 const isOngoing = (status === 'in_progress');
                 const isCompleted = (status === 'completed');
                 const isCancelled = (status === 'cancelled');
 
-                let statusClass = 'status-scheduled';
-                if (isOngoing) statusClass = 'status-in_progress';
-                else if (isCompleted) statusClass = 'status-completed';
-                else if (isCancelled) statusClass = 'status-cancelled';
-
-                const statusInteractiveSelector = `
-                    <div class="doc-status-select-wrap" title="Click to update consultation status">
-                        <select class="doc-status-select ${statusClass}" onchange="handleDoctorStatusChange('${apt._id}', this.value, '${status}')">
-                            <option value="scheduled" ${(!isOngoing && !isCompleted && !isCancelled) ? 'selected' : ''}>⏳ Pending</option>
-                            <option value="in_progress" ${isOngoing ? 'selected' : ''}>⚡ In Process</option>
-                            <option value="completed" ${isCompleted ? 'selected' : ''}>✓ Complete</option>
-                            <option value="cancelled" ${isCancelled ? 'selected' : ''}>✕ Cancelled</option>
-                        </select>
-                        <i class='bx bx-chevron-down doc-status-arrow'></i>
-                    </div>
-                `;
+                let statusBadgeHtml = '';
+                if (isPending) {
+                    statusBadgeHtml = `
+                        <span class="doc-status-pill status-pending" title="Awaiting Doctor Review & Approval">
+                            <i class='bx bx-time'></i> Pending Approval
+                        </span>
+                    `;
+                } else if (isOngoing) {
+                    statusBadgeHtml = `
+                        <span class="doc-status-pill status-in_progress" title="Consultation is currently in progress">
+                            <i class='bx bx-pulse'></i> In Process
+                        </span>
+                    `;
+                } else if (isCompleted) {
+                    statusBadgeHtml = `
+                        <span class="doc-status-pill status-completed" title="Procedure completed and charted">
+                            <i class='bx bx-check-double'></i> Completed
+                        </span>
+                    `;
+                } else if (isCancelled) {
+                    statusBadgeHtml = `
+                        <span class="doc-status-pill status-cancelled" title="${escapeHtml(apt.cancellation_reason || apt.decline_reason || 'Cancelled')}">
+                            <i class='bx bx-x-circle'></i> Cancelled
+                        </span>
+                    `;
+                } else {
+                    statusBadgeHtml = `
+                        <span class="doc-status-pill status-scheduled" title="Confirmed consultation schedule">
+                            <i class='bx bx-calendar-check'></i> Scheduled
+                        </span>
+                    `;
+                }
 
                 let actions = '';
-                if (isCompleted) {
+                if (isPending) {
+                    actions = `
+                        <div style="display: inline-flex; align-items: center; gap: 4px; justify-content: flex-end;">
+                            <button type="button" class="btn-primary" style="padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;" onclick="openApproveModal('${apt._id}')">
+                                <i class='bx bx-check'></i> Approve
+                            </button>
+                            <button type="button" class="btn-outline" style="padding: 4px 8px; font-size: 11px; border-radius: 6px; color: #ef4444; border-color: rgba(239,68,68,0.3);" onclick="openDeclineModal('${apt._id}')">
+                                <i class='bx bx-x'></i> Decline
+                            </button>
+                        </div>
+                    `;
+                } else if (isCompleted) {
                     actions = `
                         <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 11px; border-radius: 6px;" onclick="viewCompletedRecord('${apt._id}')">
                             <i class='bx bx-file'></i> Record
@@ -2297,7 +2861,7 @@
                         <td class="text-sm">${escapeHtml(apt.patient_phone || 'N/A')}</td>
                         <td class="text-sm font-semibold text-primary">${escapeHtml(apt.service_name)}</td>
                         <td class="text-xs text-dim">${escapeHtml(apt.chief_complaint || 'None')}</td>
-                        <td>${statusInteractiveSelector}</td>
+                        <td>${statusBadgeHtml}</td>
                         <td class="text-right" style="white-space: nowrap;">${actions}</td>
                     </tr>
                 `;
@@ -3363,7 +3927,7 @@
                 const data = await res.json();
 
                 if (data.status === 'success') {
-                    notice.textContent = '✓ Profile saved successfully!';
+                    notice.textContent = 'Profile saved successfully!';
                     notice.style.color = '#059669';
                     notice.style.display = 'inline';
 
@@ -3431,7 +3995,7 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    notice.textContent = '✓ Password updated successfully!';
+                    notice.textContent = 'Password updated successfully!';
                     notice.style.color = '#059669';
                     notice.style.display = 'inline';
                     document.getElementById('form-change-password').reset();
@@ -3574,26 +4138,39 @@
         }
 
         function closeConfirmDoctorScheduleModal() {
-            document.getElementById('confirmDoctorScheduleModal').style.display = 'none';
+            const modal = document.getElementById('confirmDoctorScheduleModal');
+            if (modal) modal.style.display = 'none';
         }
 
-        function requestFinalDoctorScheduleConfirmation() {
+        function openSecondConfirmScheduleModal() {
             const days = document.getElementById('docWorkingDays')?.value || 'Mon - Fri';
             const start = document.getElementById('docDutyStartTime')?.value || '09:00 AM';
             const end = document.getElementById('docDutyEndTime')?.value || '05:00 PM';
             const lunch = document.getElementById('docLunchBreak')?.checked ?? true;
             const slots = calculateDoctorTimeSlots(start, end, lunch);
 
-            showCustomConfirm({
-                title: "Confirm Schedule Implementation?",
-                message: `Are you completely sure you want to enforce your duty hours (${days}: ${start} - ${end}, ${slots.length} daily slots) across the entire clinic system? This will immediately alter appointment slot availability for all incoming patients and walk-ins.`,
-                icon: "bx bx-calendar-check",
-                confirmText: "Yes, Confirm & Implement",
-                cancelText: "Go Back & Review",
-                onConfirm: () => {
-                    executeDoctorScheduleSave();
-                }
-            });
+            const daysEl = document.getElementById('secondConfirmDays');
+            const hoursEl = document.getElementById('secondConfirmHours');
+            const slotsEl = document.getElementById('secondConfirmSlots');
+
+            if (daysEl) daysEl.textContent = days;
+            if (hoursEl) hoursEl.textContent = `${start} - ${end}`;
+            if (slotsEl) slotsEl.textContent = `${slots.length} Slots / Day`;
+
+            closeConfirmDoctorScheduleModal();
+            const secModal = document.getElementById('secondConfirmScheduleModal');
+            if (secModal) secModal.style.display = 'flex';
+        }
+
+        function closeSecondConfirmScheduleModal() {
+            const modal = document.getElementById('secondConfirmScheduleModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function backToReviewScheduleModal() {
+            closeSecondConfirmScheduleModal();
+            const step1 = document.getElementById('confirmDoctorScheduleModal');
+            if (step1) step1.style.display = 'flex';
         }
 
         async function executeDoctorScheduleSave() {
@@ -3623,6 +4200,7 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
+                    closeSecondConfirmScheduleModal();
                     closeConfirmDoctorScheduleModal();
                     showDoctorToast(data.message || 'Duty schedule updated and enforced successfully!', 'success');
                     if (cachedDashboardData?.doctor) {
@@ -3903,6 +4481,7 @@
 
             const headings = {
                 'queue': "Today's Patient Queue & Operatory",
+                'requests': "Appointment Requests & Approval (D-008)",
                 'upcoming': "Upcoming Scheduled Appointments",
                 'completed': "Completed Treatments & Clinical Record Management (D-004)",
                 'patients': "My Patient Directory & Medical History (D-003)",
@@ -3948,6 +4527,7 @@
             })[m]);
         }
     </script>
+<script src="/doctor_dashboard.js"></script>
 </body>
 
 </html>

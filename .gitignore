@@ -9,3 +9,6 @@ OptiDentImplementation/cookie.txt
 *.log
 .DS_Store
 Thumbs.db
+
+# Experimental Next.js app
+optident-next/

@@ -30,6 +30,60 @@ $userDoc = $db->findOne('users', ['email' => $userEmail]);
 
 $today = date('Y-m-d');
 
+// Fetch all active users and build fast patient lookup (R-009)
+$allUsers = $db->find('users', []);
+$patientsLookup = ['name' => [], 'phone' => []];
+$patients = [];
+$doctors = [];
+
+foreach ($allUsers as $u) {
+    if (!empty($u['is_deleted']) || !empty($u['is_archived'])) continue;
+    $uRole = strtolower($u['role'] ?? '');
+    if ($uRole === 'patient') {
+        $pNameKey = strtolower(trim($u['full_name'] ?? ''));
+        $pPhoneKey = trim($u['phone'] ?? '');
+        if ($pNameKey) $patientsLookup['name'][$pNameKey] = $u;
+        if ($pPhoneKey) $patientsLookup['phone'][$pPhoneKey] = $u;
+
+        $emergName = $u['emergency_contact_name'] ?? '';
+        $emergPhone = $u['emergency_contact_phone'] ?? '';
+        $emergFull = trim($emergName . ($emergPhone ? " ({$emergPhone})" : ''));
+
+        $patients[] = [
+            '_id' => (string) $u['_id'],
+            'full_name' => $u['full_name'] ?? 'Unknown Patient',
+            'email' => $u['email'] ?? '',
+            'phone' => $u['phone'] ?? 'N/A',
+            'dob' => $u['dob'] ?? '',
+            'gender' => $u['gender'] ?? '',
+            'blood_type' => $u['blood_type'] ?? 'Unknown',
+            'medical_alerts' => $u['allergies'] ?? $u['medical_alerts'] ?? 'None recorded',
+            'emergency_contact' => !empty($emergFull) ? $emergFull : 'None recorded',
+            'emergency_contact_name' => $emergName,
+            'emergency_contact_phone' => $emergPhone,
+            'created_at' => $u['created_at'] ?? ''
+        ];
+    } elseif ($uRole === 'doctor') {
+        $docSched = ClinicHoursHelper::resolveDoctorSchedule($u);
+            
+        $doctors[] = [
+            '_id' => (string) $u['_id'],
+            'full_name' => $u['full_name'] ?? 'Doctor',
+            'email' => $u['email'] ?? '',
+            'phone' => $u['phone'] ?? '',
+            'specialization' => $u['specialization'] ?? 'General Dentistry',
+            'professional_id' => $u['professional_id'] ?? 'PRC-VERIFIED',
+            'schedule_days' => $docSched['schedule_days'],
+            'working_days' => $docSched['working_days'],
+            'opening_time' => $docSched['opening_time'],
+            'closing_time' => $docSched['closing_time'],
+            'lunch_break' => $docSched['lunch_break'],
+            'time_slots' => $docSched['time_slots'],
+            'timezone' => $docSched['timezone']
+        ];
+    }
+}
+
 // Fetch all active appointments
 $rawAppointments = $db->find('appointments', []);
 $appointments = array_filter($rawAppointments, function($a) {
@@ -38,13 +92,27 @@ $appointments = array_filter($rawAppointments, function($a) {
 
 $queueToday = [];
 $upcomingAppointments = [];
+$allAppointmentsEnriched = [];
 $completedToday = 0;
 $checkedInCount = 0;
 $inChairCount = 0;
 
 foreach ($appointments as $apt) {
+    $apt['_id'] = (string)($apt['_id'] ?? '');
     $aptDate = substr($apt['appointment_date'] ?? $apt['date'] ?? '', 0, 10);
     $status = strtolower($apt['status'] ?? 'scheduled');
+
+    // Attach patient medical info (R-009)
+    $pNameKey = strtolower(trim($apt['patient_name'] ?? ''));
+    $pPhoneKey = trim($apt['patient_phone'] ?? '');
+    $matchedUser = $patientsLookup['name'][$pNameKey] ?? ($pPhoneKey ? ($patientsLookup['phone'][$pPhoneKey] ?? null) : null);
+
+    $apt['patient_id'] = (string)($matchedUser['_id'] ?? ($apt['patient_id'] ?? ''));
+    $apt['medical_alerts'] = $matchedUser['allergies'] ?? $matchedUser['medical_alerts'] ?? ($apt['medical_alerts'] ?? 'None recorded');
+    $apt['blood_type'] = $matchedUser['blood_type'] ?? ($apt['blood_type'] ?? 'Unknown');
+    $emergN = $matchedUser['emergency_contact_name'] ?? '';
+    $emergP = $matchedUser['emergency_contact_phone'] ?? '';
+    $apt['emergency_contact'] = trim($emergN . ($emergP ? " ({$emergP})" : ''));
 
     if ($aptDate === $today) {
         // Calculate waiting duration
@@ -67,6 +135,8 @@ foreach ($appointments as $apt) {
     } elseif ($aptDate > $today) {
         $upcomingAppointments[] = $apt;
     }
+
+    $allAppointmentsEnriched[] = $apt;
 }
 
 // Sort today's queue by clinical workflow hierarchy & queue priority (R-006 Queue Management)
@@ -147,47 +217,7 @@ usort($upcomingAppointments, function($a, $b) {
     return strcmp($dA, $dB);
 });
 
-// Fetch active patients
-$allUsers = $db->find('users', []);
-$patients = [];
-$doctors = [];
-
-foreach ($allUsers as $u) {
-    if (!empty($u['is_deleted']) || !empty($u['is_archived'])) continue;
-    $uRole = strtolower($u['role'] ?? '');
-    if ($uRole === 'patient') {
-        $patients[] = [
-            '_id' => (string) $u['_id'],
-            'full_name' => $u['full_name'] ?? 'Unknown Patient',
-            'email' => $u['email'] ?? '',
-            'phone' => $u['phone'] ?? 'N/A',
-            'dob' => $u['dob'] ?? '',
-            'gender' => $u['gender'] ?? '',
-            'blood_type' => $u['blood_type'] ?? 'N/A',
-            'medical_alerts' => $u['allergies'] ?? $u['medical_alerts'] ?? 'None recorded',
-            'emergency_contact' => $u['emergency_contact_name'] ?? $u['emergency_contact_phone'] ?? 'N/A',
-            'created_at' => $u['created_at'] ?? ''
-        ];
-    } elseif ($uRole === 'doctor') {
-        $docSched = ClinicHoursHelper::resolveDoctorSchedule($u);
-            
-        $doctors[] = [
-            '_id' => (string) $u['_id'],
-            'full_name' => $u['full_name'] ?? 'Doctor',
-            'email' => $u['email'] ?? '',
-            'phone' => $u['phone'] ?? '',
-            'specialization' => $u['specialization'] ?? 'General Dentistry',
-            'professional_id' => $u['professional_id'] ?? 'PRC-VERIFIED',
-            'schedule_days' => $docSched['schedule_days'],
-            'working_days' => $docSched['working_days'],
-            'opening_time' => $docSched['opening_time'],
-            'closing_time' => $docSched['closing_time'],
-            'lunch_break' => $docSched['lunch_break'],
-            'time_slots' => $docSched['time_slots'],
-            'timezone' => $docSched['timezone']
-        ];
-    }
-}
+// Users already processed upfront for fast lookup and enrichment
 
 // Fetch available services
 $rawServices = $db->find('services', []);
@@ -214,11 +244,17 @@ echo json_encode([
         "email" => $userEmail,
         "role" => $role,
         "position" => $userDoc['position'] ?? 'Front Desk Receptionist',
-        "phone" => $userDoc['phone'] ?? ''
+        "phone" => $userDoc['phone'] ?? '',
+        "schedule_days" => $userDoc['schedule_days'] ?? 'Mon - Fri (8:00 AM - 5:00 PM)',
+        "bio" => $userDoc['bio'] ?? '',
+        "avatar_color" => $userDoc['avatar_color'] ?? '#0eb1b1',
+        "last_login" => $userDoc['last_login'] ?? '',
+        "created_at" => $userDoc['created_at'] ?? ''
     ],
     "metrics" => $metrics,
     "queue_today" => array_values($queueToday),
     "upcoming_appointments" => array_values(array_slice($upcomingAppointments, 0, 20)),
+    "all_appointments" => array_values($allAppointmentsEnriched),
     "patients" => array_values($patients),
     "doctors" => array_values($doctors),
     "services" => $services,

@@ -81,7 +81,34 @@ $_SESSION['email_verification'] = [
     'expires_time' => $now + 600
 ];
 
-// 5. Dispatch Email via Gmail SMTP
+// 5. Check if SMTP Email Service is enabled in system settings
+$systemSettings = $db->findOne('system_settings', ['setting_type' => 'clinic_profile']);
+$integrations = !empty($systemSettings['integrations']) && is_array($systemSettings['integrations']) ? $systemSettings['integrations'] : [];
+$smtpEnabled = isset($integrations['smtp_email_enabled']) ? (bool)$integrations['smtp_email_enabled'] : true;
+
+if (!$smtpEnabled) {
+    AuditLogger::log(
+        'PATIENT_VERIFICATION_MOCK',
+        "verifications:{$email}",
+        [
+            'email' => $email,
+            'full_name' => $fullName,
+            'reason' => 'SMTP Gateway paused by Super Admin - Mock code active',
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1'
+        ]
+    );
+
+    http_response_code(200);
+    echo json_encode([
+        "status" => "success",
+        "message" => "Gmail SMTP delivery is paused by Super Admin. Verification code: {$code}",
+        "mock_code" => $code,
+        "expires_in" => "10 minutes"
+    ]);
+    exit;
+}
+
+// 6. Dispatch Email via Gmail SMTP
 $mailResult = sendPatientVerificationEmail($email, $fullName, $code);
 
 if (!$mailResult['sent']) {

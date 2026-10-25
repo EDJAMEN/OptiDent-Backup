@@ -40,7 +40,15 @@ if (empty($appointmentId)) {
     exit;
 }
 
-$apt = $db->findOne('appointments', ['_id' => $appointmentId]);
+$filter = ['_id' => $appointmentId];
+$apt = $db->findOne('appointments', $filter);
+if (!$apt && class_exists('MongoDB\BSON\ObjectId')) {
+    try {
+        $oid = new MongoDB\BSON\ObjectId($appointmentId);
+        $apt = $db->findOne('appointments', ['_id' => $oid]);
+        if ($apt) $filter = ['_id' => $oid];
+    } catch (\Exception $e) {}
+}
 if (!$apt) {
     http_response_code(404);
     echo json_encode(["status" => "error", "message" => "Appointment record not found."]);
@@ -68,7 +76,7 @@ if (isset($input['patient_phone']) && trim($input['patient_phone']) !== '') {
     $updateFields['patient_phone'] = trim($input['patient_phone']);
 }
 
-$db->updateOne('appointments', ['_id' => $appointmentId], ['$set' => $updateFields]);
+$db->updateOne('appointments', $filter, ['$set' => $updateFields]);
 
 AuditLogger::log(
     'APPOINTMENT_DETAILS_UPDATED',

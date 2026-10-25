@@ -31,6 +31,7 @@ if (!in_array($role, ['receptionist', 'staff', 'super_admin', 'admin'])) {
 $patientId = trim($_GET['id'] ?? $_GET['patient_id'] ?? '');
 $patientEmail = trim($_GET['email'] ?? '');
 $patientPhone = trim($_GET['phone'] ?? '');
+$patientName = trim($_GET['name'] ?? $_GET['full_name'] ?? '');
 
 $filter = [];
 if (!empty($patientId)) {
@@ -40,9 +41,12 @@ if (!empty($patientId)) {
     $filter['role'] = 'patient';
 } elseif (!empty($patientEmail)) {
     $filter['email'] = $patientEmail;
+} elseif (!empty($patientName)) {
+    $filter['full_name'] = $patientName;
+    $filter['role'] = 'patient';
 } else {
     http_response_code(400);
-    echo json_encode(["status" => "error", "message" => "Patient identifier (id, phone, or email) is required."]);
+    echo json_encode(["status" => "error", "message" => "Patient identifier (id, phone, email, or name) is required."]);
     exit;
 }
 

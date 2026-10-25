@@ -44,6 +44,7 @@ $allAppts = $db->find('appointments', []);
 
 $todayDate = date('Y-m-d');
 $doctorAppts = [];
+$pendingApprovalList = [];
 $todayList = [];
 $upcomingList = [];
 $completedList = [];
@@ -62,13 +63,20 @@ foreach ($allAppts as $apt) {
     // Match appointments assigned to this doctor (or all if admin viewing)
     $isMatch = true;
     if ($userRole === 'doctor') {
-        $aptDocEmail = strtolower($apt['dentist_email'] ?? '');
-        $aptDocName = strtolower($apt['dentist_name'] ?? '');
+        $aptDocEmail = strtolower($apt['dentist_email'] ?? ($apt['doctor_email'] ?? ''));
+        $aptDocName = strtolower($apt['dentist_name'] ?? ($apt['doctor_name'] ?? ($apt['attending_doctor'] ?? '')));
         $currentDocName = strtolower($doctor['full_name'] ?? '');
         $currentDocEmail = strtolower($doctor['email'] ?? '');
 
         if (!empty($aptDocEmail) && $aptDocEmail !== $currentDocEmail) {
             $isMatch = false;
+        } elseif (empty($aptDocEmail) && !empty($aptDocName) && strpos($aptDocName, 'first available') === false) {
+            // Check clean name match if email is not present
+            $cDoc = trim(str_replace(['dr.', 'dr', '.'], '', $currentDocName));
+            $aDoc = trim(str_replace(['dr.', 'dr', '.'], '', $aptDocName));
+            if ($cDoc !== '' && $aDoc !== '' && stripos($cDoc, $aDoc) === false && stripos($aDoc, $cDoc) === false) {
+                $isMatch = false;
+            }
         }
     }
 
@@ -76,8 +84,14 @@ foreach ($allAppts as $apt) {
 
     $doctorAppts[] = $apt;
 
-    $aptDate = $apt['appointment_date'] ?? '';
+    $aptDate = $apt['appointment_date'] ?? ($apt['date'] ?? '');
     $status = strtolower($apt['status'] ?? 'scheduled');
+    $isPending = ($status === 'pending' || $status === 'pending_approval' || ($apt['approval_status'] ?? '') === 'pending');
+
+    // D-008: Aggregate pending appointment requests awaiting doctor approval
+    if ($isPending) {
+        $pendingApprovalList[] = $apt;
+    }
 
     // Categorization
     if ($status === 'completed') {
@@ -86,6 +100,8 @@ foreach ($allAppts as $apt) {
             $completedCount++;
             $todayCount++;
         }
+    } elseif ($status === 'cancelled') {
+        // Excluded from active queue
     } else {
         if ($aptDate === $todayDate || $status === 'in_progress') {
             $todayList[] = $apt;
@@ -131,6 +147,13 @@ foreach ($allAppts as $apt) {
     }
 }
 
+// Sort pending approval requests: soonest first
+usort($pendingApprovalList, function($a, $b) {
+    $da = ($a['appointment_date'] ?? $a['date'] ?? '') . ' ' . ($a['time_slot'] ?? $a['appointment_time'] ?? '');
+    $db = ($b['appointment_date'] ?? $b['date'] ?? '') . ' ' . ($b['time_slot'] ?? $b['appointment_time'] ?? '');
+    return strcmp($da, $db);
+});
+
 // Sort today list: in_progress first, then scheduled
 usort($todayList, function($a, $b) {
     if (($a['status'] ?? '') === 'in_progress') return -1;
@@ -145,34 +168,36 @@ usort($completedList, function($a, $b) {
 
 $patientsList = array_values($patientsMap);
 
-    $docSched = ClinicHoursHelper::resolveDoctorSchedule($doctor);
+$docSched = ClinicHoursHelper::resolveDoctorSchedule($doctor);
 
-    echo json_encode([
-        "status" => "success",
-        "doctor" => [
-            "id" => (string)($doctor['_id'] ?? ''),
-            "full_name" => $doctor['full_name'] ?? 'Dr. Specialist',
-            "email" => $doctor['email'] ?? '',
-            "role" => "doctor",
-            "specialization" => $doctor['specialization'] ?? 'General Dentistry',
-            "professional_id" => $doctor['professional_id'] ?? 'PRC-VERIFIED',
-            "schedule_days" => $docSched['schedule_days'],
-            "working_days" => $docSched['working_days'],
-            "opening_time" => $docSched['opening_time'],
-            "closing_time" => $docSched['closing_time'],
-            "lunch_break" => $docSched['lunch_break'],
-            "time_slots" => $docSched['time_slots'],
-            "timezone" => $docSched['timezone'],
-            "phone" => $doctor['phone'] ?? '',
-            "bio" => $doctor['bio'] ?? ''
-        ],
+echo json_encode([
+    "status" => "success",
+    "doctor" => [
+        "id" => (string)($doctor['_id'] ?? ''),
+        "full_name" => $doctor['full_name'] ?? 'Dr. Specialist',
+        "email" => $doctor['email'] ?? '',
+        "role" => "doctor",
+        "specialization" => $doctor['specialization'] ?? 'General Dentistry',
+        "professional_id" => $doctor['professional_id'] ?? 'PRC-VERIFIED',
+        "schedule_days" => $docSched['schedule_days'],
+        "working_days" => $docSched['working_days'],
+        "opening_time" => $docSched['opening_time'],
+        "closing_time" => $docSched['closing_time'],
+        "lunch_break" => $docSched['lunch_break'],
+        "time_slots" => $docSched['time_slots'],
+        "timezone" => $docSched['timezone'],
+        "phone" => $doctor['phone'] ?? '',
+        "bio" => $doctor['bio'] ?? ''
+    ],
     "metrics" => [
         "today_total" => $todayCount,
         "in_progress" => $inProgressCount,
         "waiting_queue" => $waitingCount,
         "completed_total" => count($completedList),
-        "total_patients" => count($patientsList)
+        "total_patients" => count($patientsList),
+        "pending_approvals" => count($pendingApprovalList)
     ],
+    "pending_requests" => $pendingApprovalList,
     "queue_today" => $todayList,
     "upcoming_appointments" => $upcomingList,
     "completed_procedures" => $completedList,
