@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import dbClient from '../config/db.js';
 import logAudit from '../config/auditLogger.js';
-import { sendPatientVerificationEmail } from '../config/mailer.js';
+import { sendPatientVerificationEmail, sendPasswordResetEmail } from '../config/mailer.js';
 import verifyRecaptcha from '../config/recaptcha.js';
 
 const router = express.Router();
@@ -867,6 +867,131 @@ router.get('/validate_invite', async (req, res) => {
     } catch (err) {
         console.error('Validate invite error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to validate invitation.' });
+    }
+});
+
+/**
+ * Request Password Reset (Forgot Password)
+ * Sends a 6-digit OTP code to the registered email address
+ */
+router.post('/forgot_password', async (req, res) => {
+    try {
+        const email = (req.body.email || '').trim().toLowerCase();
+        if (!email) {
+            return res.status(400).json({ status: 'error', message: 'Email address is required.' });
+        }
+
+        const user = await dbClient.findOne('users', { email });
+        if (!user) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'No registered account found with that email address.'
+            });
+        }
+
+        // Generate 6-digit code
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+        // Store reset request in password_resets
+        await dbClient.deleteMany('password_resets', { email }).catch(() => {});
+        await dbClient.insertOne('password_resets', {
+            email,
+            code: resetCode,
+            expires_at: expiresAt,
+            created_at: new Date().toISOString()
+        });
+
+        // Send email via mailer
+        try {
+            await sendPasswordResetEmail(email, user.full_name, resetCode);
+        } catch (mailErr) {
+            console.warn('[Forgot Password] Mailer warning:', mailErr.message);
+        }
+
+        await logAudit(req, 'PASSWORD_RESET_REQUESTED', 'AUTH', { email }, 'success');
+
+        return res.json({
+            status: 'success',
+            message: 'A 6-digit reset code has been sent to your email address.',
+            // Include for convenient local testing
+            dev_code: process.env.NODE_ENV !== 'production' ? resetCode : undefined
+        });
+    } catch (err) {
+        console.error('Forgot password error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to process password reset request.' });
+    }
+});
+
+/**
+ * Verify Code & Complete Password Reset
+ */
+router.post('/reset_password', async (req, res) => {
+    try {
+        const email = (req.body.email || '').trim().toLowerCase();
+        const code = (req.body.code || '').trim();
+        const newPassword = (req.body.new_password || '').trim();
+        const confirmPassword = (req.body.confirm_password || '').trim();
+
+        if (!email || !code || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'All fields (email, 6-digit code, new password, confirm password) are required.'
+            });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'New password must be at least 8 characters long.'
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Passwords do not match. Please verify and try again.'
+            });
+        }
+
+        const resetRecord = await dbClient.findOne('password_resets', { email, code });
+        if (!resetRecord) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid or expired verification code. Please check your code or request a new one.'
+            });
+        }
+
+        if (new Date(resetRecord.expires_at) < new Date()) {
+            await dbClient.deleteMany('password_resets', { email }).catch(() => {});
+            return res.status(400).json({
+                status: 'error',
+                message: 'This reset code has expired. Please request a new code.'
+            });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(newPassword, salt);
+
+        // Update user
+        await dbClient.updateOne('users', { email }, {
+            password_hash: passwordHash,
+            updated_at: new Date().toISOString()
+        });
+
+        // Invalidate used reset code
+        await dbClient.deleteMany('password_resets', { email }).catch(() => {});
+
+        await logAudit(req, 'PASSWORD_RESET_COMPLETED', 'AUTH', { email }, 'success');
+
+        return res.json({
+            status: 'success',
+            message: 'Your password has been reset successfully! You can now sign in with your new password.'
+        });
+    } catch (err) {
+        console.error('Reset password error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to reset password.' });
     }
 });
 

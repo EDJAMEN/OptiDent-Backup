@@ -466,10 +466,10 @@
                 </div>
 
                 <div class="flex justify-between items-center mt-1 mb-2">
-                    <span class="text-xs text-dim">
-                        <i class='bx bx-shield-check'></i> 256-bit Encrypted
-                    </span>
-                    <a href="accept_invite.html" class="text-xs font-semibold text-primary" style="text-decoration: none;">
+                    <a href="javascript:void(0)" onclick="switchAuthTab('forgot')" class="text-xs font-semibold text-primary" style="text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                        <i class='bx bx-key' style="font-size: 14px;"></i> Forgot Password?
+                    </a>
+                    <a href="accept_invite.html" class="text-xs font-semibold text-dim" style="text-decoration: none;">
                         Staff Invite Token?
                     </a>
                 </div>
@@ -675,6 +675,82 @@
                 </div>
             </form>
 
+            <!-- TAB 3: FORGOT PASSWORD FORM (Self-service recovery for all roles) -->
+            <form id="form-forgot" class="auth-form" style="display: none;" onsubmit="handleForgotPasswordSubmit(event)">
+                <!-- Forgot Password Header Card -->
+                <div style="background: rgba(14, 177, 177, 0.08); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 10px; padding: 12px 14px; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px;">
+                    <i class='bx bx-lock-open-alt' style="font-size: 26px; color: var(--primary);"></i>
+                    <div>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--primary-dark);">Forgot Your Password?</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Enter your registered email to receive a secure 6-digit recovery code.</div>
+                    </div>
+                </div>
+
+                <!-- STEP 1: Enter Registered Email -->
+                <div id="forgotStep1">
+                    <div class="input-group">
+                        <i class='bx bx-envelope'></i>
+                        <input type="email" id="forgotEmail" placeholder="Enter your registered email" required autocomplete="email">
+                    </div>
+
+                    <button type="button" id="btnSendForgotCode" onclick="sendForgotPasswordCode()" class="btn-primary w-full shadow-hover"
+                            style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px; margin-top: 6px;">
+                        <i class='bx bx-send mr-1'></i> Send Recovery Code
+                    </button>
+                </div>
+
+                <!-- STEP 2: Enter Code & New Password -->
+                <div id="forgotStep2" style="display: none;">
+                    <div style="margin-bottom: 12px; font-size: 12px; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px;">
+                        Code sent to: <strong id="forgotEmailDisplay" style="color: #0f172a;"></strong>
+                        <button type="button" onclick="editForgotEmail()" style="background: none; border: none; color: var(--primary); font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 6px;">
+                            (Change)
+                        </button>
+                    </div>
+
+                    <div class="input-group">
+                        <i class='bx bx-shield-quarter'></i>
+                        <input type="text" id="forgotCode" placeholder="6-Digit Verification Code" maxlength="6" pattern="[0-9]{6}" required style="letter-spacing: 4px; font-weight: 700; font-size: 15px;">
+                    </div>
+
+                    <div class="input-group">
+                        <i class='bx bx-lock-alt'></i>
+                        <input type="password" id="forgotNewPassword" placeholder="New Password (min 8 characters)" minlength="8" required class="password-field">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('forgotNewPassword', 'toggleIconForgot1')">
+                            <i class='bx bx-hide' id="toggleIconForgot1"></i>
+                        </button>
+                    </div>
+
+                    <div class="input-group">
+                        <i class='bx bx-check-shield'></i>
+                        <input type="password" id="forgotConfirmPassword" placeholder="Confirm New Password" minlength="8" required class="password-field">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('forgotConfirmPassword', 'toggleIconForgot2')">
+                            <i class='bx bx-hide' id="toggleIconForgot2"></i>
+                        </button>
+                    </div>
+
+                    <button type="submit" id="btnSubmitResetPassword" class="btn-primary w-full shadow-hover"
+                            style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px; margin-top: 6px;">
+                        <i class='bx bx-reset mr-1'></i> Update Password &amp; Sign In
+                    </button>
+
+                    <div class="text-center mt-2">
+                        <button type="button" onclick="sendForgotPasswordCode(true)" id="btnResendForgotCode" style="background: none; border: none; color: var(--primary); font-size: 11px; font-weight: 600; cursor: pointer;">
+                            Didn't get the code? Resend
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-3 text-center border-top pt-2">
+                    <p class="text-xs text-dim">
+                        Remember your password?
+                        <a href="javascript:void(0)" onclick="switchAuthTab('login')" class="text-primary font-semibold" style="text-decoration: none;">
+                            Back to Sign In
+                        </a>
+                    </p>
+                </div>
+            </form>
+
         </div>
     </div>
 
@@ -755,22 +831,39 @@
             const btnReg = document.getElementById('tabBtnRegister');
             const formLogin = document.getElementById('form-login');
             const formReg = document.getElementById('form-register');
+            const formForgot = document.getElementById('form-forgot');
+            const tabsContainer = document.querySelector('.auth-tabs-container');
             const subtext = document.getElementById('portalSubtext');
 
             if (tabName === 'register') {
                 if (activeBanner) activeBanner.style.display = 'none';
+                if (tabsContainer) tabsContainer.style.display = 'grid';
                 box.classList.add('register-mode');
                 btnLogin.classList.remove('active');
                 btnReg.classList.add('active');
                 formLogin.style.display = 'none';
+                if (formForgot) formForgot.style.display = 'none';
                 formReg.style.display = 'block';
                 subtext.textContent = 'Create your patient account to access dental records & book visits.';
                 window.location.hash = '#register';
+            } else if (tabName === 'forgot') {
+                if (activeBanner) activeBanner.style.display = 'none';
+                if (tabsContainer) tabsContainer.style.display = 'none';
+                box.classList.remove('register-mode');
+                btnLogin.classList.remove('active');
+                btnReg.classList.remove('active');
+                formLogin.style.display = 'none';
+                formReg.style.display = 'none';
+                if (formForgot) formForgot.style.display = 'block';
+                subtext.textContent = 'Account Recovery & Password Reset';
+                window.location.hash = '#forgot';
             } else {
+                if (tabsContainer) tabsContainer.style.display = 'grid';
                 box.classList.remove('register-mode');
                 btnReg.classList.remove('active');
                 btnLogin.classList.add('active');
                 formReg.style.display = 'none';
+                if (formForgot) formForgot.style.display = 'none';
                 formLogin.style.display = 'block';
                 subtext.textContent = 'Unified Access Portal for Patients & Staff';
                 window.location.hash = '#login';
@@ -1327,11 +1420,135 @@
             document.getElementById('authNotification').style.display = 'none';
         }
 
+        // ── Forgot Password Logic ─────────────────────────────────────────
+        async function sendForgotPasswordCode(isResend = false) {
+            hideNotif();
+            const emailInp = document.getElementById('forgotEmail');
+            const email = (emailInp.value || '').trim();
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showNotif('error', 'Please enter a valid registered email address.');
+                emailInp.focus();
+                return;
+            }
+
+            const btn = document.getElementById(isResend ? 'btnResendForgotCode' : 'btnSendForgotCode');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Sending Code...";
+
+            try {
+                const res = await fetch('api/auth/forgot_password.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    document.getElementById('forgotStep1').style.display = 'none';
+                    document.getElementById('forgotStep2').style.display = 'block';
+                    document.getElementById('forgotEmailDisplay').textContent = email;
+                    if (data.dev_code) {
+                        document.getElementById('forgotCode').value = data.dev_code;
+                    }
+                    showNotif('success', data.message || 'Verification code sent to your email.');
+                    document.getElementById('forgotCode').focus();
+                } else {
+                    showNotif('error', data.message || 'Failed to send recovery code. Please check your email.');
+                }
+            } catch (err) {
+                showNotif('error', 'Unable to reach the server. Please verify your connection.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        function editForgotEmail() {
+            document.getElementById('forgotStep2').style.display = 'none';
+            document.getElementById('forgotStep1').style.display = 'block';
+            document.getElementById('forgotEmail').focus();
+            hideNotif();
+        }
+
+        async function handleForgotPasswordSubmit(e) {
+            e.preventDefault();
+            hideNotif();
+
+            const email = (document.getElementById('forgotEmail').value || '').trim();
+            const code = (document.getElementById('forgotCode').value || '').trim();
+            const newPassword = (document.getElementById('forgotNewPassword').value || '').trim();
+            const confirmPassword = (document.getElementById('forgotConfirmPassword').value || '').trim();
+
+            if (!code || code.length !== 6) {
+                showNotif('error', 'Please enter the 6-digit verification code.');
+                document.getElementById('forgotCode').focus();
+                return;
+            }
+
+            if (!newPassword || newPassword.length < 8) {
+                showNotif('error', 'New password must be at least 8 characters long.');
+                document.getElementById('forgotNewPassword').focus();
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showNotif('error', 'Passwords do not match. Please re-enter.');
+                document.getElementById('forgotConfirmPassword').focus();
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitResetPassword');
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Updating Password...";
+
+            try {
+                const res = await fetch('api/auth/reset_password.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        code,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    showNotif('success', data.message || 'Password updated successfully!');
+                    document.getElementById('loginEmail').value = email;
+                    document.getElementById('loginPassword').value = '';
+                    
+                    document.getElementById('forgotStep2').style.display = 'none';
+                    document.getElementById('forgotStep1').style.display = 'block';
+                    document.getElementById('forgotCode').value = '';
+                    document.getElementById('forgotNewPassword').value = '';
+                    document.getElementById('forgotConfirmPassword').value = '';
+
+                    setTimeout(() => {
+                        switchAuthTab('login');
+                        showNotif('success', 'Your password is reset! Please sign in with your new password.');
+                    }, 1200);
+                } else {
+                    showNotif('error', data.message || 'Failed to reset password. Please try again.');
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-reset mr-1'></i> Update Password &amp; Sign In";
+                }
+            } catch (err) {
+                showNotif('error', 'Unable to reach the server. Please verify your connection.');
+                btn.disabled = false;
+                btn.innerHTML = "<i class='bx bx-reset mr-1'></i> Update Password &amp; Sign In";
+            }
+        }
+
         // ── Auto-Detect Existing Active Session & Hash Route ─────────────
         function checkHashAndInitTab() {
             const h = (window.location.hash || '').toLowerCase();
             if (h === '#register' || h === '#signup') {
                 switchAuthTab('register');
+            } else if (h === '#forgot' || h === '#reset' || h === '#recovery') {
+                switchAuthTab('forgot');
             } else if (h === '#login') {
                 switchAuthTab('login');
             }

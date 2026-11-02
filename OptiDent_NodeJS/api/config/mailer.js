@@ -231,8 +231,59 @@ export async function sendPatientInvitationEmail(toEmail, toName, inviteLink, cu
     return await sendMailWithFallback(mailOptionsBuilder, customUser, customPass);
 }
 
+/**
+ * Sends a 6-digit password reset verification code
+ */
+export async function sendPasswordResetEmail(toEmail, toName, code, customUser = '', customPass = '') {
+    const displayName = toName || 'User';
+
+    const mailOptionsBuilder = (senderUser) => ({
+        from: `"${SMTP_FROM_NAME}" <${senderUser}>`,
+        to: toName ? `"${toName}" <${toEmail}>` : toEmail,
+        subject: `OptiDent Password Reset Verification Code: ${code}`,
+        text: `Hello ${displayName},\n\nYour OptiDent password reset verification code is: ${code}\n\nThis code expires in 15 minutes.\nIf you did not request this, please ensure your account is secure.`,
+        html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 30px 15px; color: #1e293b;">
+            <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 14px; padding: 32px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <h2 style="color: #0EB1B1; margin: 0; font-size: 26px; font-weight: 800;">OptiDent</h2>
+                    <p style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px;">Password Recovery & Security</p>
+                </div>
+                
+                <h3 style="color: #0f172a; margin-top: 0; font-size: 18px;">Hello ${displayName},</h3>
+                
+                <p style="line-height: 1.6; color: #334155; font-size: 14px;">
+                    We received a request to reset the password for your OptiDent account. Please use the 6-digit security code below to proceed:
+                </p>
+                
+                <div style="text-align: center; margin: 28px 0;">
+                    <div style="display: inline-block; background-color: #F0FBFA; border: 2px dashed #0EB1B1; border-radius: 12px; padding: 14px 28px;">
+                        <span style="font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #0a8f8f; font-family: monospace;">${code}</span>
+                    </div>
+                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #64748b;">
+                        This code will expire in <strong>15 minutes</strong>.
+                    </p>
+                </div>
+                
+                <p style="line-height: 1.5; color: #64748b; font-size: 13px;">
+                    If you did not request a password reset, you can safely ignore this email. Your current password will remain unchanged.
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0 16px;">
+                
+                <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
+                    OptiDent Dental Clinic &bull; Secure Authentication Service
+                </p>
+            </div>
+        </div>`
+    });
+
+    return await sendMailWithFallback(mailOptionsBuilder, customUser, customPass);
+}
+
 export default {
     sendPatientVerificationEmail,
     sendStaffInvitationEmail,
-    sendPatientInvitationEmail
+    sendPatientInvitationEmail,
+    sendPasswordResetEmail
 };
