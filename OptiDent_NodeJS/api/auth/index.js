@@ -15,7 +15,7 @@ router.get('/recaptcha_config', async (req, res) => {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
         const isEnabled = settings?.integrations?.recaptcha_enabled !== undefined
             ? !!settings.integrations.recaptcha_enabled
-            : (process.env.ENABLE_RECAPTCHA !== 'false');
+            : (process.env.ENABLE_RECAPTCHA === 'true');
 
         return res.json({
             enabled: isEnabled,
@@ -23,7 +23,7 @@ router.get('/recaptcha_config', async (req, res) => {
         });
     } catch (_) {
         return res.json({
-            enabled: process.env.ENABLE_RECAPTCHA !== 'false',
+            enabled: process.env.ENABLE_RECAPTCHA === 'true',
             site_key: process.env.RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
         });
     }
@@ -51,7 +51,7 @@ router.post('/login', async (req, res) => {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
         const enableRecaptcha = settings?.integrations?.recaptcha_enabled !== undefined
             ? !!settings.integrations.recaptcha_enabled
-            : (process.env.ENABLE_RECAPTCHA !== 'false');
+            : (process.env.ENABLE_RECAPTCHA === 'true');
 
         if (enableRecaptcha) {
             if (!recaptchaToken) {
