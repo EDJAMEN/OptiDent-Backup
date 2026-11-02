@@ -1,0 +1,10 @@
+{
+  "name": "optident-system",
+  "version": "1.0.0",
+  "description": "OptiDent Clinical Management System",
+  "scripts": {
+    "start": "npm --prefix OptiDent_NodeJS start",
+    "build": "npm --prefix OptiDent_NodeJS install"
+  }
+}
+

@@ -12,3 +12,15 @@ Thumbs.db
 
 # Experimental Next.js app
 optident-next/
+
+# Node dependencies
+node_modules/
+OptiDent_NodeJS/node_modules/
+
+# Environment Secrets & Local Data
+.env
+.env.*
+OptiDent_NodeJS/.env
+OptiDent_NodeJS/.env.*
+OptiDent_NodeJS/database_mongo_storage.json
+

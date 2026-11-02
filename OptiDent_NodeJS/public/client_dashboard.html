@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiDent — Patient Portal | My Dental Records & Appointments</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --pat-primary: #0EB1B1;
+            --pat-primary-dark: #0a8f8f;
+            --pat-primary-light: #F0FBFA;
+            --pat-bg: #F8FAFC;
+            --pat-surface: #ffffff;
+            --pat-border: #E2E8F0;
+            --pat-text: #0F172A;
+            --pat-text-muted: #64748B;
+        }
+
+        body[data-theme="dark"] {
+            --pat-bg: #020617;
+            --pat-surface: #0F172A;
+            --pat-border: #1E293B;
+            --pat-text: #F8FAFC;
+            --pat-text-muted: #94A3B8;
+            --pat-primary-light: rgba(14, 177, 177, 0.12);
+        }
+
+        body {
+            background-color: var(--pat-bg);
+            color: var(--pat-text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ── Top Navigation Bar ───────────────────────────────────────── */
+        .pat-header {
+            background: var(--pat-surface);
+            border-bottom: 1px solid var(--pat-border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .pat-nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0.85rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .pat-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .portal-tag {
+            background: rgba(14, 177, 177, 0.12);
+            color: #0EB1B1;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pat-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pat-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0EB1B1, #0a8f8f);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        /* ── Minimal Form Controls ───────────────────────────────────── */
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 540px) {
+            .form-grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--pat-text-muted);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        .form-group label .req-star {
+            color: #ef4444;
+            margin-left: 3px;
+        }
+        .form-control {
+            width: 100%;
+            box-sizing: border-box;
+            height: 38px;
+            padding: 0 12px;
+            background: var(--pat-surface);
+            border: 1px solid var(--pat-border);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--pat-text);
+            font-family: inherit;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #0EB1B1;
+            box-shadow: 0 0 0 3px rgba(14, 177, 177, 0.15);
+        }
+        .form-control::placeholder {
+            color: var(--pat-text-muted);
+            opacity: 0.55;
+        }
+
+        .client-color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--pat-surface);
+            cursor: pointer;
+            padding: 0;
+            outline: none;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .client-color-dot:hover {
+            transform: scale(1.15);
+        }
+
+        .nav-profile-clickable {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .nav-profile-clickable:hover {
+            background: rgba(14, 177, 177, 0.1);
+        }
+
+        /* ── Main Layout ──────────────────────────────────────────────── */
+        .pat-container {
+            max-width: 1200px;
+            margin: 1.75rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .welcome-hero {
+            background: linear-gradient(135deg, rgba(14, 177, 177, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%);
+            border: 1px solid rgba(14, 177, 177, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem 1.75rem;
+            margin-bottom: 1.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        /* ── KPI Metrics Grid ─────────────────────────────────────────── */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .metric-card {
+            background: var(--pat-surface);
+            border: 1px solid var(--pat-border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .metric-icon.teal { background: rgba(14, 177, 177, 0.12); color: #0EB1B1; }
+        .metric-icon.blue { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
+        .metric-icon.emerald { background: rgba(16, 185, 129, 0.12); color: #059669; }
+        .metric-icon.amber { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+
+        /* ── Alert Banner ─────────────────────────────────────────────── */
+        .clinical-alert-box {
+            background: #FEF2F2;
+            border: 1.5px solid #F87171;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 1.75rem;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* ── Tabs ─────────────────────────────────────────────────────── */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--pat-border);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--pat-text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .tab-btn:hover {
+            color: var(--pat-primary);
+        }
+        .tab-btn.active {
+            color: var(--pat-primary-dark);
+            border-bottom-color: var(--pat-primary);
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Cards & Tables ───────────────────────────────────────────── */
+        .content-card {
+            background: var(--pat-surface);
+            border: 1px solid var(--pat-border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border: 1px solid var(--pat-border);
+            border-radius: 10px;
+        }
+
+        .pat-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+        .pat-table th {
+            background: rgba(14, 177, 177, 0.05);
+            padding: 12px 14px;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--pat-text-muted);
+            border-bottom: 1px solid var(--pat-border);
+        }
+        .pat-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--pat-border);
+            vertical-align: middle;
+        }
+        .pat-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ── Status Pills ─────────────────────────────────────────────── */
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+        }
+        .status-badge.scheduled { background: #E0F2FE; color: #0369A1; }
+        .status-badge.checked_in { background: #FEF3C7; color: #B45309; }
+        .status-badge.in_progress { background: #EDE9FE; color: #6D28D9; }
+        .status-badge.completed { background: #D1FAE5; color: #047857; }
+        .status-badge.cancelled { background: #FEE2E2; color: #DC2626; }
+
+        /* ── Modals ───────────────────────────────────────────────────── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-dialog {
+            background: var(--pat-surface);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        .btn-pat-primary {
+            background: var(--pat-primary);
+            color: #ffffff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-pat-primary:hover {
+            background: var(--pat-primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-pat-secondary {
+            background: var(--pat-surface);
+            color: var(--pat-text);
+            border: 1px solid var(--pat-border);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-pat-secondary:hover {
+            background: rgba(14, 177, 177, 0.08);
+            border-color: var(--pat-primary);
+        }
+
+        .toast-banner {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .toast-banner.success { background: #10B981; color: white; }
+        .toast-banner.info { background: #0EB1B1; color: white; }
+
+        /* ── C-005: Dynamic Slot Matrix Styles ───────────────────────── */
+        .slot-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 800;
+            color: #059669;
+            background: #d1fae5;
+            padding: 2px 7px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .btn-slot-refresh {
+            background: transparent;
+            border: 1px solid var(--pat-border);
+            color: var(--pat-text-muted);
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            transition: all 0.15s ease;
+        }
+        .btn-slot-refresh:hover {
+            color: var(--pat-primary-dark);
+            border-color: var(--pat-primary);
+            background: var(--pat-primary-light);
+        }
+
+        .slot-alert-banner {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-size: 11.5px;
+            line-height: 1.45;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .slot-grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+            gap: 8px;
+            max-height: 210px;
+            overflow-y: auto;
+            padding: 6px 2px;
+            border: 1px solid var(--pat-border);
+            border-radius: 10px;
+            background: var(--pat-surface);
+        }
+
+        .slot-chip {
+            background: var(--pat-surface);
+            border: 1.5px solid var(--pat-border);
+            border-radius: 9px;
+            padding: 8px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+            position: relative;
+        }
+
+        .slot-chip.available {
+            border-color: rgba(14, 177, 177, 0.4);
+            background: rgba(14, 177, 177, 0.04);
+            color: var(--pat-text);
+        }
+        .slot-chip.available:hover {
+            border-color: var(--pat-primary);
+            background: rgba(14, 177, 177, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .slot-chip.available.selected {
+            background: var(--pat-primary) !important;
+            border-color: var(--pat-primary-dark) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(14, 177, 177, 0.35);
+            font-weight: 700;
+        }
+        .slot-chip.available.selected .slot-chip-time {
+            color: #ffffff !important;
+        }
+        .slot-chip.available.selected .slot-chip-status {
+            color: #ffffff !important;
+            opacity: 0.95;
+            background: rgba(255, 255, 255, 0.25) !important;
+        }
+
+        .slot-chip.booked {
+            background: #F8FAFC;
+            border: 1px dashed #CBD5E1;
+            color: #94A3B8;
+            cursor: not-allowed;
+            opacity: 0.72;
+        }
+        .slot-chip.past {
+            background: #F1F5F9;
+            border: 1px solid #E2E8F0;
+            color: #94A3B8;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .slot-chip-time {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: var(--pat-text);
+            line-height: 1.2;
+        }
+
+        .slot-chip-status {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 4px;
+            margin-top: 3px;
+            line-height: 1.2;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+        .slot-chip.available .slot-chip-status {
+            color: #0d9488;
+            background: rgba(13, 148, 136, 0.1);
+        }
+        .slot-chip.booked .slot-chip-status {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .slot-chip.past .slot-chip-status {
+            color: #64748b;
+            background: #e2e8f0;
+        }
+
+        .slot-placeholder-msg {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--pat-text-muted);
+            font-size: 12px;
+            border: 1px dashed var(--pat-border);
+            border-radius: 8px;
+            background: var(--pat-bg);
+        }
+
+        /* ── C-007: Comprehensive Medical History & Clinical Record Styles ── */
+        .modal-dialog.modal-lg {
+            max-width: 820px;
+        }
+
+        .tooth-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(14, 177, 177, 0.1);
+            color: #0a8f8f;
+            border: 1px solid rgba(14, 177, 177, 0.25);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .tooth-pill i {
+            font-size: 13px;
+        }
+
+        .clinical-summary-ribbon {
+            background: linear-gradient(135deg, rgba(14, 177, 177, 0.08) 0%, rgba(16, 185, 129, 0.05) 100%);
+            border: 1px solid rgba(14, 177, 177, 0.2);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .record-card-box {
+            background: var(--pat-bg);
+            border: 1px solid var(--pat-border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+        }
+
+        .record-section-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--pat-primary-dark);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .systemic-item {
+            background: var(--pat-bg);
+            border: 1px solid var(--pat-border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .systemic-condition-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--pat-text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .systemic-condition-notes {
+            font-size: 11px;
+            color: var(--pat-text-muted);
+            margin-top: 2px;
+            line-height: 1.35;
+        }
+
+        .systemic-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .systemic-badge.negative { background: #D1FAE5; color: #047857; }
+        .systemic-badge.positive { background: #FEE2E2; color: #DC2626; }
+        .systemic-badge.controlled { background: #E0F2FE; color: #0369A1; }
+
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            body > * {
+                display: none !important;
+            }
+            .modal-overlay.print-active {
+                display: block !important;
+                position: static !important;
+                background: transparent !important;
+                padding: 0 !important;
+            }
+            .modal-overlay.print-active .printable-modal {
+                display: block !important;
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .modal-overlay.print-active .print-clinic-header {
+                display: flex !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation Header -->
+    <header class="pat-header">
+        <div class="pat-nav-container">
+            <div class="pat-brand">
+                <img src="assets/lightmode_dentassist.png" alt="OptiDent Logo" style="height: 38px;">
+                <div>
+                    <div style="font-weight: 800; font-size: 16px; letter-spacing: -0.3px;">
+                        <span style="color: #0EB1B1;">Opti</span><span style="color: #0F172A;">Dent</span>
+                    </div>
+                    <div style="font-size: 10px; color: var(--pat-text-muted); font-weight: 600;">PATIENT PORTAL</div>
+                </div>
+                <span class="portal-tag"><i class='bx bx-check-shield'></i> Verified Patient</span>
+            </div>
+
+            <div class="pat-header-actions">
+                <button class="btn-pat-primary" onclick="openBookModal()">
+                    <i class='bx bx-calendar-plus'></i> Book Appointment
+                </button>
+                <div style="display: flex; align-items: center; gap: 8px; padding-left: 8px; border-left: 1px solid var(--pat-border);">
+                    <div onclick="openEditProfileModal()" class="nav-profile-clickable" title="Click to customize your profile, contact details, and photo (C-008)" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 8px; border-radius: 10px;">
+                        <div class="pat-avatar" id="navAvatar">P</div>
+                        <div style="text-align: left; line-height: 1.2;">
+                            <div style="font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 4px;" id="navPatientName">Loading...</div>
+                            <div style="font-size: 11px; color: var(--pat-text-muted); display: flex; align-items: center; gap: 4px;" id="navPatientPhone">
+                                <span>Patient</span>
+                                <i class='bx bx-edit' style="font-size: 12px; color: var(--pat-primary);"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-pat-secondary btn-sm" onclick="toggleTheme()" title="Toggle Dark/Light Mode" style="padding: 6px 10px; margin-left: 6px;">
+                        <i class='bx bx-moon' id="themeIcon"></i>
+                    </button>
+                    <button class="btn-pat-secondary btn-sm" onclick="logoutClient()" title="Sign Out" style="padding: 6px 10px; color: #DC2626;">
+                        <i class='bx bx-log-out'></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="pat-container">
+        <!-- Welcome Hero -->
+        <div class="welcome-hero">
+            <div>
+                <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--pat-text);" id="heroGreeting">
+                    Welcome to your Patient Portal!
+                </h2>
+                <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--pat-text-muted);">
+                    Manage your upcoming clinic visits, review clinical treatment history, and schedule your next oral care appointments.
+                </p>
+            </div>
+            <div>
+                <button class="btn-pat-primary" onclick="openBookModal()" style="box-shadow: 0 4px 14px rgba(14, 177, 177, 0.3);">
+                    <i class='bx bx-plus-circle'></i> Schedule New Appointment
+                </button>
+            </div>
+        </div>
+
+        <!-- Medical Warning Alert Banner (Visible if patient has recorded allergies/warnings) -->
+        <div id="patientAlertBox" class="clinical-alert-box">
+            <i class='bx bxs-error-circle' style="color: #DC2626; font-size: 24px; flex-shrink: 0;"></i>
+            <div>
+                <div style="font-size: 11px; font-weight: 800; color: #DC2626; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Active Medical Safety Alerts &amp; Clinical Warnings
+                </div>
+                <div id="patientAlertText" style="font-size: 13px; font-weight: 700; color: #991B1B; margin-top: 1px;">
+                    None recorded
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Metrics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon teal"><i class='bx bx-calendar-event'></i></div>
+                <div>
+                    <h3 style="margin: 0; font-size: 22px; font-weight: 800;" id="kpiUpcoming">0</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--pat-text-muted); font-weight: 600; text-transform: uppercase;">Upcoming Visits</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon emerald"><i class='bx bx-check-double'></i></div>
+                <div>
+                    <h3 style="margin: 0; font-size: 22px; font-weight: 800;" id="kpiCompleted">0</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--pat-text-muted); font-weight: 600; text-transform: uppercase;">Completed Visits</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon blue"><i class='bx bx-history'></i></div>
+                <div>
+                    <h3 style="margin: 0; font-size: 22px; font-weight: 800;" id="kpiTotal">0</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--pat-text-muted); font-weight: 600; text-transform: uppercase;">Total Clinic Visits</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon amber"><i class='bx bx-award'></i></div>
+                <div>
+                    <h3 style="margin: 0; font-size: 22px; font-weight: 800;" id="kpiPoints">0</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--pat-text-muted); font-weight: 600; text-transform: uppercase;">Loyalty Points</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchClientTab('upcoming', this)">
+                <i class='bx bx-calendar-check'></i> Upcoming Appointments
+            </button>
+            <button class="tab-btn" onclick="switchClientTab('history', this)">
+                <i class='bx bx-file'></i> Treatment &amp; Visit History
+            </button>
+            <button class="tab-btn" onclick="switchClientTab('profile', this)">
+                <i class='bx bx-user-pin'></i> My Profile &amp; Contact
+            </button>
+        </div>
+
+        <!-- TAB 1: Upcoming Appointments -->
+        <section id="tab-upcoming" class="tab-pane active">
+            <div class="content-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800;">My Scheduled Clinic Appointments</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--pat-text-muted);">
+                            Active dental appointments, operatory assignments, and daily lobby queue tickets.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="pat-table">
+                        <thead>
+                            <tr>
+                                <th>Appointment Date &amp; Time</th>
+                                <th>Attending Doctor</th>
+                                <th>Dental Procedure / Treatment</th>
+                                <th>Operatory Station</th>
+                                <th>Status / Queue Number</th>
+                                <th style="text-align: right;">Appointment Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="upcomingTableBody">
+                            <tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--pat-text-muted);">Loading appointments...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: Past Visit History -->
+        <section id="tab-history" class="tab-pane">
+            <div class="content-card">
+                <!-- Medical History Overview Ribbon (C-007) -->
+                <div class="clinical-summary-ribbon">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(14, 177, 177, 0.15); color: #0EB1B1; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+                            <i class='bx bx-book-heart'></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 14px; font-weight: 800; color: var(--pat-text-main);">Clinical Odontogram &amp; Treatment Summary</div>
+                            <div style="font-size: 12px; color: var(--pat-text-muted); margin-top: 2px;" id="histTreatedTeethSummary">
+                                Loading treated teeth and clinical summary...
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button type="button" class="btn-pat-primary btn-sm" onclick="openPatientFullDossierModal()">
+                            <i class='bx bx-file-blank'></i> View Complete Medical Dossier
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800;">Past Dental Treatments &amp; Clinical Visits</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--pat-text-muted);">
+                            Complete chronological record of all consultations, cleanings, procedures, and official doctor diagnoses.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="pat-table">
+                        <thead>
+                            <tr>
+                                <th>Visit Date</th>
+                                <th>Healthcare Provider</th>
+                                <th>Treatment / Service Rendered</th>
+                                <th>Operatory</th>
+                                <th>Clinical Outcome</th>
+                                <th>Doctor / Charting Notes</th>
+                                <th style="text-align: right;">Action / Record</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pastTableBody">
+                            <tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--pat-text-muted);">Loading treatment history...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: My Medical Profile & Safety Info -->
+        <section id="tab-profile" class="tab-pane">
+            <div class="content-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800;">Patient Profile &amp; Dental Safety Record</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--pat-text-muted);">
+                            Verified personal demographics, contact information, dental safety alerts, and emergency details.
+                        </p>
+                    </div>
+                    <button type="button" class="btn-pat-secondary btn-sm" onclick="openPatientFullDossierModal()">
+                        <i class='bx bx-printer'></i> Print / Export Full Health Summary
+                    </button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <!-- Personal Info Card with Edit Profile (C-008) -->
+                    <div style="background: var(--pat-bg); border: 1px solid var(--pat-border); border-radius: 12px; padding: 1.25rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--pat-border); padding-bottom: 8px;">
+                            <h4 style="margin: 0; font-size: 13px; font-weight: 800; color: var(--pat-primary-dark); text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                                <i class='bx bx-id-card'></i> Personal Identification
+                            </h4>
+                            <button type="button" class="btn-pat-secondary btn-sm" onclick="openEditProfileModal()" style="font-size: 11px; padding: 4px 10px; display: flex; align-items: center; gap: 4px;" title="Update name, contact details, and profile photo">
+                                <i class='bx bx-edit'></i> Edit Profile
+                            </button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--pat-border);">
+                            <div id="profAvatarCard" class="pat-avatar" style="width: 50px; height: 50px; font-size: 18px; border-radius: 50%; box-shadow: 0 4px 10px rgba(14, 177, 177, 0.2); flex-shrink: 0;">
+                                P
+                            </div>
+                            <div style="min-width: 0;">
+                                <div id="profCardName" style="font-size: 15px; font-weight: 800; color: var(--pat-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">--</div>
+                                <div style="font-size: 11px; color: var(--pat-primary-dark); font-weight: 700; display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                                    <i class='bx bxs-check-shield'></i> Verified Patient
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Full Legal Name</span> <strong id="profName">--</strong></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Email Address</span> <span id="profEmail">--</span></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Mobile Phone</span> <strong id="profPhone">--</strong></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Residential Address</span> <span id="profAddress">--</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Medical Details Card -->
+                    <div style="background: var(--pat-bg); border: 1px solid var(--pat-border); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 800; color: var(--pat-primary-dark); text-transform: uppercase;">
+                            <i class='bx bx-plus-medical mr-1'></i> Vital &amp; Emergency Baseline
+                        </h4>
+                        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Date of Birth &amp; Age</span> <span id="profDob">--</span></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Gender</span> <span id="profGender">--</span></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Blood Type</span> <strong id="profBlood">--</strong></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Medical Safety Alerts &amp; Allergies</span> <span id="profAlerts" style="font-weight: 700; color: #DC2626;">None recorded</span></div>
+                            <div><span style="color: var(--pat-text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700; display: block;">Emergency Contact</span> <span id="profEmerg">--</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Allergies, Medications & Precautions Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                    <!-- Drug & Environmental Allergies -->
+                    <div style="background: var(--pat-bg); border: 1px solid var(--pat-border); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 13px; font-weight: 800; color: #DC2626; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                            <i class='bx bx-shield-x'></i> Allergies &amp; Drug Sensitivities
+                        </h4>
+                        <div id="profAllergiesContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Current Medications -->
+                    <div style="background: var(--pat-bg); border: 1px solid var(--pat-border); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 13px; font-weight: 800; color: #4F46E5; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                            <i class='bx bx-capsule'></i> Current Medications &amp; Supplements
+                        </h4>
+                        <div id="profMedicationsContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Treated Teeth Odontogram & Clinical Precautions -->
+                    <div style="background: var(--pat-bg); border: 1px solid var(--pat-border); border-radius: 12px; padding: 1.25rem;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 13px; font-weight: 800; color: #D97706; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                            <i class='bx bx-info-circle'></i> Charted Teeth &amp; Clinical Precautions
+                        </h4>
+                        <div style="margin-bottom: 12px;">
+                            <span style="font-size: 11px; font-weight: 700; color: var(--pat-text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Treated Teeth Odontogram</span>
+                            <div id="profTreatedTeethChips" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                        <div>
+                            <span style="font-size: 11px; font-weight: 700; color: var(--pat-text-muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Dentist Safety Protocol</span>
+                            <div id="profPrecautionsText" style="font-size: 12px; line-height: 1.5; color: var(--pat-text); background: var(--pat-surface); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--pat-border);">
+                                --
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ── MODAL: BOOK APPOINTMENT (CLIENT SELF-SERVICE) ───────────── -->
+    <div id="bookModal" class="modal-overlay">
+        <div class="modal-dialog">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--pat-border); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-calendar-plus text-primary'></i> Schedule Dental Appointment
+                </h3>
+                <button type="button" class="btn-pat-secondary btn-sm" onclick="closeBookModal()"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-client-book" onsubmit="submitClientBooking(event)">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Dental Service / Procedure *</label>
+                    <select id="bookServiceSelect" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Attending Healthcare Provider (Doctor) *</label>
+                    <select id="bookDoctorSelect" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                        <option value="First Available Doctor">First Available Doctor</option>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Appointment Date *</label>
+                    <input type="date" id="bookDateInput" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;" onchange="fetchClientAvailableSlots()">
+                </div>
+
+                <!-- Real-Time Dynamic Slot Matrix (C-005) -->
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 0;">Select Available Time Slot *</label>
+                            <span class="slot-live-badge"><i class='bx bx-broadcast bx-flashing'></i> Real-Time</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="bookClinicHoursNote" style="font-size: 10px; color: #0284c7; background: #e0f2fe; padding: 2px 7px; border-radius: 4px; font-weight: 600;">Mon - Sat: 08:00 AM - 05:00 PM</span>
+                            <button type="button" class="btn-slot-refresh" onclick="fetchClientAvailableSlots(true)" title="Check current slot availability">
+                                <i class='bx bx-refresh'></i> Live Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Off-duty alert banner if doctor is off duty on selected date -->
+                    <div id="bookDutyAlert" class="slot-alert-banner" style="display: none;"></div>
+
+                    <!-- Hidden input storing selected slot for form submission -->
+                    <input type="hidden" id="bookTimeSlotInput" required>
+                    <select id="bookTimeSelect" style="display: none;"></select>
+
+                    <!-- Real-Time Dynamic Slots Grid -->
+                    <div id="bookSlotChipsGrid" class="slot-grid-container">
+                        <div class="slot-placeholder-msg">
+                            <i class='bx bx-loader-alt bx-spin'></i> Loading live slot availability...
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px;">
+                        <span id="bookSlotSummary" style="color: var(--pat-text-muted); font-weight: 600;">--</span>
+                        <span style="color: var(--pat-text-muted); font-size: 10px;"><i class='bx bx-check-shield text-emerald'></i> Real-time conflict prevention</span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Chief Complaint / Reason for Visit</label>
+                    <textarea id="bookNotesInput" class="form-control" rows="2" placeholder="e.g. Routine cleaning, mild tooth sensitivity on upper molar" style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--pat-border); padding-top: 1rem;">
+                    <button type="button" class="btn-pat-secondary" onclick="closeBookModal()">Cancel</button>
+                    <button type="submit" id="btnConfirmBook" class="btn-pat-primary">
+                        <i class='bx bx-calendar-check'></i> Confirm Appointment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: RESCHEDULE APPOINTMENT (CLIENT SELF-SERVICE) ─────── -->
+    <div id="clientReschedModal" class="modal-overlay">
+        <div class="modal-dialog">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--pat-border); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-calendar-edit text-primary'></i> Reschedule My Appointment
+                </h3>
+                <button type="button" class="btn-pat-secondary btn-sm" onclick="closeClientReschedModal()"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-client-resched" onsubmit="submitClientReschedule(event)">
+                <input type="hidden" id="clientReschedApptId">
+
+                <!-- Current Booking Details -->
+                <div style="background: #F8FAFC; border: 1px solid var(--pat-border); border-radius: 8px; padding: 12px; margin-bottom: 1rem;">
+                    <div style="font-size: 11px; font-weight: 700; color: var(--pat-text-muted); text-transform: uppercase;">Current Appointment</div>
+                    <div style="font-size: 14px; font-weight: 800; color: var(--pat-text); margin-top: 2px;" id="clientReschedCurrentService">Dental Consultation</div>
+                    <div style="display: flex; gap: 12px; font-size: 12px; color: var(--pat-text-muted); margin-top: 4px;">
+                        <span><i class='bx bx-calendar text-primary'></i> <strong id="clientReschedCurrentDate">2026-10-20</strong></span>
+                        <span><i class='bx bx-time text-primary'></i> <strong id="clientReschedCurrentTime">10:00 AM</strong></span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Select Attending Doctor</label>
+                    <select id="clientReschedDoctorSelect" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;" onchange="fetchClientReschedAvailableSlots()">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">New Appointment Date *</label>
+                    <input type="date" id="clientReschedDateInput" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;" onchange="fetchClientReschedAvailableSlots()">
+                </div>
+
+                <!-- Real-Time Slot Selection Matrix for Rescheduling (C-005) -->
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 0;">Select New Time Slot *</label>
+                            <span class="slot-live-badge"><i class='bx bx-broadcast bx-flashing'></i> Real-Time</span>
+                        </div>
+                        <button type="button" class="btn-slot-refresh" onclick="fetchClientReschedAvailableSlots(true)" title="Check current slot availability">
+                            <i class='bx bx-refresh'></i> Live Refresh
+                        </button>
+                    </div>
+
+                    <!-- Off-duty alert banner -->
+                    <div id="clientReschedDutyAlert" class="slot-alert-banner" style="display: none;"></div>
+
+                    <input type="hidden" id="clientReschedTimeSlotInput" required>
+                    <select id="clientReschedTimeSelect" style="display: none;"></select>
+
+                    <div id="clientReschedSlotChipsGrid" class="slot-grid-container">
+                        <div class="slot-placeholder-msg">
+                            <i class='bx bx-loader-alt bx-spin'></i> Loading live slot availability...
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px;">
+                        <span id="clientReschedSlotSummary" style="color: var(--pat-text-muted); font-weight: 600;">--</span>
+                        <span style="color: var(--pat-text-muted); font-size: 10px;"><i class='bx bx-sync text-primary'></i> Synchronized live</span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Reason for Rescheduling</label>
+                    <input type="text" id="clientReschedReasonInput" class="form-control" placeholder="Optional note for reception..." style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--pat-border); padding-top: 1rem;">
+                    <button type="button" class="btn-pat-secondary" onclick="closeClientReschedModal()">Cancel</button>
+                    <button type="submit" id="btnConfirmClientResched" class="btn-pat-primary">
+                        <i class='bx bx-calendar-check'></i> Save Rescheduled Date
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: CANCEL APPOINTMENT (CLIENT SELF-SERVICE) ─────────── -->
+    <div id="clientCancelModal" class="modal-overlay">
+        <div class="modal-dialog" style="max-width: 440px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--pat-border); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #DC2626; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-x-circle'></i> Cancel Appointment
+                </h3>
+                <button type="button" class="btn-pat-secondary btn-sm" onclick="closeClientCancelModal()"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+
+            <form id="form-client-cancel" onsubmit="submitClientCancel(event)">
+                <input type="hidden" id="clientCancelApptId">
+                <p style="font-size: 13px; color: var(--pat-text); margin: 0 0 1rem 0;">
+                    Are you sure you want to cancel your upcoming appointment on <strong id="clientCancelApptDate">--</strong>?
+                </p>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Reason for Cancellation</label>
+                    <select id="clientCancelReasonSelect" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                        <option value="Personal schedule conflict">Personal schedule conflict</option>
+                        <option value="Symptoms resolved / feeling better">Symptoms resolved</option>
+                        <option value="Transportation issue">Transportation issue</option>
+                        <option value="Financial reasons">Financial reasons</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--pat-border); padding-top: 1rem;">
+                    <button type="button" class="btn-pat-secondary" onclick="closeClientCancelModal()">Keep Appointment</button>
+                    <button type="submit" id="btnConfirmClientCancel" class="btn-pat-secondary" style="background: #DC2626; color: white; border-color: #DC2626;">
+                        <i class='bx bx-x'></i> Confirm Cancellation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MODAL: CLINICAL RECORD DETAILS (C-007) ──────────────────── -->
+    <div id="patientRecordDetailModal" class="modal-overlay">
+        <div class="modal-dialog modal-lg printable-modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--pat-border); padding-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 177, 177, 0.15); color: #0EB1B1; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                        <i class='bx bx-clipboard'></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800;">Authorized Dental Clinical Record</h3>
+                        <p style="margin: 0; font-size: 11px; color: var(--pat-text-muted);">OptiDent Dental Clinic • Official Patient Consultation &amp; Operative Chart</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;" class="no-print">
+                    <button type="button" class="btn-pat-secondary btn-sm" onclick="printPatientRecord()" title="Print this clinical record">
+                        <i class='bx bx-printer'></i> Print
+                    </button>
+                    <button type="button" class="btn-pat-secondary btn-sm" onclick="closePatientRecordModal()">
+                        <i class='bx bx-x' style="font-size: 18px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Clinic Header (Visible during Print) -->
+            <div class="print-clinic-header" style="display: none; border-bottom: 2px solid #0EB1B1; padding-bottom: 12px; margin-bottom: 16px;">
+                <div style="font-size: 18px; font-weight: 800; color: #0EB1B1;">OptiDent Dental Clinic</div>
+                <div style="font-size: 11px; color: #475569;">Official Clinical Treatment Encounter Slip • Verified Medical Record</div>
+            </div>
+
+            <!-- Encounter Summary Banner -->
+            <div style="background: var(--pat-bg); border: 1px solid var(--pat-border); border-radius: 12px; padding: 12px 16px; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--pat-text-muted);">Encounter Date &amp; Time</div>
+                    <div style="font-size: 14px; font-weight: 800; color: var(--pat-text-main);" id="recDate">--</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--pat-text-muted);">Attending Healthcare Provider</div>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--pat-primary-dark);" id="recDoctor">--</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--pat-text-muted);">Operatory Suite / Chair</div>
+                    <div style="font-size: 13px; font-weight: 700;" id="recChair">--</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--pat-text-muted);">Clinical Outcome</div>
+                    <span id="recStatusBadge" class="status-badge completed">COMPLETED</span>
+                </div>
+            </div>
+
+            <!-- Diagnosis & Category Highlight -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                <div class="record-card-box">
+                    <div class="record-section-title"><i class='bx bx-pulse'></i> Primary Clinical Diagnosis</div>
+                    <div id="recDiagnosis" style="font-size: 13px; font-weight: 700; color: var(--pat-text-main);">--</div>
+                </div>
+                <div class="record-card-box">
+                    <div class="record-section-title"><i class='bx bx-wrench'></i> Service &amp; Treatment Category</div>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--pat-text-main);" id="recService">--</div>
+                    <div style="font-size: 11px; color: var(--pat-text-muted); margin-top: 2px;" id="recCategory">--</div>
+                </div>
+            </div>
+
+            <!-- Charted Teeth & Tooth Surfaces -->
+            <div class="record-card-box">
+                <div class="record-section-title"><i class='bx bx-smile'></i> Charted Teeth &amp; Treated Surfaces (Odontogram)</div>
+                <div id="recTeethBox" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+                    <!-- Tooth pills -->
+                </div>
+                <div id="recSurfacesBox" style="font-size: 11px; color: var(--pat-text-muted); margin-top: 6px;">
+                    <!-- Surfaces -->
+                </div>
+            </div>
+
+            <!-- Procedure & Doctor Notes -->
+            <div class="record-card-box">
+                <div class="record-section-title"><i class='bx bx-detail'></i> Doctor's Operative &amp; Charting Notes</div>
+                <div id="recNotes" style="font-size: 12.5px; line-height: 1.5; color: var(--pat-text); white-space: pre-wrap;">
+                    No charting notes entered.
+                </div>
+            </div>
+
+            <!-- Anesthesia & Vital Signs (if present) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                <div class="record-card-box" id="recAnesthesiaBox">
+                    <div class="record-section-title"><i class='bx bx-injection'></i> Local Anesthesia Administered</div>
+                    <div id="recAnesthesia" style="font-size: 12px; color: var(--pat-text);">None required / Not recorded</div>
+                </div>
+                <div class="record-card-box" id="recVitalSignsBox">
+                    <div class="record-section-title"><i class='bx bx-heart'></i> Vital Signs Baseline</div>
+                    <div id="recVitalSigns" style="font-size: 12px; color: var(--pat-text);">Recorded within normal limits</div>
+                </div>
+            </div>
+
+            <!-- Prescription & Post-Op Instructions -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 1.25rem;">
+                <div class="record-card-box" style="border-left: 3px solid #0EB1B1;">
+                    <div class="record-section-title"><i class='bx bx-capsule'></i> Prescribed Medications</div>
+                    <div id="recPrescription" style="font-size: 12px; color: var(--pat-text); white-space: pre-wrap;">
+                        No medication prescribed for this visit.
+                    </div>
+                </div>
+                <div class="record-card-box" style="border-left: 3px solid #10B981;">
+                    <div class="record-section-title"><i class='bx bx-check-shield'></i> Post-Operative Care &amp; Home Instructions</div>
+                    <div id="recPostOp" style="font-size: 12px; color: var(--pat-text); white-space: pre-wrap;">
+                        Maintain normal oral hygiene. Avoid chewing on hard food for 24 hours.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Follow-up date -->
+            <div id="recFollowUpBox" style="background: rgba(14, 177, 177, 0.08); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class='bx bx-calendar-event' style="font-size: 20px; color: #0EB1B1;"></i>
+                    <div>
+                        <div style="font-size: 12px; font-weight: 700;">Recommended Follow-Up Visit</div>
+                        <div style="font-size: 11px; color: var(--pat-text-muted);" id="recFollowUpText">Follow-up as scheduled or as needed for recurring symptoms.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--pat-border); padding-top: 1rem;" class="no-print">
+                <button type="button" class="btn-pat-secondary" onclick="closePatientRecordModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: COMPREHENSIVE MEDICAL DOSSIER (C-007) ───────────── -->
+    <div id="patientFullMedicalHistoryModal" class="modal-overlay">
+        <div class="modal-dialog modal-lg printable-modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--pat-border); padding-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 177, 177, 0.15); color: #0EB1B1; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                        <i class='bx bx-file-blank'></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800;">Patient Comprehensive Medical Dossier</h3>
+                        <p style="margin: 0; font-size: 11px; color: var(--pat-text-muted);">Confidential Patient Health Record &amp; Dental Encounter Summary</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;" class="no-print">
+                    <button type="button" class="btn-pat-secondary btn-sm" onclick="printPatientDossier()" title="Print complete medical summary">
+                        <i class='bx bx-printer'></i> Print Dossier
+                    </button>
+                    <button type="button" class="btn-pat-secondary btn-sm" onclick="closePatientFullDossierModal()">
+                        <i class='bx bx-x' style="font-size: 18px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="dossierLoadingMsg" style="text-align: center; padding: 2rem; color: var(--pat-text-muted);">
+                <i class='bx bx-loader-alt bx-spin' style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                Retrieving authorized medical records and clinical history...
+            </div>
+
+            <div id="dossierContent" style="display: none;">
+                <!-- Printable Clinic Header -->
+                <div class="print-clinic-header" style="border-bottom: 2px solid #0EB1B1; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div style="font-size: 18px; font-weight: 800; color: #0EB1B1;">OptiDent Dental Clinic</div>
+                        <div style="font-size: 11px; color: #475569;">Official Patient Health Record &amp; Medical History Dossier</div>
+                    </div>
+                    <div style="text-align: right; font-size: 11px; color: #64748B;">
+                        <div>Generated: <span id="dosGeneratedDate">--</span></div>
+                        <div>Status: Verified Patient Record</div>
+                    </div>
+                </div>
+
+                <!-- Patient Demographics Banner -->
+                <div style="background: var(--pat-bg); border: 1px solid var(--pat-border); border-radius: 12px; padding: 14px; margin-bottom: 1.25rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; font-size: 12px;">
+                        <div><strong style="color: var(--pat-text-muted); display: block; font-size: 10.5px; text-transform: uppercase;">Patient Name</strong> <span id="dosName" style="font-size: 13px; font-weight: 700;">--</span></div>
+                        <div><strong style="color: var(--pat-text-muted); display: block; font-size: 10.5px; text-transform: uppercase;">Birthdate &amp; Age</strong> <span id="dosDobAge">--</span></div>
+                        <div><strong style="color: var(--pat-text-muted); display: block; font-size: 10.5px; text-transform: uppercase;">Gender / Blood Type</strong> <span id="dosGenderBlood">--</span></div>
+                        <div><strong style="color: var(--pat-text-muted); display: block; font-size: 10.5px; text-transform: uppercase;">Contact Phone</strong> <span id="dosPhone">--</span></div>
+                        <div><strong style="color: var(--pat-text-muted); display: block; font-size: 10.5px; text-transform: uppercase;">Emergency Contact</strong> <span id="dosEmerg">--</span></div>
+                    </div>
+                </div>
+
+                <!-- Allergies & Medications -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                    <div class="record-card-box">
+                        <div class="record-section-title"><i class='bx bx-shield-x'></i> Drug Allergies &amp; Safety Alerts</div>
+                        <div id="dosAllergiesList" style="margin-top: 6px; font-size: 12px;">
+                            <!-- Injected -->
+                        </div>
+                    </div>
+                    <div class="record-card-box">
+                        <div class="record-section-title"><i class='bx bx-capsule'></i> Current Medications</div>
+                        <div id="dosMedicationsList" style="margin-top: 6px; font-size: 12px;">
+                            <!-- Injected -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treated Teeth Odontogram Summary -->
+                <div class="record-card-box">
+                    <div class="record-section-title"><i class='bx bx-smile'></i> Cumulative Treated Teeth (Odontogram Summary)</div>
+                    <div id="dosTreatedTeethChips" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+                        <!-- Injected -->
+                    </div>
+                </div>
+
+                <!-- Standing Clinical Precautions -->
+                <div class="record-card-box">
+                    <div class="record-section-title"><i class='bx bx-info-circle'></i> Standing Doctor Precautions &amp; Operatory Protocol</div>
+                    <div id="dosPrecautionsText" style="font-size: 12px; line-height: 1.5; color: var(--pat-text); margin-top: 4px;">
+                        --
+                    </div>
+                </div>
+
+                <!-- Chronological Clinical Encounters Table -->
+                <div class="record-card-box">
+                    <div class="record-section-title"><i class='bx bx-history'></i> Complete Chronological Treatment Encounters</div>
+                    <div class="table-responsive" style="margin-top: 8px;">
+                        <table class="pat-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Service</th>
+                                    <th>Healthcare Provider</th>
+                                    <th>Diagnosis &amp; Notes</th>
+                                    <th>Teeth Charted</th>
+                                    <th>Outcome</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dosTimelineBody">
+                                <!-- Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--pat-border); padding-top: 1rem;" class="no-print">
+                <button type="button" class="btn-pat-secondary" onclick="closePatientFullDossierModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: CUSTOMIZE CLIENT PROFILE (C-008) ────────────────────── -->
+    <div id="editClientProfileModal" class="modal-overlay">
+        <div class="modal-dialog" style="max-width: 480px; padding: 1.5rem; border-radius: 16px;">
+            <!-- Modal Header -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--pat-text); display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-user-circle' style="color: #0EB1B1; font-size: 20px;"></i> Edit Profile
+                    </h3>
+                    <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--pat-text-muted);">
+                        Update your personal details, profile picture, and emergency contact.
+                    </p>
+                </div>
+                <button type="button" onclick="document.getElementById('editClientProfileModal').style.display='none'" style="background: transparent; border: 1px solid var(--pat-border); color: var(--pat-text-muted); cursor: pointer; width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s ease;" title="Close" onmouseover="this.style.color='var(--pat-text)'; this.style.borderColor='var(--pat-text-muted)';" onmouseout="this.style.color='var(--pat-text-muted)'; this.style.borderColor='var(--pat-border)';">
+                    <i class='bx bx-x' style="font-size: 18px;"></i>
+                </button>
+            </div>
+
+            <form id="form-edit-client-profile" onsubmit="submitClientProfile(event)">
+                <!-- Profile Picture & Avatar Card -->
+                <div style="background: var(--pat-bg); border: 1px solid var(--pat-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 14px;">
+                    <div id="editAvatarPreview" class="pat-avatar" style="width: 52px; height: 52px; font-size: 19px; font-weight: 700; border-radius: 50%; flex-shrink: 0; overflow: hidden; background: #0EB1B1; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+                        P
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <label class="btn-pat-secondary btn-sm" style="cursor: pointer; font-size: 11.5px; padding: 4px 10px; margin: 0; display: inline-flex; align-items: center; gap: 5px; font-weight: 600;">
+                                <i class='bx bx-upload'></i> Upload Photo
+                                <input type="file" id="editAvatarFileInput" accept="image/*" style="display: none;" onchange="handleAvatarFileSelect(this)">
+                            </label>
+                            <button type="button" id="btnRemoveAvatarPhoto" style="font-size: 11px; padding: 4px 8px; color: #ef4444; background: transparent; border: none; cursor: pointer; display: none; align-items: center; gap: 3px;" onclick="removeAvatarPhoto()">
+                                <i class='bx bx-trash'></i> Remove
+                            </button>
+                        </div>
+                        <input type="hidden" id="editProfilePictureData" value="">
+                        
+                        <!-- Quick Color Accent Dots -->
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 10.5px; font-weight: 600; color: var(--pat-text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Color:</span>
+                            <button type="button" class="client-color-dot" data-color="#0eb1b1" style="background: #0eb1b1;" onclick="selectClientAvatarColor('#0eb1b1')" title="Teal"></button>
+                            <button type="button" class="client-color-dot" data-color="#4F46E5" style="background: #4F46E5;" onclick="selectClientAvatarColor('#4F46E5')" title="Indigo"></button>
+                            <button type="button" class="client-color-dot" data-color="#059669" style="background: #059669;" onclick="selectClientAvatarColor('#059669')" title="Emerald"></button>
+                            <button type="button" class="client-color-dot" data-color="#7C3AED" style="background: #7C3AED;" onclick="selectClientAvatarColor('#7C3AED')" title="Purple"></button>
+                            <button type="button" class="client-color-dot" data-color="#EA580C" style="background: #EA580C;" onclick="selectClientAvatarColor('#EA580C')" title="Orange"></button>
+                            <input type="hidden" id="editAvatarColor" value="#0eb1b1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Information -->
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Legal Full Name <span class="req-star">*</span></label>
+                        <input type="text" id="editClientFullName" class="form-control" required placeholder="e.g. Maria Santos" oninput="onClientNameInput(this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address <span class="req-star">*</span></label>
+                        <input type="email" id="editClientEmail" class="form-control" required placeholder="patient@gmail.com">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Mobile Phone</label>
+                        <input type="tel" id="editClientPhone" class="form-control" placeholder="e.g. 0917 123 4567">
+                    </div>
+                    <div class="form-group">
+                        <label>Residential Address</label>
+                        <input type="text" id="editClientAddress" class="form-control" placeholder="e.g. Malaybalay City">
+                    </div>
+                </div>
+
+                <!-- Emergency Contact Section -->
+                <div style="border-top: 1px solid var(--pat-border); margin-top: 14px; padding-top: 12px;">
+                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--pat-text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i class='bx bx-phone-call' style="color: #0EB1B1; font-size: 14px;"></i> Emergency Contact
+                    </div>
+                    <div class="form-grid-2" style="margin-bottom: 0;">
+                        <div class="form-group">
+                            <label>Contact Person</label>
+                            <input type="text" id="editClientEmergName" class="form-control" placeholder="e.g. Juan Santos (Spouse)">
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Phone</label>
+                            <input type="tel" id="editClientEmergPhone" class="form-control" placeholder="e.g. 0918 999 8888">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.5rem; border-top: 1px solid var(--pat-border); padding-top: 1rem;">
+                    <button type="button" class="btn-pat-secondary btn-sm" onclick="document.getElementById('editClientProfileModal').style.display='none'">Cancel</button>
+                    <button type="submit" id="btnSaveClientProfile" class="btn-pat-primary btn-sm">
+                        <i class='bx bx-check'></i> Save Profile Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toastBanner" class="toast-banner">
+        <i id="toastIcon" class='bx bx-check-circle' style="font-size: 18px;"></i>
+        <span id="toastMsg">Notification message</span>
+    </div>
+
+    <script>
+        let clientData = null;
+
+        // Set date picker minimum to today
+        const todayIso = new Date().toISOString().split('T')[0];
+        document.getElementById('bookDateInput').min = todayIso;
+        document.getElementById('bookDateInput').value = todayIso;
+
+        // Load Client Dashboard Data
+        async function loadClientDashboard() {
+            try {
+                const res = await fetch('api/client/get_dashboard_data.php');
+                if (res.status === 401) {
+                    window.location.href = 'client_login.html';
+                    return;
+                }
+                const data = await res.json();
+                if (data.status === 'success') {
+                    clientData = data;
+                    renderClientProfile(data.patient);
+                    renderMetrics(data.metrics);
+                    renderUpcomingAppointments(data.upcoming_appointments);
+                    renderPastAppointments(data.past_appointments);
+                    populateBookingDropdowns(data.doctors, data.services, data.clinic_settings);
+                    loadMedicalHistorySummary();
+                } else {
+                    showToast('error', data.message || 'Unable to load client data.');
+                }
+            } catch (err) {
+                console.error("Dashboard error:", err);
+                showToast('error', 'Network error. Please check your connection.');
+            }
+        }
+
+        function renderClientProfile(p) {
+            if (!p) return;
+            const firstName = (p.full_name || 'Patient').split(' ')[0];
+            document.getElementById('heroGreeting').textContent = `Welcome back, ${firstName}!`;
+            document.getElementById('navPatientName').textContent = p.full_name || 'Patient';
+            document.getElementById('navPatientPhone').textContent = p.phone || 'Verified Patient';
+
+            const initials = (p.full_name || 'P').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'P';
+            const avatarColor = p.avatar_color || '#0eb1b1';
+
+            // Topbar Avatar
+            const navAvatar = document.getElementById('navAvatar');
+            if (navAvatar) {
+                if (p.profile_picture) {
+                    navAvatar.innerHTML = `<img src="${p.profile_picture}" alt="${escapeHtml(p.full_name)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">`;
+                } else {
+                    navAvatar.textContent = initials;
+                    navAvatar.style.background = avatarColor;
+                }
+            }
+
+            // Profile Tab Card
+            const profAvatarCard = document.getElementById('profAvatarCard');
+            if (profAvatarCard) {
+                if (p.profile_picture) {
+                    profAvatarCard.innerHTML = `<img src="${p.profile_picture}" alt="${escapeHtml(p.full_name)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">`;
+                } else {
+                    profAvatarCard.textContent = initials;
+                    profAvatarCard.style.background = avatarColor;
+                }
+            }
+            if (document.getElementById('profCardName')) {
+                document.getElementById('profCardName').textContent = p.full_name || '--';
+            }
+
+            // Profile Tab
+            document.getElementById('profName').textContent = p.full_name || '--';
+            document.getElementById('profEmail').textContent = p.email || '--';
+            document.getElementById('profPhone').textContent = p.phone || '--';
+            document.getElementById('profAddress').textContent = p.address || 'Address unlisted';
+            document.getElementById('profDob').textContent = `${p.dob || 'Unspecified'} (${p.age ? p.age + ' years old' : 'Age unspecified'})`;
+            document.getElementById('profGender').textContent = p.gender || 'Not specified';
+            document.getElementById('profBlood').textContent = p.blood_type || 'Unknown';
+
+            const emergStr = (p.emergency_contact_name || p.emergency_contact_phone)
+                ? `${p.emergency_contact_name || ''} ${p.emergency_contact_phone ? '(' + p.emergency_contact_phone + ')' : ''}`
+                : 'None recorded';
+            document.getElementById('profEmerg').textContent = emergStr;
+
+            // Medical alerts banner
+            const alertBox = document.getElementById('patientAlertBox');
+            const alertTxt = document.getElementById('patientAlertText');
+            if (p.has_alert) {
+                alertBox.style.display = 'flex';
+                alertTxt.textContent = p.medical_alerts;
+                document.getElementById('profAlerts').textContent = p.medical_alerts;
+            } else {
+                alertBox.style.display = 'none';
+                document.getElementById('profAlerts').textContent = 'None on record';
+                document.getElementById('profAlerts').style.color = '#059669';
+            }
+        }
+
+        // ── C-008: Client Profile Customization Handlers ──────────────────
+        function openEditProfileModal() {
+            // Also switch to profile tab in background if not already active
+            const profileTabBtn = document.querySelectorAll('.tab-btn')[2];
+            if (profileTabBtn && typeof switchClientTab === 'function') {
+                switchClientTab('profile', profileTabBtn);
+            }
+
+            const p = clientData?.patient || {};
+            document.getElementById('editClientFullName').value = p.full_name || '';
+            document.getElementById('editClientEmail').value = p.email || '';
+            document.getElementById('editClientPhone').value = p.phone || '';
+            document.getElementById('editClientAddress').value = p.address || '';
+            document.getElementById('editClientEmergName').value = p.emergency_contact_name || '';
+            document.getElementById('editClientEmergPhone').value = p.emergency_contact_phone || '';
+
+            const pic = p.profile_picture || '';
+            document.getElementById('editProfilePictureData').value = pic;
+            const color = p.avatar_color || '#0eb1b1';
+            selectClientAvatarColor(color);
+
+            updateEditAvatarPreview(pic, p.full_name, color);
+
+            document.getElementById('editClientProfileModal').style.display = 'flex';
+        }
+
+        function updateEditAvatarPreview(pic, name, color) {
+            const preview = document.getElementById('editAvatarPreview');
+            const removeBtn = document.getElementById('btnRemoveAvatarPhoto');
+            if (!preview) return;
+
+            if (pic) {
+                preview.innerHTML = `<img src="${pic}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">`;
+                if (removeBtn) removeBtn.style.display = 'inline-flex';
+            } else {
+                const initials = (name || 'P').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'P';
+                preview.innerHTML = '';
+                preview.textContent = initials;
+                preview.style.background = color || '#0eb1b1';
+                if (removeBtn) removeBtn.style.display = 'none';
+            }
+        }
+
+        function handleAvatarFileSelect(input) {
+            const file = input?.files?.[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                showToast('error', 'Please select a valid image file (PNG, JPG, WebP).');
+                input.value = '';
+                return;
+            }
+
+            if (file.size > 3 * 1024 * 1024) {
+                showToast('error', 'Image file size must be under 3MB.');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result;
+                document.getElementById('editProfilePictureData').value = base64Data;
+                updateEditAvatarPreview(base64Data, document.getElementById('editClientFullName')?.value, document.getElementById('editAvatarColor')?.value);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeAvatarPhoto() {
+            document.getElementById('editProfilePictureData').value = '';
+            const fileInput = document.getElementById('editAvatarFileInput');
+            if (fileInput) fileInput.value = '';
+            const name = document.getElementById('editClientFullName')?.value || '';
+            const color = document.getElementById('editAvatarColor')?.value || '#0eb1b1';
+            updateEditAvatarPreview('', name, color);
+        }
+
+        function selectClientAvatarColor(color) {
+            document.getElementById('editAvatarColor').value = color;
+            const pic = document.getElementById('editProfilePictureData')?.value;
+            const preview = document.getElementById('editAvatarPreview');
+            if (preview && !pic) {
+                preview.style.background = color;
+            }
+            document.querySelectorAll('.client-color-dot').forEach(btn => {
+                if (btn.getAttribute('data-color') === color) {
+                    btn.style.boxShadow = `0 0 0 2px var(--pat-surface), 0 0 0 4px ${color}`;
+                    btn.style.transform = 'scale(1.15)';
+                } else {
+                    btn.style.boxShadow = 'none';
+                    btn.style.transform = 'scale(1)';
+                }
+            });
+        }
+
+        function onClientNameInput(val) {
+            const pic = document.getElementById('editProfilePictureData')?.value;
+            if (!pic) {
+                const color = document.getElementById('editAvatarColor')?.value || '#0eb1b1';
+                updateEditAvatarPreview('', val, color);
+            }
+        }
+
+        async function submitClientProfile(e) {
+            if (e && e.preventDefault) e.preventDefault();
+
+            const fullName = document.getElementById('editClientFullName')?.value.trim() || '';
+            const email = document.getElementById('editClientEmail')?.value.trim() || '';
+            const phone = document.getElementById('editClientPhone')?.value.trim() || '';
+            const address = document.getElementById('editClientAddress')?.value.trim() || '';
+            const emergName = document.getElementById('editClientEmergName')?.value.trim() || '';
+            const emergPhone = document.getElementById('editClientEmergPhone')?.value.trim() || '';
+            const profilePicture = document.getElementById('editProfilePictureData')?.value || '';
+            const avatarColor = document.getElementById('editAvatarColor')?.value || '#0eb1b1';
+
+            if (!fullName) {
+                showToast('error', 'Full Name is required.');
+                return;
+            }
+
+            if (!email) {
+                showToast('error', 'A valid email address is required.');
+                return;
+            }
+
+            const btn = document.getElementById('btnSaveClientProfile');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Saving...";
+            }
+
+            try {
+                const res = await fetch('api/client/update_profile.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: fullName,
+                        email: email,
+                        phone: phone,
+                        address: address,
+                        emergency_contact_name: emergName,
+                        emergency_contact_phone: emergPhone,
+                        profile_picture: profilePicture,
+                        avatar_color: avatarColor
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    document.getElementById('editClientProfileModal').style.display = 'none';
+                    showToast('success', data.message || 'Profile updated successfully.');
+                    if (data.patient) {
+                        if (clientData) {
+                            clientData.patient = { ...(clientData.patient || {}), ...data.patient };
+                        }
+                        renderClientProfile(data.patient);
+                    }
+                } else {
+                    showToast('error', data.message || 'Failed to update profile.');
+                }
+            } catch (err) {
+                console.error("Profile update error:", err);
+                showToast('error', 'Network error saving profile.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        function renderMetrics(m) {
+            if (!m) return;
+            document.getElementById('kpiUpcoming').textContent = m.upcoming_appointments ?? 0;
+            document.getElementById('kpiCompleted').textContent = m.completed_visits ?? 0;
+            document.getElementById('kpiTotal').textContent = m.total_appointments ?? 0;
+            document.getElementById('kpiPoints').textContent = m.reward_points ?? 0;
+        }
+
+        function renderUpcomingAppointments(list) {
+            const tbody = document.getElementById('upcomingTableBody');
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2.5rem 1rem; color: var(--pat-text-muted);">
+                            <i class='bx bx-calendar-x' style="font-size: 32px; display: block; margin-bottom: 6px; opacity: 0.5;"></i>
+                            You have no upcoming dental appointments scheduled.
+                            <div style="margin-top: 8px;">
+                                <button class="btn-pat-primary" onclick="openBookModal()">
+                                    <i class='bx bx-calendar-plus'></i> Schedule an Appointment
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(apt => {
+                const statusClass = (apt.status || 'scheduled').toLowerCase();
+                const queueBadge = apt.queue_number 
+                    ? `<span style="background: #FEF3C7; color: #B45309; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; margin-left: 6px;"><i class='bx bx-walk'></i> Queue #${escapeHtml(apt.queue_number)}</span>`
+                    : '';
+
+                let actionBtns = '';
+                const canResched = !(clientData && clientData.clinic_settings && clientData.clinic_settings.integrations && clientData.clinic_settings.integrations.patient_rescheduling_enabled === false);
+                if (statusClass === 'scheduled') {
+                    if (canResched) {
+                        actionBtns = `
+                            <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                                <button class="btn-pat-secondary" style="padding: 4px 8px; font-size: 11px; color: #4F46E5; border-color: #C7D2FE;" onclick="openClientReschedModal('${apt._id}')" title="Reschedule Date & Time">
+                                    <i class='bx bx-calendar-edit'></i> Reschedule
+                                </button>
+                                <button class="btn-pat-secondary" style="padding: 4px 8px; font-size: 11px; color: #DC2626; border-color: #FCA5A5;" onclick="openClientCancelModal('${apt._id}')" title="Cancel this appointment">
+                                    <i class='bx bx-x-circle'></i> Cancel
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        actionBtns = `
+                            <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                                <span style="font-size: 11px; color: var(--pat-text-muted); background: #F1F5F9; padding: 4px 8px; border-radius: 6px; font-weight: 500;" title="Self-service changes are currently locked by clinic administration. Please contact front desk.">
+                                    <i class='bx bx-lock-alt text-muted mr-1'></i> Changes Locked
+                                </span>
+                            </div>
+                        `;
+                    }
+                } else if (statusClass === 'checked_in' || statusClass === 'waiting') {
+                    actionBtns = `<div style="text-align: right;"><span style="font-size: 11px; color: #0284C7; font-weight: 700;"><i class='bx bx-time'></i> In Lobby Queue</span></div>`;
+                } else if (statusClass === 'pending') {
+                    actionBtns = `<div style="text-align: right;"><span style="font-size: 11px; color: #d97706; background: #fffbeb; border: 1px solid #fde68a; padding: 4px 8px; border-radius: 6px; font-weight: 600;"><i class='bx bx-time mr-1'></i> Awaiting Doctor Approval</span></div>`;
+                } else {
+                    actionBtns = `<div style="text-align: right;"><span style="font-size: 11px; color: var(--pat-text-muted);">${escapeHtml(statusClass.toUpperCase())}</span></div>`;
+                }
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700; font-size: 13px;">${escapeHtml(apt.date)}</div>
+                            <div style="font-size: 11px; color: var(--pat-primary); font-weight: 600;">${escapeHtml(apt.time)}</div>
+                        </td>
+                        <td style="font-weight: 600;">${escapeHtml(apt.doctor_name || 'First Available Doctor')}</td>
+                        <td>${escapeHtml(apt.service_name || 'Dental Consultation')}</td>
+                        <td>${escapeHtml(apt.operatory_chair || '--')}</td>
+                        <td>
+                            <span class="status-badge ${statusClass}">
+                                <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(statusClass.replace('_', ' ').toUpperCase())}
+                            </span>
+                            ${queueBadge}
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            ${actionBtns}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderPastAppointments(list) {
+            const tbody = document.getElementById('pastTableBody');
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--pat-text-muted);">No completed clinical visits recorded yet.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(apt => {
+                const statusClass = (apt.status || 'completed').toLowerCase();
+                const isDeclinedOrCancelled = (statusClass === 'cancelled' || statusClass === 'declined');
+                const teethBadges = (apt.teeth_selected && apt.teeth_selected.length > 0)
+                    ? `<div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">` + 
+                      apt.teeth_selected.map(t => `<span class="tooth-pill"><i class='bx bx-check'></i> ${escapeHtml(t)}</span>`).join('') + 
+                      `</div>`
+                    : '';
+
+                const diagnosisText = apt.diagnosis 
+                    ? `<div style="font-weight: 700; color: var(--pat-text-main); margin-bottom: 2px;"><i class='bx bx-pulse text-primary mr-1'></i>${escapeHtml(apt.diagnosis)}</div>` 
+                    : '';
+
+                const declineNotice = (isDeclinedOrCancelled && (apt.decline_reason || apt.cancellation_reason))
+                    ? `<div style="font-size: 11px; color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 4px 8px; margin-top: 4px;">
+                         <i class='bx bx-info-circle mr-1'></i> <strong>Reason:</strong> ${escapeHtml(apt.decline_reason || apt.cancellation_reason)}
+                       </div>`
+                    : '';
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700; font-size: 13px;">${escapeHtml(apt.date)}</div>
+                            <div style="font-size: 11px; color: var(--pat-text-muted);">${escapeHtml(apt.time)}</div>
+                        </td>
+                        <td style="font-weight: 600;">${escapeHtml(apt.doctor_name || apt.attending_doctor || 'Clinic Doctor')}</td>
+                        <td>
+                            <div style="font-weight: 600;">${escapeHtml(apt.service_name || 'Consultation')}</div>
+                            <div style="font-size: 11px; color: var(--pat-text-muted);">${escapeHtml(apt.treatment_category || 'General Dentistry')}</div>
+                            ${teethBadges}
+                        </td>
+                        <td>${escapeHtml(apt.operatory_chair || '--')}</td>
+                        <td>
+                            <span class="status-badge ${statusClass}">
+                                ${escapeHtml(statusClass.toUpperCase())}
+                            </span>
+                        </td>
+                        <td style="font-size: 12px; color: var(--pat-text-muted); max-width: 240px;">
+                            ${diagnosisText}
+                            <div>${escapeHtml(apt.procedure_notes || apt.notes || (isDeclinedOrCancelled ? 'Appointment schedule not accommodated' : 'Procedure successfully completed'))}</div>
+                            ${declineNotice}
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <button class="btn-pat-secondary btn-sm" onclick="openPatientRecordModal('${apt._id}')" title="Review Complete Authorized Clinical Record">
+                                <i class='bx bx-file-find'></i> View Record
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ── C-007: Clinical Record & Medical History Logic ──────────
+        let medicalHistoryData = null;
+
+        async function loadMedicalHistorySummary() {
+            try {
+                const res = await fetch('api/client/get_medical_history.php');
+                if (res.status === 401) return;
+                const data = await res.json();
+                if (data.status === 'success') {
+                    medicalHistoryData = data;
+                    renderMedicalHistoryRibbon(data);
+                    renderMedicalProfileDetails(data);
+                }
+            } catch (err) {
+                console.error("Medical history error:", err);
+            }
+        }
+
+        function renderMedicalHistoryRibbon(data) {
+            const el = document.getElementById('histTreatedTeethSummary');
+            if (!el) return;
+
+            const teeth = data.treated_teeth_summary || [];
+            const completedCount = data.patient.total_completed_visits || 0;
+
+            if (teeth.length > 0) {
+                el.innerHTML = `
+                    <span style="font-weight: 700; color: #0a8f8f;">${teeth.length} teeth treated</span>: 
+                    ${teeth.map(t => `<span class="tooth-pill" style="margin-left: 2px;">${escapeHtml(t)}</span>`).join(' ')} 
+                    • <span style="font-weight: 600;">${completedCount} completed clinical procedures</span>
+                `;
+            } else {
+                el.innerHTML = `<span>${completedCount} completed visits on record • No operative teeth charted yet</span>`;
+            }
+        }
+
+        function renderMedicalProfileDetails(data) {
+            // 1. Systemic Health Questionnaire
+            const sysGrid = document.getElementById('profSystemicGrid');
+            if (sysGrid && data.systemic_health_questionnaire) {
+                const q = data.systemic_health_questionnaire;
+                const conditions = [
+                    { key: 'hypertension', label: 'Hypertension / Blood Pressure', icon: 'bx-heart' },
+                    { key: 'diabetes', label: 'Diabetes Mellitus / Glucose', icon: 'bx-droplet' },
+                    { key: 'asthma', label: 'Bronchial Asthma / Respiratory', icon: 'bx-wind' },
+                    { key: 'cardiovascular', label: 'Cardiovascular Conditions', icon: 'bx-pulse' },
+                    { key: 'bleeding_disorder', label: 'Bleeding Disorders / Clotting', icon: 'bx-band-aid' },
+                    { key: 'hepatitis_infectious', label: 'Hepatitis / Infectious Screening', icon: 'bx-shield-quarter' },
+                    { key: 'pregnancy', label: 'Pregnancy / Nursing Status', icon: 'bx-female' }
+                ];
+
+                sysGrid.innerHTML = conditions.map(c => {
+                    const info = q[c.key] || { present: false, notes: 'None reported' };
+                    const isPresent = info.present === true;
+                    const badgeClass = isPresent ? 'positive' : 'negative';
+                    const badgeText = isPresent ? 'REPORTED / ALERT' : 'NEGATIVE / NORMAL';
+
+                    return `
+                        <div class="systemic-item">
+                            <div>
+                                <div class="systemic-condition-name">
+                                    <i class='bx ${c.icon}' style="font-size: 16px; color: var(--pat-primary);"></i>
+                                    ${escapeHtml(c.label)}
+                                </div>
+                                <div class="systemic-condition-notes">${escapeHtml(info.notes || 'No symptoms or restrictions noted.')}</div>
+                            </div>
+                            <span class="systemic-badge ${badgeClass}">${badgeText}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 2. Allergies
+            const algContainer = document.getElementById('profAllergiesContainer');
+            if (algContainer) {
+                const algs = data.allergies || [];
+                if (algs.length === 0) {
+                    algContainer.innerHTML = '<div style="font-size: 12px; color: #059669; font-weight: 600;"><i class="bx bx-check-circle mr-1"></i> No Known Drug Allergies (NKDA)</div>';
+                } else {
+                    algContainer.innerHTML = algs.map(a => {
+                        const sev = a.severity || 'Moderate';
+                        const sevColor = sev.toLowerCase() === 'high' ? '#DC2626' : (sev.toLowerCase() === 'none' ? '#059669' : '#D97706');
+                        return `
+                            <div style="background: var(--pat-surface); border: 1px solid var(--pat-border); border-radius: 8px; padding: 8px 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <strong style="font-size: 12px; color: var(--pat-text-main);">${escapeHtml(a.name)}</strong>
+                                    <span style="font-size: 10px; font-weight: 800; color: ${sevColor}; text-transform: uppercase;">${escapeHtml(sev)}</span>
+                                </div>
+                                ${a.notes ? `<div style="font-size: 11px; color: var(--pat-text-muted); margin-top: 2px;">${escapeHtml(a.notes)}</div>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            // 3. Medications
+            const medContainer = document.getElementById('profMedicationsContainer');
+            if (medContainer) {
+                const meds = data.current_medications || [];
+                if (meds.length === 0) {
+                    medContainer.innerHTML = '<div style="font-size: 12px; color: var(--pat-text-muted);">No routine maintenance medications currently reported.</div>';
+                } else {
+                    medContainer.innerHTML = meds.map(m => `
+                        <div style="background: var(--pat-surface); border: 1px solid var(--pat-border); border-radius: 8px; padding: 8px 10px;">
+                            <div style="font-size: 12px; font-weight: 700; color: var(--pat-text-main);">${escapeHtml(m.name)}</div>
+                            <div style="font-size: 11px; color: var(--pat-primary-dark); font-weight: 600;">${escapeHtml(m.dosage)}</div>
+                            ${m.purpose ? `<div style="font-size: 10.5px; color: var(--pat-text-muted);">${escapeHtml(m.purpose)}</div>` : ''}
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // 4. Treated Teeth & Precautions
+            const teethContainer = document.getElementById('profTreatedTeethChips');
+            if (teethContainer) {
+                const teeth = data.treated_teeth_summary || [];
+                if (teeth.length === 0) {
+                    teethContainer.innerHTML = '<span style="font-size: 12px; color: var(--pat-text-muted);">No treated teeth recorded on file.</span>';
+                } else {
+                    teethContainer.innerHTML = teeth.map(t => `<span class="tooth-pill"><i class='bx bx-check'></i> ${escapeHtml(t)}</span>`).join('');
+                }
+            }
+
+            const precEl = document.getElementById('profPrecautionsText');
+            if (precEl) {
+                precEl.textContent = data.clinical_precautions || 'Standard clinical dental hygiene protocol. No systemic medical contraindications.';
+            }
+        }
+
+        // ── Single Clinical Record Modal Handler ──────────────────────
+        function openPatientRecordModal(aptId) {
+            let apt = null;
+            if (clientData && clientData.past_appointments) {
+                apt = clientData.past_appointments.find(a => (a._id || a.id) === aptId);
+            }
+            if (!apt && clientData && clientData.upcoming_appointments) {
+                apt = clientData.upcoming_appointments.find(a => (a._id || a.id) === aptId);
+            }
+
+            if (!apt) {
+                showToast('error', 'Clinical record not found.');
+                return;
+            }
+
+            document.getElementById('recDate').textContent = `${apt.date || '--'} at ${apt.time || '--'}`;
+            document.getElementById('recDoctor').textContent = apt.doctor_name || apt.attending_doctor || 'Attending Dentist';
+            document.getElementById('recChair').textContent = apt.operatory_chair || 'Operatory Chair 1';
+
+            const statusClass = (apt.status || 'completed').toLowerCase();
+            const badge = document.getElementById('recStatusBadge');
+            badge.className = `status-badge ${statusClass}`;
+            badge.textContent = statusClass.toUpperCase();
+
+            document.getElementById('recDiagnosis').textContent = apt.diagnosis || 'Clinical Oral Examination & Assessment';
+            document.getElementById('recService').textContent = apt.service_name || 'Dental Consultation';
+            document.getElementById('recCategory').textContent = apt.treatment_category || 'General Dentistry';
+
+            // Charted Teeth
+            const teethBox = document.getElementById('recTeethBox');
+            const teeth = apt.teeth_selected || [];
+            if (teeth.length > 0) {
+                teethBox.innerHTML = teeth.map(t => `<span class="tooth-pill"><i class='bx bx-check'></i> ${escapeHtml(t)}</span>`).join('');
+            } else {
+                teethBox.innerHTML = '<span style="font-size: 12px; color: var(--pat-text-muted);">No specific teeth numbers charted for this consultation.</span>';
+            }
+
+            // Surfaces
+            const surfBox = document.getElementById('recSurfacesBox');
+            const surfaces = apt.tooth_surfaces || [];
+            if (surfaces.length > 0) {
+                surfBox.textContent = `Surfaces Involved: ${surfaces.join(', ')}`;
+                surfBox.style.display = 'block';
+            } else {
+                surfBox.style.display = 'none';
+            }
+
+            // Doctor notes
+            document.getElementById('recNotes').textContent = apt.procedure_notes || apt.notes || 'Clinical consultation conducted satisfactorily. Patient responded well to treatment.';
+
+            // Anesthesia
+            document.getElementById('recAnesthesia').textContent = apt.anesthesia || 'None required / Topical only';
+
+            // Vital Signs
+            if (apt.vital_signs && typeof apt.vital_signs === 'object') {
+                const vs = apt.vital_signs;
+                const parts = [];
+                if (vs.blood_pressure) parts.push(`BP: ${vs.blood_pressure}`);
+                if (vs.pulse_rate) parts.push(`Pulse: ${vs.pulse_rate} bpm`);
+                if (vs.temperature) parts.push(`Temp: ${vs.temperature}°C`);
+                document.getElementById('recVitalSigns').textContent = parts.length > 0 ? parts.join(' • ') : 'Baseline recorded within normal clinical limits';
+            } else {
+                document.getElementById('recVitalSigns').textContent = 'Baseline vital signs recorded within normal clinical limits';
+            }
+
+            // Prescription
+            document.getElementById('recPrescription').textContent = apt.prescription || 'No post-operative prescription required for this encounter.';
+
+            // Post-Op Care
+            document.getElementById('recPostOp').textContent = apt.post_op_instructions || 'Maintain routine oral hygiene. Avoid hot, spicy, or hard foods for 24 hours. Rinse gently with warm saline.';
+
+            // Follow-up
+            if (apt.follow_up_date) {
+                document.getElementById('recFollowUpText').textContent = `Recommended Return Date: ${apt.follow_up_date} for review and progress evaluation.`;
+            } else {
+                document.getElementById('recFollowUpText').textContent = 'Follow-up as scheduled or contact the clinic if any swelling or discomfort occurs.';
+            }
+
+            document.getElementById('patientRecordDetailModal').style.display = 'flex';
+        }
+
+        function closePatientRecordModal() {
+            document.getElementById('patientRecordDetailModal').style.display = 'none';
+        }
+
+        function printPatientRecord() {
+            const modal = document.getElementById('patientRecordDetailModal');
+            modal.classList.add('print-active');
+            window.print();
+            modal.classList.remove('print-active');
+        }
+
+        // ── Comprehensive Medical Dossier Modal Handler ──────────────
+        async function openPatientFullDossierModal() {
+            const modal = document.getElementById('patientFullMedicalHistoryModal');
+            const loading = document.getElementById('dossierLoadingMsg');
+            const content = document.getElementById('dossierContent');
+
+            modal.style.display = 'flex';
+            loading.style.display = 'block';
+            content.style.display = 'none';
+
+            try {
+                const res = await fetch('api/client/get_medical_history.php');
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    medicalHistoryData = data;
+                    const p = data.patient;
+
+                    document.getElementById('dosGeneratedDate').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                    document.getElementById('dosName').textContent = p.name || '--';
+                    document.getElementById('dosDobAge').textContent = `${p.dob || 'Unspecified'} (${p.age || '23'} yrs)`;
+                    document.getElementById('dosGenderBlood').textContent = `${p.gender || 'Not Specified'} • Blood: ${p.blood_type || 'O+'}`;
+                    document.getElementById('dosPhone').textContent = p.phone || '--';
+                    document.getElementById('dosEmerg').textContent = p.emergency_contact || 'None on file';
+
+                    // Systemic Assessment
+                    const dosSys = document.getElementById('dosSystemicGrid');
+                    if (dosSys) {
+                        const q = data.systemic_health_questionnaire || {};
+                        const conditions = [
+                            { key: 'hypertension', label: 'Hypertension' },
+                            { key: 'diabetes', label: 'Diabetes Mellitus' },
+                            { key: 'asthma', label: 'Bronchial Asthma' },
+                            { key: 'cardiovascular', label: 'Cardiovascular' },
+                            { key: 'bleeding_disorder', label: 'Bleeding Disorders' },
+                            { key: 'hepatitis_infectious', label: 'Infectious / Hepatitis' },
+                            { key: 'pregnancy', label: 'Pregnancy / Nursing' }
+                        ];
+                        dosSys.innerHTML = conditions.map(c => {
+                            const info = q[c.key] || { present: false, notes: 'None reported' };
+                            const isPresent = info.present === true;
+                            return `
+                                <div class="systemic-item" style="padding: 6px 10px;">
+                                    <div>
+                                        <div style="font-size: 11.5px; font-weight: 700;">${escapeHtml(c.label)}</div>
+                                        <div style="font-size: 10.5px; color: var(--pat-text-muted);">${escapeHtml(info.notes || 'Normal')}</div>
+                                    </div>
+                                    <span class="systemic-badge ${isPresent ? 'positive' : 'negative'}">${isPresent ? 'POSITIVE' : 'NEGATIVE'}</span>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+
+                    // Allergies
+                    const dosAlg = document.getElementById('dosAllergiesList');
+                    const algs = data.allergies || [];
+                    if (algs.length === 0) {
+                        dosAlg.innerHTML = '<div style="color: #059669; font-weight: 600;">No Known Drug Allergies (NKDA)</div>';
+                    } else {
+                        dosAlg.innerHTML = algs.map(a => `
+                            <div style="margin-bottom: 4px;">
+                                <strong style="color: var(--pat-text-main);">${escapeHtml(a.name)}</strong> 
+                                <span style="font-size: 10px; font-weight: 700; color: #DC2626; text-transform: uppercase;">[${escapeHtml(a.severity || 'Moderate')}]</span>
+                                ${a.notes ? `<div style="font-size: 11px; color: var(--pat-text-muted);">${escapeHtml(a.notes)}</div>` : ''}
+                            </div>
+                        `).join('');
+                    }
+
+                    // Medications
+                    const dosMed = document.getElementById('dosMedicationsList');
+                    const meds = data.current_medications || [];
+                    if (meds.length === 0) {
+                        dosMed.innerHTML = '<div style="color: var(--pat-text-muted);">None reported on file.</div>';
+                    } else {
+                        dosMed.innerHTML = meds.map(m => `
+                            <div style="margin-bottom: 4px;">
+                                <strong style="color: var(--pat-text-main);">${escapeHtml(m.name)}</strong> - <span style="color: var(--pat-primary-dark); font-weight: 600;">${escapeHtml(m.dosage)}</span>
+                                ${m.purpose ? `<div style="font-size: 11px; color: var(--pat-text-muted);">${escapeHtml(m.purpose)}</div>` : ''}
+                            </div>
+                        `).join('');
+                    }
+
+                    // Treated Teeth
+                    const dosTeeth = document.getElementById('dosTreatedTeethChips');
+                    const teeth = data.treated_teeth_summary || [];
+                    if (teeth.length === 0) {
+                        dosTeeth.innerHTML = '<span style="color: var(--pat-text-muted); font-size: 11px;">No charted teeth recorded.</span>';
+                    } else {
+                        dosTeeth.innerHTML = teeth.map(t => `<span class="tooth-pill"><i class='bx bx-check'></i> ${escapeHtml(t)}</span>`).join('');
+                    }
+
+                    // Precautions
+                    document.getElementById('dosPrecautionsText').textContent = data.clinical_precautions || 'Standard clinical dental hygiene protocol. No systemic medical contraindications.';
+
+                    // Timeline Table
+                    const dosTBody = document.getElementById('dosTimelineBody');
+                    const timeline = data.treatment_history_timeline || [];
+                    if (timeline.length === 0) {
+                        dosTBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--pat-text-muted);">No dental visits on record.</td></tr>';
+                    } else {
+                        dosTBody.innerHTML = timeline.map(t => {
+                            const statusCls = (t.status || 'completed').toLowerCase();
+                            const teethTags = (t.teeth_involved && t.teeth_involved.length > 0)
+                                ? t.teeth_involved.map(x => `<span class="tooth-pill" style="font-size: 10px; padding: 1px 5px;">${escapeHtml(x)}</span>`).join(' ')
+                                : '<span style="color: var(--pat-text-muted); font-size: 11px;">--</span>';
+
+                            return `
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 700;">${escapeHtml(t.date)}</div>
+                                        <div style="font-size: 10.5px; color: var(--pat-text-muted);">${escapeHtml(t.time)}</div>
+                                    </td>
+                                    <td style="font-weight: 600;">${escapeHtml(t.service)}</td>
+                                    <td>${escapeHtml(t.dentist)}</td>
+                                    <td style="font-size: 11.5px; max-width: 220px;">
+                                        ${t.diagnosis ? `<div style="font-weight: 700;">${escapeHtml(t.diagnosis)}</div>` : ''}
+                                        <div style="color: var(--pat-text-muted);">${escapeHtml(t.procedure_notes || 'Procedure completed.')}</div>
+                                    </td>
+                                    <td>${teethTags}</td>
+                                    <td><span class="status-badge ${statusCls}">${escapeHtml(statusCls.toUpperCase())}</span></td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+
+                    loading.style.display = 'none';
+                    content.style.display = 'block';
+                } else {
+                    loading.innerHTML = `<div style="color: #DC2626;">${escapeHtml(data.message || 'Error loading dossier.')}</div>`;
+                }
+            } catch (err) {
+                console.error("Dossier load error:", err);
+                loading.innerHTML = '<div style="color: #DC2626;">Network error retrieving medical dossier.</div>';
+            }
+        }
+
+        function closePatientFullDossierModal() {
+            document.getElementById('patientFullMedicalHistoryModal').style.display = 'none';
+        }
+
+        function printPatientDossier() {
+            const modal = document.getElementById('patientFullMedicalHistoryModal');
+            modal.classList.add('print-active');
+            window.print();
+            modal.classList.remove('print-active');
+        }
+
+        function populateBookingDropdowns(doctors, services, clinicSettings) {
+            const docSel = document.getElementById('bookDoctorSelect');
+            if (docSel && doctors) {
+                docSel.innerHTML = '<option value="First Available Doctor">First Available Doctor</option>' +
+                    doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
+            }
+
+            const servSel = document.getElementById('bookServiceSelect');
+            if (servSel && services) {
+                servSel.innerHTML = services.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.duration)})</option>`).join('');
+            }
+
+            // Populate system-wide Master Operating Hours Time Slots
+            const timeSel = document.getElementById('bookTimeSelect');
+            const masterSlots = (clinicSettings && clinicSettings.time_slots && clinicSettings.time_slots.length > 0)
+                ? clinicSettings.time_slots
+                : ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
+
+            if (timeSel) {
+                const prevVal = timeSel.value;
+                timeSel.innerHTML = masterSlots.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+                if (masterSlots.includes(prevVal)) {
+                    timeSel.value = prevVal;
+                }
+            }
+
+            // Update Operating Hours Badge Notice in modal
+            const noteBadge = document.getElementById('bookClinicHoursNote');
+            if (noteBadge && clinicSettings && clinicSettings.operating_hours) {
+                noteBadge.textContent = clinicSettings.operating_hours.split('|')[0].trim();
+            }
+
+            // Real-Time Doctor change handler
+            if (docSel) {
+                docSel.onchange = function () {
+                    fetchClientAvailableSlots();
+                };
+            }
+        }
+
+        // ── C-005: Real-Time Dynamic Slot Availability Logic ──────────
+        let clientSlotPollTimer = null;
+
+        function startSlotPolling(mode) {
+            stopSlotPolling();
+            clientSlotPollTimer = setInterval(() => {
+                if (mode === 'book') {
+                    const modal = document.getElementById('bookModal');
+                    if (modal && modal.style.display === 'flex') {
+                        fetchClientAvailableSlots(false);
+                    } else {
+                        stopSlotPolling();
+                    }
+                } else if (mode === 'resched') {
+                    const modal = document.getElementById('clientReschedModal');
+                    if (modal && modal.style.display === 'flex') {
+                        fetchClientReschedAvailableSlots(false);
+                    } else {
+                        stopSlotPolling();
+                    }
+                }
+            }, 10000); // 10s auto-refresh
+        }
+
+        function stopSlotPolling() {
+            if (clientSlotPollTimer) {
+                clearInterval(clientSlotPollTimer);
+                clientSlotPollTimer = null;
+            }
+        }
+
+        async function fetchClientAvailableSlots(manual = false) {
+            const dateInp = document.getElementById('bookDateInput');
+            const docSel = document.getElementById('bookDoctorSelect');
+            const grid = document.getElementById('bookSlotChipsGrid');
+            const alertBox = document.getElementById('bookDutyAlert');
+            const summary = document.getElementById('bookSlotSummary');
+            const hiddenSlot = document.getElementById('bookTimeSlotInput');
+            const timeSel = document.getElementById('bookTimeSelect');
+            const confirmBtn = document.getElementById('btnConfirmBook');
+
+            if (!dateInp || !docSel || !grid) return;
+
+            const selectedDate = dateInp.value;
+            const selectedDoc = docSel.value || 'First Available Doctor';
+
+            if (!selectedDate) {
+                grid.innerHTML = '<div class="slot-placeholder-msg">Please select an appointment date.</div>';
+                if (summary) summary.textContent = '--';
+                return;
+            }
+
+            if (manual) {
+                grid.innerHTML = '<div class="slot-placeholder-msg"><i class="bx bx-loader-alt bx-spin mr-1"></i> Refreshing live availability...</div>';
+            }
+
+            try {
+                const res = await fetch(`api/client/get_available_slots.php?date=${encodeURIComponent(selectedDate)}&doctor_name=${encodeURIComponent(selectedDoc)}`);
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    const noteBadge = document.getElementById('bookClinicHoursNote');
+                    if (noteBadge && data.day_name) {
+                        noteBadge.textContent = `${data.day_name}: ${data.is_on_duty ? 'On Duty' : 'Off Duty'}`;
+                    }
+
+                    if (!data.is_on_duty) {
+                        alertBox.style.display = 'flex';
+                        alertBox.innerHTML = `<i class='bx bx-calendar-x' style='font-size: 18px; color: #d97706; margin-top: 2px;'></i> <div><strong>Provider Schedule Notice:</strong> ${escapeHtml(data.duty_message)}</div>`;
+                        grid.innerHTML = '<div class="slot-placeholder-msg" style="color: #92400e; background: #fffbeb;"><i class="bx bx-time mr-1"></i> No appointment slots open on this date. Please choose another date.</div>';
+                        if (summary) summary.textContent = '0 slots available';
+                        hiddenSlot.value = '';
+                        if (confirmBtn) confirmBtn.disabled = true;
+                        return;
+                    }
+
+                    alertBox.style.display = 'none';
+                    if (confirmBtn) confirmBtn.disabled = false;
+
+                    const prevSelected = hiddenSlot.value;
+                    let prevSelectedStillValid = false;
+
+                    if (!data.slots || data.slots.length === 0) {
+                        grid.innerHTML = '<div class="slot-placeholder-msg">No slots configured for this date.</div>';
+                        if (summary) summary.textContent = '0 slots available';
+                        hiddenSlot.value = '';
+                        return;
+                    }
+
+                    grid.innerHTML = data.slots.map(s => {
+                        const isAvailable = s.available === true;
+                        const isSelected = (prevSelected && s.time === prevSelected && isAvailable);
+                        if (isSelected) prevSelectedStillValid = true;
+
+                        const chipClass = `slot-chip ${s.status} ${isSelected ? 'selected' : ''}`;
+                        const clickAttr = isAvailable ? `onclick="selectClientSlot('book', '${escapeHtml(s.time)}', this)"` : '';
+                        const titleAttr = s.status === 'booked' ? 'title="This slot is already reserved by another patient"' : (s.status === 'past' ? 'title="This slot has already passed"' : 'title="Click to select this available slot"');
+
+                        return `
+                            <div class="${chipClass}" ${clickAttr} ${titleAttr}>
+                                <div class="slot-chip-time">${escapeHtml(s.time)}</div>
+                                <div class="slot-chip-status">${escapeHtml(s.status_label)}</div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    if (prevSelected && !prevSelectedStillValid) {
+                        hiddenSlot.value = '';
+                        if (timeSel) timeSel.value = '';
+                        showToast('error', `Note: The slot ${prevSelected} is no longer available. Please choose another slot.`);
+                    }
+
+                    if (summary) {
+                        summary.textContent = `${data.available_count} slot(s) open • ${data.booked_count} reserved`;
+                    }
+                } else {
+                    grid.innerHTML = `<div class="slot-placeholder-msg text-red-600">${escapeHtml(data.message || 'Error loading slots.')}</div>`;
+                }
+            } catch (err) {
+                console.error("Slot fetch error:", err);
+                if (manual) showToast('error', 'Unable to check live slots. Please verify your connection.');
+            }
+        }
+
+        function selectClientSlot(mode, slotTime, chipEl) {
+            const prefix = mode === 'book' ? 'book' : 'clientResched';
+            const hiddenSlot = document.getElementById(`${prefix}TimeSlotInput`);
+            const timeSel = document.getElementById(`${prefix}TimeSelect`);
+            const grid = document.getElementById(`${prefix}SlotChipsGrid`);
+
+            if (hiddenSlot) hiddenSlot.value = slotTime;
+            if (timeSel) {
+                let opt = Array.from(timeSel.options).find(o => o.value === slotTime);
+                if (!opt) {
+                    opt = new Option(slotTime, slotTime, true, true);
+                    timeSel.add(opt);
+                }
+                timeSel.value = slotTime;
+            }
+
+            if (grid) {
+                grid.querySelectorAll('.slot-chip').forEach(c => c.classList.remove('selected'));
+                if (chipEl) chipEl.classList.add('selected');
+            }
+        }
+
+        async function fetchClientReschedAvailableSlots(manual = false) {
+            const dateInp = document.getElementById('clientReschedDateInput');
+            const docSel = document.getElementById('clientReschedDoctorSelect');
+            const apptId = document.getElementById('clientReschedApptId')?.value || '';
+            const grid = document.getElementById('clientReschedSlotChipsGrid');
+            const alertBox = document.getElementById('clientReschedDutyAlert');
+            const summary = document.getElementById('clientReschedSlotSummary');
+            const hiddenSlot = document.getElementById('clientReschedTimeSlotInput');
+            const timeSel = document.getElementById('clientReschedTimeSelect');
+            const confirmBtn = document.getElementById('btnConfirmClientResched');
+
+            if (!dateInp || !docSel || !grid) return;
+
+            const selectedDate = dateInp.value;
+            const selectedDoc = docSel.value || 'First Available Doctor';
+
+            if (!selectedDate) {
+                grid.innerHTML = '<div class="slot-placeholder-msg">Please pick a new appointment date.</div>';
+                return;
+            }
+
+            if (manual) {
+                grid.innerHTML = '<div class="slot-placeholder-msg"><i class="bx bx-loader-alt bx-spin mr-1"></i> Refreshing live availability...</div>';
+            }
+
+            try {
+                const res = await fetch(`api/client/get_available_slots.php?date=${encodeURIComponent(selectedDate)}&doctor_name=${encodeURIComponent(selectedDoc)}&exclude_appointment_id=${encodeURIComponent(apptId)}`);
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    if (!data.is_on_duty) {
+                        alertBox.style.display = 'flex';
+                        alertBox.innerHTML = `<i class='bx bx-calendar-x' style='font-size: 18px; color: #d97706; margin-top: 2px;'></i> <div><strong>Provider Schedule Notice:</strong> ${escapeHtml(data.duty_message)}</div>`;
+                        grid.innerHTML = '<div class="slot-placeholder-msg" style="color: #92400e; background: #fffbeb;"><i class="bx bx-time mr-1"></i> No appointment slots open on this date. Please choose another date.</div>';
+                        if (summary) summary.textContent = '0 slots available';
+                        hiddenSlot.value = '';
+                        if (confirmBtn) confirmBtn.disabled = true;
+                        return;
+                    }
+
+                    alertBox.style.display = 'none';
+                    if (confirmBtn) confirmBtn.disabled = false;
+
+                    const prevSelected = hiddenSlot.value;
+                    let prevSelectedStillValid = false;
+
+                    if (!data.slots || data.slots.length === 0) {
+                        grid.innerHTML = '<div class="slot-placeholder-msg">No slots configured for this date.</div>';
+                        if (summary) summary.textContent = '0 slots available';
+                        hiddenSlot.value = '';
+                        return;
+                    }
+
+                    grid.innerHTML = data.slots.map(s => {
+                        const isAvailable = s.available === true;
+                        const isSelected = (prevSelected && s.time === prevSelected && isAvailable);
+                        if (isSelected) prevSelectedStillValid = true;
+
+                        const chipClass = `slot-chip ${s.status} ${isSelected ? 'selected' : ''}`;
+                        const clickAttr = isAvailable ? `onclick="selectClientSlot('resched', '${escapeHtml(s.time)}', this)"` : '';
+                        const titleAttr = s.status === 'booked' ? 'title="This slot is already reserved by another patient"' : (s.status === 'past' ? 'title="This slot has already passed"' : 'title="Click to select this available slot"');
+
+                        return `
+                            <div class="${chipClass}" ${clickAttr} ${titleAttr}>
+                                <div class="slot-chip-time">${escapeHtml(s.time)}</div>
+                                <div class="slot-chip-status">${escapeHtml(s.status_label)}</div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    if (prevSelected && !prevSelectedStillValid) {
+                        hiddenSlot.value = '';
+                        if (timeSel) timeSel.value = '';
+                        showToast('error', `Note: The slot ${prevSelected} is no longer available. Please choose another slot.`);
+                    }
+
+                    if (summary) {
+                        summary.textContent = `${data.available_count} slot(s) open • ${data.booked_count} reserved`;
+                    }
+                } else {
+                    grid.innerHTML = `<div class="slot-placeholder-msg text-red-600">${escapeHtml(data.message || 'Error loading slots.')}</div>`;
+                }
+            } catch (err) {
+                console.error("Resched slot fetch error:", err);
+            }
+        }
+
+        async function submitClientBooking(e) {
+            e.preventDefault();
+
+            const timeSlotVal = document.getElementById('bookTimeSlotInput')?.value || document.getElementById('bookTimeSelect')?.value;
+            if (!timeSlotVal) {
+                showToast('error', 'Please click an available time slot before confirming your appointment.');
+                return;
+            }
+
+            const btn = document.getElementById('btnConfirmBook');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Scheduling...";
+
+            const payload = {
+                doctor_name: document.getElementById('bookDoctorSelect').value,
+                service_name: document.getElementById('bookServiceSelect').value,
+                appointment_date: document.getElementById('bookDateInput').value,
+                time_slot: timeSlotVal,
+                notes: document.getElementById('bookNotesInput').value.trim()
+            };
+
+            try {
+                const res = await fetch('api/client/book_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.status === 201 && data.status === 'success') {
+                    showToast('success', data.message || 'Appointment confirmed!');
+                    closeBookModal();
+                    document.getElementById('form-client-book').reset();
+                    loadClientDashboard();
+                } else {
+                    showToast('error', data.message || 'Booking failed.');
+                    // Refresh slots in real time to show newly occupied slot
+                    fetchClientAvailableSlots();
+                }
+            } catch (err) {
+                showToast('error', 'Network error while booking appointment.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        function openBookModal() {
+            document.getElementById('bookModal').style.display = 'flex';
+            fetchClientAvailableSlots();
+            startSlotPolling('book');
+        }
+
+        function closeBookModal() {
+            stopSlotPolling();
+            document.getElementById('bookModal').style.display = 'none';
+        }
+
+        // ── Client Self-Service Rescheduling Handlers ─────────────────
+        function openClientReschedModal(aptId) {
+            if (clientData && clientData.clinic_settings && clientData.clinic_settings.integrations && clientData.clinic_settings.integrations.patient_rescheduling_enabled === false) {
+                showToast('warning', 'Self-service rescheduling is currently suspended by clinic administration. Please contact front desk.');
+                return;
+            }
+            if (!clientData || !clientData.upcoming_appointments) return;
+            const apt = clientData.upcoming_appointments.find(a => (a._id || a.id) === aptId);
+            if (!apt) {
+                showToast('error', 'Appointment not found.');
+                return;
+            }
+
+            document.getElementById('clientReschedApptId').value = aptId;
+            document.getElementById('clientReschedCurrentService').textContent = apt.service_name || 'Dental Consultation';
+            document.getElementById('clientReschedCurrentDate').textContent = apt.date || '--';
+            document.getElementById('clientReschedCurrentTime').textContent = apt.time || '--';
+
+            // Populate Doctors
+            const docSel = document.getElementById('clientReschedDoctorSelect');
+            const doctors = clientData.doctors || [];
+            docSel.innerHTML = '<option value="First Available Doctor">First Available Doctor</option>' +
+                doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
+            
+            if (apt.doctor_name && doctors.some(d => d.full_name === apt.doctor_name)) {
+                docSel.value = apt.doctor_name;
+            } else {
+                docSel.value = 'First Available Doctor';
+            }
+
+            // Min date is today
+            const dateInp = document.getElementById('clientReschedDateInput');
+            dateInp.min = todayIso;
+            dateInp.value = apt.date && apt.date >= todayIso ? apt.date : todayIso;
+
+            // Pre-select current time if rescheduling to same day
+            const hiddenSlot = document.getElementById('clientReschedTimeSlotInput');
+            if (hiddenSlot) hiddenSlot.value = apt.time || '';
+
+            document.getElementById('clientReschedReasonInput').value = '';
+            document.getElementById('clientReschedModal').style.display = 'flex';
+
+            fetchClientReschedAvailableSlots();
+            startSlotPolling('resched');
+        }
+
+        function closeClientReschedModal() {
+            stopSlotPolling();
+            document.getElementById('clientReschedModal').style.display = 'none';
+        }
+
+        async function submitClientReschedule(e) {
+            e.preventDefault();
+
+            const timeSlotVal = document.getElementById('clientReschedTimeSlotInput')?.value || document.getElementById('clientReschedTimeSelect')?.value;
+            if (!timeSlotVal) {
+                showToast('error', 'Please click an available time slot to reschedule.');
+                return;
+            }
+
+            const btn = document.getElementById('btnConfirmClientResched');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Rescheduling...";
+
+            const payload = {
+                appointment_id: document.getElementById('clientReschedApptId').value,
+                doctor_name: document.getElementById('clientReschedDoctorSelect').value,
+                appointment_date: document.getElementById('clientReschedDateInput').value,
+                time_slot: timeSlotVal,
+                reason: document.getElementById('clientReschedReasonInput').value.trim() || 'Patient self-service reschedule'
+            };
+
+            try {
+                const res = await fetch('api/client/reschedule_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.status === 200 && data.status === 'success') {
+                    showToast('success', data.message || 'Appointment rescheduled successfully!');
+                    closeClientReschedModal();
+                    loadClientDashboard();
+                } else {
+                    showToast('error', data.message || 'Failed to reschedule appointment.');
+                    fetchClientReschedAvailableSlots();
+                }
+            } catch (err) {
+                showToast('error', 'Network error while rescheduling.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        // ── Client Self-Service Cancellation Handlers ─────────────────
+        function openClientCancelModal(aptId) {
+            if (clientData && clientData.clinic_settings && clientData.clinic_settings.integrations && clientData.clinic_settings.integrations.patient_rescheduling_enabled === false) {
+                showToast('warning', 'Self-service cancellation is currently suspended by clinic administration. Please contact front desk.');
+                return;
+            }
+            if (!clientData || !clientData.upcoming_appointments) return;
+            const apt = clientData.upcoming_appointments.find(a => (a._id || a.id) === aptId);
+            if (!apt) {
+                showToast('error', 'Appointment not found.');
+                return;
+            }
+
+            document.getElementById('clientCancelApptId').value = aptId;
+            document.getElementById('clientCancelApptDate').textContent = `${apt.date || 'Scheduled Date'} at ${apt.time || ''}`;
+            document.getElementById('clientCancelModal').style.display = 'flex';
+        }
+
+        function closeClientCancelModal() {
+            document.getElementById('clientCancelModal').style.display = 'none';
+        }
+
+        async function submitClientCancel(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnConfirmClientCancel');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Cancelling...";
+
+            const payload = {
+                appointment_id: document.getElementById('clientCancelApptId').value,
+                reason: document.getElementById('clientCancelReasonSelect').value
+            };
+
+            try {
+                const res = await fetch('api/client/cancel_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.status === 200 && data.status === 'success') {
+                    showToast('success', data.message || 'Appointment cancelled.');
+                    closeClientCancelModal();
+                    loadClientDashboard();
+                } else {
+                    showToast('error', data.message || 'Failed to cancel appointment.');
+                }
+            } catch (err) {
+                showToast('error', 'Network error while cancelling.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        function switchClientTab(tabId, btn) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.add('active');
+            if (btn) btn.classList.add('active');
+        }
+
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme') || 'light';
+            const next = current === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', next);
+            document.getElementById('themeIcon').className = next === 'dark' ? 'bx bx-sun' : 'bx bx-moon';
+        }
+
+        async function logoutClient() {
+            try {
+                await fetch('api/auth/logout.php', { method: 'POST' });
+            } catch (_) {}
+            window.location.href = 'client_login.html';
+        }
+
+        function showToast(type, msg) {
+            const t = document.getElementById('toastBanner');
+            const icon = document.getElementById('toastIcon');
+            const txt = document.getElementById('toastMsg');
+            t.className = `toast-banner ${type}`;
+            txt.textContent = msg;
+            icon.className = type === 'success' ? 'bx bx-check-circle' : 'bx bx-error-circle';
+            t.style.display = 'flex';
+            setTimeout(() => { t.style.display = 'none'; }, 3500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, m => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            })[m]);
+        }
+
+        // ── Session Role Guard ─────────────────────────────────────────
+        const ALLOWED_ROLES_THIS_DASHBOARD = ['patient', 'client'];
+
+        async function verifySessionRole() {
+            try {
+                const res = await fetch('api/auth/me.php');
+                const data = await res.json();
+                if (data.status !== 'authenticated') {
+                    window.location.replace('index.html');
+                    return false;
+                }
+                const role = (data.role || '').toLowerCase();
+                if (!ALLOWED_ROLES_THIS_DASHBOARD.includes(role)) {
+                    const redirectMap = {
+                        'super_admin': 'admin_dashboard.html',
+                        'admin': 'admin_dashboard.html',
+                        'doctor': 'doctor_dashboard.html',
+                        'receptionist': 'receptionist_dashboard.html',
+                        'staff': 'receptionist_dashboard.html'
+                    };
+                    window.location.replace(redirectMap[role] || 'index.html');
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                return true; // network error — don't kick out
+            }
+        }
+
+        // Re-check when user switches back to this tab
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                verifySessionRole();
+            }
+        });
+
+        // Initial Load (with role guard)
+        (async () => {
+            const ok = await verifySessionRole();
+            if (ok) loadClientDashboard();
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "optident-nodejs",
+  "version": "1.0.0",
+  "description": "OptiDent Dental Clinic Management System - Fullstack Node.js & MongoDB",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "optident",
+    "nodejs",
+    "express",
+    "mongodb",
+    "dental-management"
+  ],
+  "author": "OptiDent Team",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "mongodb": "^6.13.0",
+    "nodemailer": "^10.3.1"
+  }
+}
