@@ -34,6 +34,30 @@ export async function connectDB() {
             db.collection('invitations').createIndex({ token: 1 }),
             db.collection('invitations').createIndex({ email: 1 })
         ]).catch(() => {});
+
+        // Auto-seed initial template data if collections are empty (e.g. fresh MongoDB Atlas cluster)
+        try {
+            const userCount = await db.collection('users').countDocuments();
+            if (userCount === 0) {
+                console.log('[MongoDB] Fresh cluster detected. Auto-seeding initial users and settings...');
+                const seedData = readFallback();
+                for (const [colName, docs] of Object.entries(seedData)) {
+                    if (Array.isArray(docs) && docs.length > 0) {
+                        const sanitized = docs.map(d => {
+                            const copy = { ...d };
+                            if (copy._id && typeof copy._id === 'string' && copy._id.length === 24) {
+                                try { copy._id = new ObjectId(copy._id); } catch (e) {}
+                            }
+                            return copy;
+                        });
+                        await db.collection(colName).insertMany(sanitized).catch(() => {});
+                    }
+                }
+                console.log('[MongoDB] Initial database seed successfully completed.');
+            }
+        } catch (seedErr) {
+            console.warn('[MongoDB Seed Notice]', seedErr.message);
+        }
     } catch (err) {
         useNative = false;
         console.warn(`[MongoDB Warning] Native connection failed (${err.message}). Using fallback local storage: ${fallbackFile}`);
