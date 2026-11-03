@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="css/style.css">
     <!-- Google reCAPTCHA v2 -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <!-- Google Identity Services (GIS) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
 
@@ -405,22 +407,32 @@
                         <div class="logo-subtext">CLINICAL MANAGEMENT SYSTEM</div>
                     </div>
                 </div>
-                <div>
-                    <span class="db-status-badge">
-                        <i class='bx bxs-data'></i> MongoDB Compass Connected
-                    </span>
-                </div>
                 <p id="portalSubtext" class="text-dim mt-1 text-sm">Unified Access Portal for Patients &amp; Staff</p>
             </div>
 
             <!-- Tab Switcher -->
-            <div class="auth-tabs-container">
+            <div class="auth-tabs-container" id="authTabsContainer">
                 <button type="button" class="tab-btn active" id="tabBtnLogin" onclick="switchAuthTab('login')">
                     <i class='bx bx-log-in-circle'></i> Sign In
                 </button>
                 <button type="button" class="tab-btn" id="tabBtnRegister" onclick="switchAuthTab('register')">
                     <i class='bx bx-user-plus'></i> Patient Sign Up
                 </button>
+            </div>
+
+            <!-- System Maintenance Mode Alert Banner -->
+            <div id="maintenanceAlertBanner" style="display: none; background: #FEF2F2; border: 1.5px solid #FCA5A5; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.08);">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #DC2626; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    <i class='bx bx-error-alt' style="font-size: 20px;"></i> System Maintenance Mode Active
+                </div>
+                <p style="font-size: 12px; color: #7F1D1D; margin: 0; line-height: 1.5; text-align: center;">
+                    OptiDent is currently offline for scheduled infrastructure maintenance. Patient, receptionist, and doctor logins are temporarily suspended.
+                </p>
+                <div style="text-align: center; margin-top: 10px;">
+                    <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(220, 38, 38, 0.1); color: #B91C1C; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 999px;">
+                        <i class='bx bx-shield-quarter'></i> Super Admin Emergency Access Only
+                    </span>
+                </div>
             </div>
 
             <!-- Notification Banner -->
@@ -469,7 +481,7 @@
                     <a href="javascript:void(0)" onclick="switchAuthTab('forgot')" class="text-xs font-semibold text-primary" style="text-decoration: none; display: flex; align-items: center; gap: 4px;">
                         <i class='bx bx-key' style="font-size: 14px;"></i> Forgot Password?
                     </a>
-                    <a href="accept_invite.html" class="text-xs font-semibold text-dim" style="text-decoration: none;">
+                    <a href="accept_invite.html" id="staffInviteLink" class="text-xs font-semibold text-dim" style="text-decoration: none;">
                         Staff Invite Token?
                     </a>
                 </div>
@@ -484,7 +496,27 @@
                     <i class='bx bx-log-in-circle mr-1'></i> Sign In to OptiDent
                 </button>
 
-                <div class="mt-2 text-center border-top pt-2">
+                <!-- Google Sign-In Option -->
+                <div id="googleAuthContainer" style="margin-top: 14px;">
+                    <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <span style="flex: 1; border-bottom: 1px solid #e2e8f0;"></span>
+                        <span style="padding: 0 10px;">or continue with</span>
+                        <span style="flex: 1; border-bottom: 1px solid #e2e8f0;"></span>
+                    </div>
+
+                    <button type="button" id="btnGoogleAuth" onclick="handleGoogleSignIn()" class="btn-outline w-full shadow-hover"
+                            style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 16px; border: 1.5px solid #cbd5e1; border-radius: 10px; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s ease;">
+                        <svg width="18" height="18" viewBox="0 0 48 48">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                        <span>Continue with Google</span>
+                    </button>
+                </div>
+
+                <div class="mt-2 text-center border-top pt-2" id="newPatientPrompt">
                     <p class="text-xs text-dim">
                         New patient? 
                         <a href="javascript:void(0)" onclick="switchAuthTab('register')" class="text-primary font-semibold" style="text-decoration: none;">
@@ -557,6 +589,26 @@
                             style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px;">
                         <i class='bx bx-mail-send mr-1'></i> Send Verification Code &amp; Continue &rarr;
                     </button>
+
+                    <!-- Google Quick Sign-Up Option -->
+                    <div id="googleRegisterContainer" style="margin-top: 14px;">
+                        <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <span style="flex: 1; border-bottom: 1px solid #e2e8f0;"></span>
+                            <span style="padding: 0 10px;">or sign up with</span>
+                            <span style="flex: 1; border-bottom: 1px solid #e2e8f0;"></span>
+                        </div>
+
+                        <button type="button" id="btnGoogleAuthRegister" onclick="handleGoogleSignIn()" class="btn-outline w-full shadow-hover"
+                                style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 16px; border: 1.5px solid #cbd5e1; border-radius: 10px; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s ease;">
+                            <svg width="18" height="18" viewBox="0 0 48 48">
+                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                            </svg>
+                            <span>Sign up with Google</span>
+                        </button>
+                    </div>
 
                     <div id="reopenModalNotice" style="display: none; margin-top: 10px; text-align: center;">
                         <a href="javascript:void(0)" onclick="openOtpModal()" class="text-primary font-semibold text-xs" style="text-decoration: underline;">
@@ -814,9 +866,342 @@
         </div>
     </div>
 
+    <!-- Google Account Chooser Modal (Identical to Google's Account Selector) -->
+    <div id="googleAuthModal" class="google-chooser-overlay">
+        <div class="google-chooser-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="24" height="24" viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+                    <span style="font-size: 13px; font-weight: 500; color: #bdc1c6;">Sign in with Google</span>
+                </div>
+                <button type="button" onclick="closeGoogleAuthModal()" style="background: none; border: none; color: #9aa0a6; font-size: 20px; cursor: pointer; padding: 2px 6px; border-radius: 50%;" aria-label="Close">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+
+            <h3 style="font-size: 22px; font-weight: 500; color: #e8eaed; margin: 4px 0 2px 0;">Choose an account</h3>
+            <p style="font-size: 13px; color: #9aa0a6; margin: 0 0 14px 0;">to continue to <strong style="color: #e8eaed;">OptiDent Clinical Management</strong></p>
+
+            <!-- Loading overlay inside modal -->
+            <div id="googleLoadingSpinner" style="display: none; padding: 24px 0; text-align: center;">
+                <div style="display: inline-block; width: 34px; height: 34px; border: 3.5px solid rgba(138, 180, 248, 0.25); border-radius: 50%; border-top-color: #8ab4f8; animation: spin 0.8s linear infinite;"></div>
+                <p id="googleLoadingText" style="margin-top: 12px; font-size: 13.5px; color: #8ab4f8; font-weight: 500;">Signing in with Google...</p>
+            </div>
+
+            <!-- Error alert inside modal -->
+            <div id="googleAuthAlert" class="notification-banner" style="display: none; margin: 0 0 14px 0; padding: 8px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;">
+                <i id="googleAuthAlertIcon" class='bx bx-error-circle'></i>
+                <span id="googleAuthAlertMsg"></span>
+            </div>
+
+            <!-- Google Accounts List View -->
+            <div id="googleAccountsList" style="max-height: 330px; overflow-y: auto; border-top: 1px solid #3c4043; border-bottom: 1px solid #3c4043;">
+                <!-- Account 1 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('edjamenf@gmail.com', 'Edjamen Flores')">
+                    <div class="google-acc-avatar" style="background: #2e7d32; color: #ffffff;">E</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Edjamen Flores</div>
+                        <div class="google-acc-email">edjamenf@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- Account 2 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('jamgamer1014@gmail.com', 'JaM_GameR')">
+                    <div class="google-acc-avatar" style="background: #8e24aa; color: #ffffff;">J</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">JaM_GameR</div>
+                        <div class="google-acc-email">jamgamer1014@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- Account 3 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('2401102032@student.buksu.edu.ph', 'Edjamen Flores')">
+                    <div class="google-acc-avatar" style="background: #0288d1; color: #ffffff;">E</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Edjamen Flores</div>
+                        <div class="google-acc-email">2401102032@student.buksu.edu.ph</div>
+                    </div>
+                </div>
+
+                <!-- Account 4 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('laymen1014@gmail.com', 'Lay Men')">
+                    <div class="google-acc-avatar" style="background: #00897b; color: #ffffff;">L</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Lay Men</div>
+                        <div class="google-acc-email">laymen1014@gmail.com</div>
+                    </div>
+                    <span style="font-size: 11px; color: #9aa0a6; padding: 2px 6px;">Signed out</span>
+                </div>
+
+                <!-- Account 5 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('oniichanejmn@gmail.com', 'Ejmn Oniichan')">
+                    <div class="google-acc-avatar" style="background: #00acc1; color: #ffffff;">E</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Ejmn Oniichan</div>
+                        <div class="google-acc-email">oniichanejmn@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- Account 6 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('edflores280@gmail.com', 'Jay Flores')">
+                    <div class="google-acc-avatar" style="background: #fb8c00; color: #ffffff;">J</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Jay Flores</div>
+                        <div class="google-acc-email">edflores280@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- Account 7 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('janelflores567@gmail.com', 'Janel Flores')">
+                    <div class="google-acc-avatar" style="background: #d81b60; color: #ffffff;">J</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Janel Flores</div>
+                        <div class="google-acc-email">janelflores567@gmail.com</div>
+                    </div>
+                    <span style="font-size: 11px; color: #9aa0a6; padding: 2px 6px;">Signed out</span>
+                </div>
+
+                <!-- Account 8 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('2401101234@student.buksu.edu.ph', 'Keren Sole Salvanera')">
+                    <div class="google-acc-avatar" style="background: #5e35b1; color: #ffffff;">K</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Keren Sole Salvanera</div>
+                        <div class="google-acc-email">2401101234@student.buksu.edu.ph</div>
+                    </div>
+                </div>
+
+                <!-- Use another account -->
+                <div class="google-acc-row" onclick="toggleUseAnotherGoogleAccount(true)" style="border-bottom: none;">
+                    <div class="google-acc-avatar" style="background: transparent; border: 1.5px solid #5f6368; color: #e8eaed; font-size: 18px;">
+                        <i class='bx bx-user'></i>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name" style="font-weight: 500;">Use another account</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Account Input View (Shown when clicking 'Use another account') -->
+            <div id="googleAnotherAccountView" style="display: none; padding-top: 14px;">
+                <label style="display: block; font-size: 12px; font-weight: 500; color: #bdc1c6; margin-bottom: 6px;">Email or phone</label>
+                <input type="email" id="googleCustomEmail" placeholder="Enter your Google or Gmail account" style="width: 100%; padding: 11px 12px; font-size: 13.5px; border: 1.5px solid #5f6368; border-radius: 8px; background: #2a2b2e; color: #ffffff; outline: none; box-sizing: border-box;">
+                <div style="display: flex; gap: 8px; margin-top: 14px;">
+                    <button type="button" onclick="submitCustomGoogleAccount()" style="flex: 1; padding: 10px; background: #8ab4f8; color: #202124; font-weight: 600; font-size: 13.5px; border: none; border-radius: 8px; cursor: pointer;">
+                        Next &rarr;
+                    </button>
+                    <button type="button" onclick="toggleUseAnotherGoogleAccount(false)" style="padding: 10px 14px; background: transparent; color: #bdc1c6; border: 1px solid #5f6368; font-size: 13px; border-radius: 8px; cursor: pointer;">
+                        Back
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #9aa0a6;">
+                <span>OptiDent Google OAuth 2.0</span>
+                <span style="color: #8ab4f8; font-size: 11px;">Protected by Google Identity</span>
+            </div>
+        </div>
+    </div>
+
     <script>
         let activeSessionDest = null;
         let sessionRedirectTimer = null;
+        let isMaintenanceMode = false;
+
+        function applyMaintenanceModeUI(active) {
+            isMaintenanceMode = !!active;
+            const banner = document.getElementById('maintenanceAlertBanner');
+            const tabsContainer = document.getElementById('authTabsContainer');
+            const subtext = document.getElementById('portalSubtext');
+            const emailInput = document.getElementById('loginEmail');
+            const passInput = document.getElementById('loginPassword');
+            const submitBtn = document.getElementById('submitLoginBtn');
+            const staffInvite = document.getElementById('staffInviteLink');
+            const newPatientFooter = document.getElementById('newPatientPrompt');
+            const googleAuth = document.getElementById('googleAuthContainer');
+            const googleReg = document.getElementById('googleRegisterContainer');
+
+            if (isMaintenanceMode) {
+                if (banner) banner.style.display = 'block';
+                if (tabsContainer) tabsContainer.style.display = 'none';
+                if (subtext) subtext.innerHTML = '<span style="color: #dc2626; font-weight: 700; font-size: 13px;"><i class="bx bx-shield-quarter mr-1"></i> Super Administrator Emergency Access Console</span>';
+                if (emailInput) emailInput.placeholder = 'Super Admin Email Address';
+                if (passInput) passInput.placeholder = 'Super Admin Password';
+                if (submitBtn) {
+                    submitBtn.innerHTML = "<i class='bx bx-shield-quarter mr-1'></i> Sign In as Super Admin";
+                    submitBtn.style.background = '#dc2626';
+                    submitBtn.style.borderColor = '#b91c1c';
+                }
+                if (staffInvite) staffInvite.style.display = 'none';
+                if (newPatientFooter) newPatientFooter.style.display = 'none';
+                if (googleAuth) googleAuth.style.display = 'none';
+                if (googleReg) googleReg.style.display = 'none';
+
+                if (window.location.hash === '#register') {
+                    switchAuthTab('login');
+                }
+            } else {
+                if (banner) banner.style.display = 'none';
+                if (tabsContainer) tabsContainer.style.display = 'grid';
+                if (subtext) subtext.textContent = 'Unified Access Portal for Patients & Staff';
+                if (emailInput) emailInput.placeholder = 'Email Address (Staff or Patient)';
+                if (passInput) passInput.placeholder = 'Password';
+                if (submitBtn) {
+                    submitBtn.innerHTML = "<i class='bx bx-log-in-circle mr-1'></i> Sign In to OptiDent";
+                    submitBtn.style.background = '';
+                    submitBtn.style.borderColor = '';
+                }
+                if (staffInvite) staffInvite.style.display = '';
+                if (newPatientFooter) newPatientFooter.style.display = '';
+                if (googleAuth) googleAuth.style.display = 'block';
+                if (googleReg) googleReg.style.display = 'block';
+            }
+        }
+
+        // ── Google Sign-In & Account Chooser Handlers ──────────────────
+        let googleOAuthConfig = { enabled: true, client_id: '' };
+
+        async function initGoogleAuthConfig() {
+            try {
+                const res = await fetch('api/auth/google_config');
+                if (res.ok) {
+                    googleOAuthConfig = await res.json();
+                }
+            } catch (_) {}
+        }
+        initGoogleAuthConfig();
+
+        function handleGoogleSignIn() {
+            if (isMaintenanceMode) {
+                showNotif('error', 'Google Sign-In is temporarily disabled during System Maintenance Mode. Please sign in with Super Admin credentials.');
+                return;
+            }
+
+            // If a live Google Client ID is configured in settings or .env, open official Google OAuth popup
+            if (googleOAuthConfig && googleOAuthConfig.client_id) {
+                const clientId = googleOAuthConfig.client_id;
+                const redirectUri = window.location.origin + '/index.html';
+                const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token%20id_token&scope=openid%20profile%20email&prompt=select_account`;
+                const popup = window.open(authUrl, 'GoogleSignIn', 'width=500,height=620,left=350,top=120');
+                if (popup) return;
+            }
+
+            // Otherwise, open the authentic Google Account Chooser
+            toggleUseAnotherGoogleAccount(false);
+            const alert = document.getElementById('googleAuthAlert');
+            if (alert) alert.style.display = 'none';
+            const spinner = document.getElementById('googleLoadingSpinner');
+            if (spinner) spinner.style.display = 'none';
+            const list = document.getElementById('googleAccountsList');
+            if (list) list.style.display = 'block';
+
+            const modal = document.getElementById('googleAuthModal');
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeGoogleAuthModal() {
+            const modal = document.getElementById('googleAuthModal');
+            if (modal) modal.classList.remove('active');
+            const alert = document.getElementById('googleAuthAlert');
+            if (alert) alert.style.display = 'none';
+            const spinner = document.getElementById('googleLoadingSpinner');
+            if (spinner) spinner.style.display = 'none';
+        }
+
+        function toggleUseAnotherGoogleAccount(showCustom = true) {
+            const list = document.getElementById('googleAccountsList');
+            const customView = document.getElementById('googleAnotherAccountView');
+            const alert = document.getElementById('googleAuthAlert');
+            if (alert) alert.style.display = 'none';
+
+            if (showCustom) {
+                if (list) list.style.display = 'none';
+                if (customView) {
+                    customView.style.display = 'block';
+                    const inp = document.getElementById('googleCustomEmail');
+                    if (inp) {
+                        inp.value = '';
+                        inp.focus();
+                    }
+                }
+            } else {
+                if (list) list.style.display = 'block';
+                if (customView) customView.style.display = 'none';
+            }
+        }
+
+        async function selectGoogleAccount(email, name) {
+            const alert = document.getElementById('googleAuthAlert');
+            const alertMsg = document.getElementById('googleAuthAlertMsg');
+            const spinner = document.getElementById('googleLoadingSpinner');
+            const spinnerText = document.getElementById('googleLoadingText');
+            const list = document.getElementById('googleAccountsList');
+            const customView = document.getElementById('googleAnotherAccountView');
+
+            if (alert) alert.style.display = 'none';
+            if (list) list.style.display = 'none';
+            if (customView) customView.style.display = 'none';
+            if (spinner) {
+                spinner.style.display = 'block';
+                if (spinnerText) spinnerText.textContent = `Signing in as ${name || email}...`;
+            }
+
+            try {
+                const res = await fetch('api/auth/google_login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, name })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    if (spinnerText) spinnerText.textContent = 'Account authenticated! Opening OptiDent...';
+                    setTimeout(() => {
+                        closeGoogleAuthModal();
+                        showNotif('success', `Signed in via Google as ${data.user?.full_name || email}. Launching portal...`);
+                        setTimeout(() => {
+                            window.location.href = data.redirect || data.redirect_url || 'client_dashboard.html';
+                        }, 500);
+                    }, 400);
+                } else {
+                    if (spinner) spinner.style.display = 'none';
+                    if (list) list.style.display = 'block';
+                    if (alert && alertMsg) {
+                        alert.style.display = 'flex';
+                        alertMsg.textContent = data.message || 'Google account sign-in failed.';
+                    }
+                }
+            } catch (err) {
+                if (spinner) spinner.style.display = 'none';
+                if (list) list.style.display = 'block';
+                if (alert && alertMsg) {
+                    alert.style.display = 'flex';
+                    alertMsg.textContent = 'Unable to reach the OptiDent authentication server.';
+                }
+            }
+        }
+
+        async function submitCustomGoogleAccount() {
+            const inp = document.getElementById('googleCustomEmail');
+            const email = (inp ? inp.value : '').trim().toLowerCase();
+            const alert = document.getElementById('googleAuthAlert');
+            const alertMsg = document.getElementById('googleAuthAlertMsg');
+
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                if (alert && alertMsg) {
+                    alert.style.display = 'flex';
+                    alertMsg.textContent = 'Please enter a valid Google account or Gmail address.';
+                }
+                return;
+            }
+
+            const inferredName = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            await selectGoogleAccount(email, inferredName);
+        }
 
         // ── Tab Switching ────────────────────────────────────────────────
         function switchAuthTab(tabName) {
@@ -825,6 +1210,10 @@
                 clearTimeout(sessionRedirectTimer);
                 sessionRedirectTimer = null;
             }
+            if (isMaintenanceMode && tabName === 'register') {
+                showNotif('error', 'Patient registration is currently disabled while System Maintenance Mode is active.');
+                return;
+            }
             const activeBanner = document.getElementById('activeSessionBanner');
             const box = document.getElementById('authBox');
             const btnLogin = document.getElementById('tabBtnLogin');
@@ -832,7 +1221,7 @@
             const formLogin = document.getElementById('form-login');
             const formReg = document.getElementById('form-register');
             const formForgot = document.getElementById('form-forgot');
-            const tabsContainer = document.querySelector('.auth-tabs-container');
+            const tabsContainer = document.getElementById('authTabsContainer');
             const subtext = document.getElementById('portalSubtext');
 
             if (tabName === 'register') {
@@ -855,17 +1244,21 @@
                 formLogin.style.display = 'none';
                 formReg.style.display = 'none';
                 if (formForgot) formForgot.style.display = 'block';
-                subtext.textContent = 'Account Recovery & Password Reset';
+                subtext.textContent = isMaintenanceMode ? 'Super Admin Account Recovery' : 'Account Recovery & Password Reset';
                 window.location.hash = '#forgot';
             } else {
-                if (tabsContainer) tabsContainer.style.display = 'grid';
+                if (tabsContainer) tabsContainer.style.display = isMaintenanceMode ? 'none' : 'grid';
                 box.classList.remove('register-mode');
                 btnReg.classList.remove('active');
                 btnLogin.classList.add('active');
                 formReg.style.display = 'none';
                 if (formForgot) formForgot.style.display = 'none';
                 formLogin.style.display = 'block';
-                subtext.textContent = 'Unified Access Portal for Patients & Staff';
+                if (isMaintenanceMode) {
+                    subtext.innerHTML = '<span style="color: #dc2626; font-weight: 700; font-size: 13px;"><i class="bx bx-shield-quarter mr-1"></i> Super Administrator Emergency Access Console</span>';
+                } else {
+                    subtext.textContent = 'Unified Access Portal for Patients & Staff';
+                }
                 window.location.hash = '#login';
                 if (activeSessionDest && activeBanner) {
                     activeBanner.style.display = 'block';
@@ -936,6 +1329,9 @@
                         if (el && el.getAttribute('data-sitekey') !== cfg.site_key) {
                             el.setAttribute('data-sitekey', cfg.site_key);
                         }
+                    }
+                    if (cfg.maintenance_mode !== undefined) {
+                        applyMaintenanceModeUI(!!cfg.maintenance_mode);
                     }
                 }
             } catch (_) {}

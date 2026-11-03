@@ -281,9 +281,143 @@ export async function sendPasswordResetEmail(toEmail, toName, code, customUser =
     return await sendMailWithFallback(mailOptionsBuilder, customUser, customPass);
 }
 
+/**
+ * Sends branded appointment update email (booking, rescheduling, cancellation)
+ */
+export async function sendAppointmentNotificationEmail(toEmail, toName, apptDetails, eventType = 'booked', customUser = '', customPass = '') {
+    const displayName = toName || 'Patient';
+    const date = apptDetails.date || apptDetails.appointment_date || '';
+    const time = apptDetails.time || apptDetails.time_slot || '';
+    const doctor = apptDetails.doctor_name || 'Assigned Dental Specialist';
+    const service = apptDetails.service_name || 'Dental Consultation';
+
+    let subject = '';
+    let badgeColor = '#0EB1B1';
+    let badgeText = 'CONFIRMED';
+    let headline = '';
+
+    if (eventType === 'booked') {
+        subject = `OptiDent Appointment Confirmed: ${service} on ${date}`;
+        badgeColor = '#059669';
+        badgeText = 'CONFIRMED';
+        headline = 'Your dental appointment has been booked successfully!';
+    } else if (eventType === 'rescheduled') {
+        subject = `OptiDent Schedule Update: Appointment Rescheduled to ${date}`;
+        badgeColor = '#4F46E5';
+        badgeText = 'RESCHEDULED';
+        headline = 'Your appointment date and time have been updated.';
+    } else if (eventType === 'cancelled') {
+        subject = `OptiDent Notice: Appointment Cancelled (${date})`;
+        badgeColor = '#DC2626';
+        badgeText = 'CANCELLED';
+        headline = 'Your appointment has been cancelled as requested.';
+    }
+
+    const mailOptionsBuilder = (senderUser) => ({
+        from: `"${SMTP_FROM_NAME}" <${senderUser}>`,
+        to: toName ? `"${toName}" <${toEmail}>` : toEmail,
+        subject,
+        text: `Hello ${displayName},\n\n${headline}\n\nDetails:\nService: ${service}\nDoctor: ${doctor}\nDate: ${date}\nTime: ${time}\nLocation: OptiDent Dental Clinic, Malaybalay City`,
+        html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 25px 12px; color: #1e293b;">
+            <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 14px; padding: 28px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="color: #0EB1B1; margin: 0; font-size: 24px; font-weight: 800;">OptiDent Dental Clinic</h2>
+                    <p style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px;">Patient Appointment Notification</p>
+                </div>
+                
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <span style="background: ${badgeColor}; color: #ffffff; font-size: 11px; font-weight: 800; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">
+                        ${badgeText}
+                    </span>
+                    <h3 style="color: #0f172a; margin: 12px 0 4px 0; font-size: 17px;">Hello ${displayName},</h3>
+                    <p style="color: #475569; font-size: 13.5px; margin: 0;">${headline}</p>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 18px 0; font-size: 13px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #64748b; font-weight: 600;">Dental Service:</span>
+                        <strong style="color: #0f172a;">${service}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #64748b; font-weight: 600;">Attending Doctor:</span>
+                        <strong style="color: #0f172a;">${doctor}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #64748b; font-weight: 600;">Appointment Date:</span>
+                        <strong style="color: #0EB1B1;">${date}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #64748b; font-weight: 600;">Time Slot:</span>
+                        <strong style="color: #0EB1B1;">${time}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #64748b; font-weight: 600;">Clinic Location:</span>
+                        <strong style="color: #0f172a;">OptiDent Clinic, Fortich St.</strong>
+                    </div>
+                </div>
+
+                <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 0;">
+                    Please present your Digital QR Pass at our reception counter upon arrival. If you need further assistance, please contact our clinic front desk.
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0 12px;">
+                <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
+                    OptiDent Dental Clinic &bull; Automated Patient Notification System
+                </p>
+            </div>
+        </div>`
+    });
+
+    return await sendMailWithFallback(mailOptionsBuilder, customUser, customPass);
+}
+
+/**
+ * Sends a 6-digit OTP code for patient verification (C-009)
+ */
+export async function sendPatientOTPEmail(toEmail, toName, code, customUser = '', customPass = '') {
+    const displayName = toName || 'Patient';
+
+    const mailOptionsBuilder = (senderUser) => ({
+        from: `"${SMTP_FROM_NAME}" <${senderUser}>`,
+        to: toName ? `"${toName}" <${toEmail}>` : toEmail,
+        subject: `OptiDent Patient Verification Code: ${code}`,
+        text: `Hello ${displayName},\n\nYour OptiDent account verification OTP is: ${code}\n\nThis code expires in 10 minutes.`,
+        html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 30px 15px; color: #1e293b;">
+            <div style="max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 14px; padding: 30px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; text-align: center;">
+                <h2 style="color: #0EB1B1; margin: 0 0 6px 0; font-size: 24px; font-weight: 800;">OptiDent Dental Clinic</h2>
+                <p style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 20px 0;">Patient Security & OTP Verification (C-009)</p>
+
+                <h3 style="color: #0f172a; margin: 0 0 10px 0; font-size: 17px;">Hello ${displayName},</h3>
+                <p style="color: #475569; font-size: 13.5px; line-height: 1.5; margin: 0 0 22px 0;">
+                    Please enter the following 6-digit one-time password (OTP) to securely verify your patient account:
+                </p>
+
+                <div style="display: inline-block; background-color: #F0FBFA; border: 2px dashed #0EB1B1; border-radius: 12px; padding: 14px 28px; margin-bottom: 12px;">
+                    <span style="font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0a8f8f; font-family: monospace;">${code}</span>
+                </div>
+
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 20px 0;">
+                    This security code expires in <strong>10 minutes</strong>. Never share this code with anyone.
+                </p>
+
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0 12px;">
+                <p style="font-size: 11px; color: #94a3b8; margin: 0;">
+                    OptiDent Dental Clinic &bull; Secure Authentication Service
+                </p>
+            </div>
+        </div>`
+    });
+
+    return await sendMailWithFallback(mailOptionsBuilder, customUser, customPass);
+}
+
 export default {
     sendPatientVerificationEmail,
     sendStaffInvitationEmail,
     sendPatientInvitationEmail,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    sendAppointmentNotificationEmail,
+    sendPatientOTPEmail
 };

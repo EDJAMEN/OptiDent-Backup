@@ -5,6 +5,7 @@ import dbClient from '../config/db.js';
 import requireAuth from '../middleware/authGuard.js';
 import logAudit from '../config/auditLogger.js';
 import { sendStaffInvitationEmail } from '../config/mailer.js';
+import { getServicePrice, formatPhp } from '../config/servicePricing.js';
 
 const router = express.Router();
 
@@ -345,11 +346,20 @@ router.get('/get_system_settings', async (req, res) => {
 router.post('/update_system_settings', async (req, res) => {
     try {
         const body = req.body;
+        const updateFields = {
+            ...body,
+            updated_at: new Date().toISOString()
+        };
+        if (body.maintenance_mode !== undefined) {
+            updateFields.maintenance_mode = !!body.maintenance_mode;
+            const cur = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' }) || {};
+            const curIntegrations = updateFields.integrations || cur.integrations || {};
+            curIntegrations.maintenance_mode = !!body.maintenance_mode;
+            updateFields.integrations = curIntegrations;
+        }
+
         await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
-            $set: {
-                ...body,
-                updated_at: new Date().toISOString()
-            }
+            $set: updateFields
         });
 
         await logAudit(req, 'UPDATE_SETTINGS', 'ADMIN', body, 'success');
@@ -373,18 +383,32 @@ router.post('/toggle_integration', async (req, res) => {
         const integrations = settings.integrations || {};
         integrations[key] = !!enabled;
 
+        const updateFields = {
+            integrations,
+            updated_at: new Date().toISOString()
+        };
+
+        if (key === 'maintenance_mode') {
+            updateFields.maintenance_mode = !!enabled;
+        }
+
         // Synchronize process.env for recaptcha
         if (key === 'recaptcha_enabled') {
             process.env.ENABLE_RECAPTCHA = enabled ? 'true' : 'false';
         }
 
         await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
-            $set: { integrations, updated_at: new Date().toISOString() }
+            $set: updateFields
         });
 
         await logAudit(req, 'TOGGLE_INTEGRATION', 'ADMIN', { key, enabled: !!enabled }, 'success');
 
-        return res.status(200).json({ status: 'success', message: `Integration switch '${key}' set to ${enabled ? 'ENABLED' : 'DISABLED'}.`, integrations });
+        return res.status(200).json({ 
+            status: 'success', 
+            message: `Integration switch '${key}' set to ${enabled ? 'ENABLED' : 'DISABLED'}.`, 
+            integrations,
+            maintenance_mode: key === 'maintenance_mode' ? !!enabled : !!settings.maintenance_mode
+        });
     } catch (err) {
         console.error('Toggle integration error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to toggle integration.' });
@@ -550,6 +574,9 @@ router.get('/get_reports_data', async (req, res) => {
         let scheduledCount = 0;
         let cancelledCount = 0;
         let walkinCount = 0;
+        let totalRevenue = 0;
+        let completedRevenue = 0;
+        let scheduledRevenue = 0;
         const todayQueue = [];
         const cancellationsList = [];
 
@@ -562,30 +589,47 @@ router.get('/get_reports_data', async (req, res) => {
             if (filterDoc !== 'all' && docName.toLowerCase() !== filterDoc.toLowerCase()) continue;
             if (filterStat !== 'all' && status !== filterStat) continue;
 
+            const price = apt.price !== undefined && apt.price !== null && !isNaN(Number(apt.price))
+                ? Number(apt.price)
+                : getServicePrice(apt.service_name);
+
             const apptItem = {
                 id: String(apt._id),
                 patient_name: apt.patient_name || 'Patient',
+                patient_phone: apt.patient_phone || '',
+                patient_email: apt.patient_email || '',
                 doctor_name: docName,
                 service_name: apt.service_name || 'Consultation',
                 appointment_date: aptDate,
                 appointment_time: apt.appointment_time || apt.time_slot || '09:00 AM',
                 operatory_chair: apt.operatory_chair || 'Chair 1',
                 status: status,
+                price: price,
+                formatted_price: formatPhp(price),
                 is_walkin: !!apt.is_walkin
             };
 
             filteredAppts.push(apptItem);
 
-            if (status === 'completed') completedCount++;
-            else if (['in_progress', 'in_chair'].includes(status)) inProgressCount++;
-            else if (status === 'scheduled') scheduledCount++;
-            else if (status === 'cancelled') {
+            totalRevenue += price;
+            if (status === 'completed') {
+                completedCount++;
+                completedRevenue += price;
+            } else if (['in_progress', 'in_chair', 'ongoing'].includes(status)) {
+                inProgressCount++;
+                completedRevenue += price;
+            } else if (status === 'scheduled') {
+                scheduledCount++;
+                scheduledRevenue += price;
+            } else if (status === 'cancelled') {
                 cancelledCount++;
                 cancellationsList.push({
                     id: String(apt._id),
                     patient_name: apt.patient_name || 'Patient',
                     doctor_name: docName,
                     appointment_date: aptDate,
+                    price: price,
+                    formatted_price: formatPhp(price),
                     cancellation_reason: apt.cancellation_reason || 'Patient cancelled'
                 });
             }
@@ -629,9 +673,16 @@ router.get('/get_reports_data', async (req, res) => {
                 cancellation_rate: cancellationRate,
                 today_queue_count: todayQueue.length,
                 audit_events_count: allAudit.length,
-                security_events_count: securityCount
+                security_events_count: securityCount,
+                total_revenue: totalRevenue,
+                formatted_total_revenue: formatPhp(totalRevenue),
+                completed_revenue: completedRevenue,
+                formatted_completed_revenue: formatPhp(completedRevenue),
+                scheduled_revenue: scheduledRevenue,
+                formatted_scheduled_revenue: formatPhp(scheduledRevenue)
             },
             data: {
+                earnings: filteredAppts,
                 appointments: filteredAppts.slice(0, 100),
                 patients: allPatients.slice(0, 100),
                 queues: todayQueue.slice(0, 50),
@@ -645,6 +696,417 @@ router.get('/get_reports_data', async (req, res) => {
     } catch (err) {
         console.error('Reports error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to generate report.' });
+    }
+});
+
+/**
+ * Export Reports to RFC 4180 CSV with UTF-8 BOM (SA-009)
+ */
+router.get('/export_csv', async (req, res) => {
+    try {
+        const type = (req.query.type || req.query.category || req.query.report || 'earnings').toLowerCase();
+        const datePreset = (req.query.date_preset || 'all_time').toLowerCase();
+        const customFrom = req.query.date_from || '';
+        const customTo = req.query.date_to || '';
+        const filterDoc = req.query.doctor || 'all';
+        const filterStat = (req.query.status || 'all').toLowerCase();
+
+        const todayStr = new Date().toISOString().slice(0, 10);
+        let startDate = null;
+        let endDate = null;
+
+        if (datePreset === 'today') {
+            startDate = todayStr; endDate = todayStr;
+        } else if (datePreset === 'yesterday') {
+            const d = new Date(); d.setDate(d.getDate() - 1);
+            startDate = d.toISOString().slice(0, 10); endDate = startDate;
+        } else if (datePreset === 'this_week') {
+            const d = new Date();
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            d.setDate(diff);
+            startDate = d.toISOString().slice(0, 10);
+            endDate = todayStr;
+        } else if (datePreset === 'this_month') {
+            startDate = todayStr.slice(0, 7) + '-01';
+            endDate = todayStr;
+        } else if (datePreset === 'last_30_days') {
+            const d = new Date(); d.setDate(d.getDate() - 30);
+            startDate = d.toISOString().slice(0, 10); endDate = todayStr;
+        } else if (datePreset === 'custom' && customFrom) {
+            startDate = customFrom; endDate = customTo || todayStr;
+        }
+
+        const allAppts = await dbClient.find('appointments', { is_deleted: { $ne: true } });
+        const allUsers = await dbClient.find('users', { is_deleted: { $ne: true } });
+        const allAudit = await dbClient.find('audit_logs', {});
+
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        const filename = `optident_${type}_report_${timestamp}.csv`;
+
+        res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
+        const escapeCsv = (val) => {
+            if (val === null || val === undefined) return '""';
+            const str = String(val).replace(/"/g, '""');
+            return `"${str}"`;
+        };
+
+        let csv = '\uFEFF'; // UTF-8 BOM for Excel
+
+        if (type === 'earnings') {
+            csv += `OptiDent Dental Clinic - Full Financial & System Earnings Report (SA-009)\n`;
+            csv += `Generated On:,${new Date().toLocaleString()},Exported By:,${req.user?.email || 'Super Admin'}\n`;
+            csv += `Period:,${datePreset},Date Range:,${startDate || 'All Time'} to ${endDate || 'Present'}\n`;
+            csv += `Doctor Filter:,${filterDoc},Status Filter:,${filterStat}\n\n`;
+
+            csv += ['Appointment ID', 'Date', 'Time Slot', 'Patient Name', 'Contact Phone', 'Patient Email', 'Treatment / Procedure', 'Attending Doctor', 'Operatory Chair', 'Status', 'Price / Fee (PHP)'].map(escapeCsv).join(',') + '\n';
+
+            let totalCompletedRevenue = 0;
+            let totalScheduledRevenue = 0;
+            let totalOverallRevenue = 0;
+            let matchCount = 0;
+
+            for (const a of allAppts) {
+                const aptDate = (a.appointment_date || a.date || a.created_at || '').slice(0, 10);
+                const status = (a.status || 'scheduled').toLowerCase();
+                const docName = a.doctor_name || a.attending_doctor || 'Doctor';
+
+                if (startDate && endDate && (aptDate < startDate || aptDate > endDate)) continue;
+                if (filterDoc !== 'all' && docName.toLowerCase() !== filterDoc.toLowerCase()) continue;
+                if (filterStat !== 'all' && status !== filterStat) continue;
+
+                const price = a.price !== undefined && a.price !== null && !isNaN(Number(a.price))
+                    ? Number(a.price)
+                    : getServicePrice(a.service_name);
+
+                totalOverallRevenue += price;
+                if (status === 'completed') totalCompletedRevenue += price;
+                else if (status === 'scheduled') totalScheduledRevenue += price;
+                matchCount++;
+
+                csv += [
+                    String(a._id),
+                    aptDate,
+                    a.appointment_time || a.time_slot || '09:00 AM',
+                    a.patient_name || 'Patient',
+                    a.patient_phone || '',
+                    a.patient_email || '',
+                    a.service_name || 'Consultation',
+                    docName,
+                    a.operatory_chair || 'Chair 1',
+                    status.toUpperCase(),
+                    price.toFixed(2)
+                ].map(escapeCsv).join(',') + '\n';
+            }
+
+            csv += `\n`;
+            csv += `FINANCIAL REVENUE SUMMARY\n`;
+            csv += `Total Records Count:,${matchCount}\n`;
+            csv += `Total Realized Earnings (Completed Treatments):,PHP ${totalCompletedRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`;
+            csv += `Total Projected Revenue (Scheduled Appointments):,PHP ${totalScheduledRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`;
+            csv += `Total System Revenue (Overall):,PHP ${totalOverallRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`;
+
+        } else if (type === 'patients') {
+            csv += ['Patient ID', 'Full Name', 'Email Address', 'Phone Number', 'Gender', 'Age', 'Medical Alerts', 'Account Status', 'Registered Date'].map(escapeCsv).join(',') + '\n';
+            for (const u of allUsers) {
+                const role = (u.role || '').toLowerCase();
+                if (['patient', 'client'].includes(role) || !role) {
+                    const createdAt = (u.created_at || '').slice(0, 10);
+                    if (startDate && endDate && (createdAt < startDate || createdAt > endDate)) continue;
+                    csv += [
+                        String(u._id),
+                        u.full_name || 'Patient',
+                        u.email || '',
+                        u.phone || 'N/A',
+                        u.gender || 'Other',
+                        u.age || 'N/A',
+                        u.medical_alerts || u.allergies || 'None',
+                        u.status || 'active',
+                        u.created_at || ''
+                    ].map(escapeCsv).join(',') + '\n';
+                }
+            }
+        } else if (type === 'queues') {
+            csv += ['Queue Number', 'Appointment Date', 'Time Slot', 'Patient Name', 'Phone', 'Service / Procedure', 'Attending Doctor', 'Operatory Chair', 'Queue Status', 'Walk-in?'].map(escapeCsv).join(',') + '\n';
+            for (const a of allAppts) {
+                const aptDate = (a.appointment_date || a.date || '').slice(0, 10);
+                if (startDate && endDate && (aptDate < startDate || aptDate > endDate)) continue;
+                csv += [
+                    a.queue_number || 'N/A',
+                    aptDate,
+                    a.appointment_time || a.time_slot || '09:00 AM',
+                    a.patient_name || 'Patient',
+                    a.patient_phone || '',
+                    a.service_name || 'Consultation',
+                    a.doctor_name || 'Doctor',
+                    a.operatory_chair || 'Chair 1',
+                    (a.status || 'scheduled').toUpperCase(),
+                    a.is_walkin ? 'YES' : 'NO'
+                ].map(escapeCsv).join(',') + '\n';
+            }
+        } else if (type === 'cancellations') {
+            csv += ['Appointment ID', 'Date', 'Time Slot', 'Patient Name', 'Phone', 'Service', 'Attending Doctor', 'Cancellation Reason', 'Cancelled At'].map(escapeCsv).join(',') + '\n';
+            for (const a of allAppts) {
+                if ((a.status || '').toLowerCase() !== 'cancelled') continue;
+                const aptDate = (a.appointment_date || a.date || '').slice(0, 10);
+                if (startDate && endDate && (aptDate < startDate || aptDate > endDate)) continue;
+                csv += [
+                    String(a._id),
+                    aptDate,
+                    a.appointment_time || a.time_slot || '09:00 AM',
+                    a.patient_name || 'Patient',
+                    a.patient_phone || '',
+                    a.service_name || 'Consultation',
+                    a.doctor_name || 'Doctor',
+                    a.cancellation_reason || 'Patient cancelled',
+                    a.cancelled_at || a.updated_at || 'N/A'
+                ].map(escapeCsv).join(',') + '\n';
+            }
+        } else if (type === 'audit_logs') {
+            csv += ['Event ID', 'Timestamp', 'Action / Event Type', 'Target Entity', 'IP Address', 'User Role', 'Actor'].map(escapeCsv).join(',') + '\n';
+            for (const log of allAudit) {
+                const logDate = (log.created_at || '').slice(0, 10);
+                if (startDate && endDate && (logDate < startDate || logDate > endDate)) continue;
+                csv += [
+                    String(log._id),
+                    log.created_at || '',
+                    log.action || 'SYSTEM_EVENT',
+                    log.category || 'system',
+                    log.ip_address || '127.0.0.1',
+                    log.user_role || 'admin',
+                    log.user_email || 'System'
+                ].map(escapeCsv).join(',') + '\n';
+            }
+        } else {
+            // Default Appointments
+            csv += ['Appointment ID', 'Date', 'Time Slot', 'Patient Name', 'Email', 'Phone', 'Service / Procedure', 'Attending Doctor', 'Operatory Chair', 'Price (PHP)', 'Status', 'Walk-in?'].map(escapeCsv).join(',') + '\n';
+            for (const a of allAppts) {
+                const aptDate = (a.appointment_date || a.date || '').slice(0, 10);
+                const status = (a.status || 'scheduled').toLowerCase();
+                const docName = a.doctor_name || a.attending_doctor || 'Doctor';
+
+                if (startDate && endDate && (aptDate < startDate || aptDate > endDate)) continue;
+                if (filterDoc !== 'all' && docName.toLowerCase() !== filterDoc.toLowerCase()) continue;
+                if (filterStat !== 'all' && status !== filterStat) continue;
+
+                const price = a.price !== undefined && a.price !== null && !isNaN(Number(a.price))
+                    ? Number(a.price)
+                    : getServicePrice(a.service_name);
+
+                csv += [
+                    String(a._id),
+                    aptDate,
+                    a.appointment_time || a.time_slot || '09:00 AM',
+                    a.patient_name || 'Patient',
+                    a.patient_email || '',
+                    a.patient_phone || '',
+                    a.service_name || 'Consultation',
+                    docName,
+                    a.operatory_chair || 'Chair 1',
+                    price.toFixed(2),
+                    status.toUpperCase(),
+                    a.is_walkin ? 'YES' : 'NO'
+                ].map(escapeCsv).join(',') + '\n';
+            }
+        }
+
+        await logAudit(req, 'EXPORT_REPORTS_CSV', 'ADMIN', { type, datePreset }, 'success');
+        return res.send(csv);
+
+    } catch (err) {
+        console.error('Export CSV error:', err);
+        return res.status(500).send('Error generating CSV export.');
+    }
+});
+
+/**
+ * Export Official Printable PDF Report (SA-009)
+ */
+router.get('/export_pdf', async (req, res) => {
+    try {
+        const report = (req.query.report || 'comprehensive').toLowerCase();
+        const datePreset = (req.query.date_preset || 'all_time').toLowerCase();
+        const customFrom = req.query.date_from || '';
+        const customTo = req.query.date_to || '';
+        const filterDoc = req.query.doctor || 'all';
+        const filterStat = (req.query.status || 'all').toLowerCase();
+
+        const todayStr = new Date().toISOString().slice(0, 10);
+        let startDate = null;
+        let endDate = null;
+
+        if (datePreset === 'today') {
+            startDate = todayStr; endDate = todayStr;
+        } else if (datePreset === 'yesterday') {
+            const d = new Date(); d.setDate(d.getDate() - 1);
+            startDate = d.toISOString().slice(0, 10); endDate = startDate;
+        } else if (datePreset === 'this_month') {
+            startDate = todayStr.slice(0, 7) + '-01'; endDate = todayStr;
+        } else if (datePreset === 'last_30_days') {
+            const d = new Date(); d.setDate(d.getDate() - 30);
+            startDate = d.toISOString().slice(0, 10); endDate = todayStr;
+        } else if (datePreset === 'custom' && customFrom) {
+            startDate = customFrom; endDate = customTo || todayStr;
+        }
+
+        const allAppts = await dbClient.find('appointments', { is_deleted: { $ne: true } });
+        const allUsers = await dbClient.find('users', { is_deleted: { $ne: true } });
+
+        let totalCompleted = 0;
+        let totalRevenue = 0;
+        let completedRevenue = 0;
+        const matchingAppts = [];
+
+        for (const a of allAppts) {
+            const aptDate = (a.appointment_date || a.date || a.created_at || '').slice(0, 10);
+            const status = (a.status || 'scheduled').toLowerCase();
+            const docName = a.doctor_name || a.attending_doctor || 'Doctor';
+
+            if (startDate && endDate && (aptDate < startDate || aptDate > endDate)) continue;
+            if (filterDoc !== 'all' && docName.toLowerCase() !== filterDoc.toLowerCase()) continue;
+            if (filterStat !== 'all' && status !== filterStat) continue;
+
+            const price = a.price !== undefined && a.price !== null && !isNaN(Number(a.price))
+                ? Number(a.price)
+                : getServicePrice(a.service_name);
+
+            totalRevenue += price;
+            if (status === 'completed') {
+                totalCompleted++;
+                completedRevenue += price;
+            }
+
+            matchingAppts.push({ ...a, resolvedPrice: price });
+        }
+
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OptiDent Operations & Financial Report (SA-009)</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; padding: 24px; color: #1e293b; background: #fff; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0eb1b1; padding-bottom: 12px; margin-bottom: 18px; }
+        .logo-title { font-size: 24px; font-weight: 800; color: #0eb1b1; margin: 0; }
+        .subtitle { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; margin-top: 2px; }
+        .meta-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; font-size: 12px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        .metric-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; border-top: 3px solid #0eb1b1; }
+        .metric-card.green { border-top-color: #10b981; }
+        .metric-val { font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 4px; }
+        .metric-label { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px; }
+        th { background: #f1f5f9; padding: 8px 10px; text-align: left; font-weight: 700; border-bottom: 2px solid #cbd5e1; font-size: 11px; text-transform: uppercase; }
+        td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+        .status-completed { background: #dcfce7; color: #166534; }
+        .status-scheduled { background: #fef3c7; color: #92400e; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .footer { font-size: 11px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 24px; }
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px 16px; border-radius: 8px;">
+        <span style="font-size: 13px; color: #166534; font-weight: 600;">✓ Official Report Ready for Export &amp; Print</span>
+        <div>
+            <button onclick="window.print()" style="background: #0eb1b1; color: white; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px;">Print / Save as PDF</button>
+            <button onclick="window.close()" style="background: white; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-left: 6px;">Close</button>
+        </div>
+    </div>
+
+    <div class="header">
+        <div>
+            <h1 class="logo-title">OptiDent Dental Clinic</h1>
+            <div class="subtitle">Operations, Clinical Governance &amp; Financial Earnings Intelligence</div>
+        </div>
+        <div style="text-align: right; font-size: 11px; color: #64748b;">
+            <div>Report ID: SA009-${Date.now().toString().slice(-6)}</div>
+            <div>Generated: ${new Date().toLocaleString()}</div>
+        </div>
+    </div>
+
+    <div class="meta-box">
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <div><strong>Reporting Scope:</strong> ${datePreset.toUpperCase().replace(/_/g, ' ')} (${startDate || 'All Time'} to ${endDate || 'Present'})</div>
+            <div><strong>Attending Doctor:</strong> ${filterDoc === 'all' ? 'All Clinical Dentists' : filterDoc}</div>
+            <div><strong>Status Scope:</strong> ${filterStat === 'all' ? 'All Treatment Statuses' : filterStat.toUpperCase()}</div>
+        </div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card green">
+            <div class="metric-label">Realized Earnings (Completed)</div>
+            <div class="metric-val" style="color: #059669;">₱${completedRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Total System Revenue</div>
+            <div class="metric-val">₱${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Completed Treatments</div>
+            <div class="metric-val">${totalCompleted}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Total Appointments Analyzed</div>
+            <div class="metric-val">${matchingAppts.length}</div>
+        </div>
+    </div>
+
+    <h3 style="font-size: 14px; margin-bottom: 8px; color: #0f172a;">Itemized Treatment &amp; Earnings Register</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date &amp; Time</th>
+                <th>Patient Details</th>
+                <th>Treatment / Procedure</th>
+                <th>Attending Doctor</th>
+                <th>Price / Fee</th>
+                <th style="text-align: right;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${matchingAppts.length === 0 ? '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 20px;">No matching records found for this period.</td></tr>' : matchingAppts.map(a => {
+                const st = (a.status || 'scheduled').toLowerCase();
+                const badgeClass = st === 'completed' ? 'status-completed' : (st === 'cancelled' ? 'status-cancelled' : 'status-scheduled');
+                return `<tr>
+                    <td><strong>${a.appointment_date || a.date}</strong><br><span style="color: #64748b; font-size: 11px;">${a.appointment_time || a.time_slot || ''}</span></td>
+                    <td><strong>${a.patient_name}</strong><br><span style="color: #64748b; font-size: 11px;">${a.patient_phone || a.patient_email || ''}</span></td>
+                    <td><strong>${a.service_name || 'Consultation'}</strong></td>
+                    <td>${a.doctor_name || a.attending_doctor || 'Doctor'}</td>
+                    <td><strong style="color: #059669;">₱${(a.resolvedPrice || 500).toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></td>
+                    <td style="text-align: right;"><span class="badge ${badgeClass}">${st.toUpperCase()}</span></td>
+                </tr>`;
+            }).join('')}
+        </tbody>
+        <tfoot>
+            <tr style="background: #f8fafc; font-weight: bold; border-top: 2px solid #cbd5e1;">
+                <td colspan="4" style="text-align: right; padding: 10px;">Total Realized Earnings:</td>
+                <td style="color: #059669; font-size: 13px;">₱${completedRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="footer">
+        OptiDent Dental Clinic &bull; System Governance &amp; Executive Revenue Reporting &bull; Confidential
+    </div>
+</body>
+</html>`;
+
+        await logAudit(req, 'EXPORT_REPORTS_PDF', 'ADMIN', { report, datePreset }, 'success');
+        return res.send(html);
+
+    } catch (err) {
+        console.error('Export PDF error:', err);
+        return res.status(500).send('Error generating PDF report.');
     }
 });
 

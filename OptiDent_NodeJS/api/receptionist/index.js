@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import dbClient from '../config/db.js';
 import requireAuth from '../middleware/authGuard.js';
 import logAudit from '../config/auditLogger.js';
+import { getServicePrice, formatPhp } from '../config/servicePricing.js';
+import { ClinicHoursHelper } from '../config/clinicHoursHelper.js';
 
 const router = express.Router();
 
@@ -89,6 +91,8 @@ router.get('/get_dashboard_data', async (req, res) => {
                 doctor_name: apt.doctor_name || apt.attending_doctor || 'Assigned Doctor',
                 attending_doctor: apt.doctor_name || apt.attending_doctor || 'Assigned Doctor',
                 service_name: apt.service_name || 'Dental Consultation',
+                price: apt.price !== undefined && apt.price !== null && !isNaN(Number(apt.price)) ? Number(apt.price) : getServicePrice(apt.service_name),
+                formatted_price: formatPhp(apt.price !== undefined && apt.price !== null && !isNaN(Number(apt.price)) ? Number(apt.price) : getServicePrice(apt.service_name)),
                 appointment_date: aptDate,
                 date: aptDate,
                 time_slot: apt.time_slot || apt.appointment_time || '09:00 AM',
@@ -203,6 +207,8 @@ router.post('/create_appointment', async (req, res) => {
             doctor_name: body.doctor_name || 'First Available Doctor',
             attending_doctor: body.doctor_name || 'First Available Doctor',
             service_name: body.service_name || 'Dental Consultation',
+            price: getServicePrice(body.service_name, body.price),
+            formatted_price: formatPhp(getServicePrice(body.service_name, body.price)),
             operatory_chair: body.operatory_chair || 'Operatory Chair 1',
             status: isWalkin ? 'checked_in' : (body.status || 'scheduled'),
             queue_number: queueNumber,
@@ -686,15 +692,49 @@ router.get('/get_doctor_schedule_slots', async (req, res) => {
             if (doc.is_deleted || doc.is_archived) continue;
             const docName = doc.full_name || 'Doctor';
             const workingDays = doc.working_days || 'Monday - Saturday';
-            const isOnDuty = !workingDays.toLowerCase().includes('closed') && (dayAbbr !== 'Sun' || workingDays.toLowerCase().includes('sun'));
+            const offDates = Array.isArray(doc.off_duty_dates) ? doc.off_duty_dates : [];
+            const isSpecificOff = offDates.includes(targetDate);
+            const extraDates = Array.isArray(doc.extra_duty_dates) ? doc.extra_duty_dates : [];
+            const isSpecificExtra = extraDates.includes(targetDate);
+            const customHours = doc.custom_date_hours && doc.custom_date_hours[targetDate];
+
+            const isStandardDutyDay = !workingDays.toLowerCase().includes('closed') && (dayAbbr !== 'Sun' || workingDays.toLowerCase().includes('sun'));
+            const isOnDuty = (!isSpecificOff && isStandardDutyDay) || isSpecificExtra;
 
             if (isOnDuty) onDutyCount++;
+
+            // Calculate active hours for this date
+            let allowedSlotsForDoc = DEFAULT_TIME_SLOTS;
+            if (customHours && customHours.start && customHours.end) {
+                allowedSlotsForDoc = ClinicHoursHelper.generateSlots(customHours.start, customHours.end, false);
+            }
 
             const slotsData = [];
             let docBooked = 0;
             let docAvailable = 0;
 
             for (const slot of DEFAULT_TIME_SLOTS) {
+                if (!isOnDuty) {
+                    slotsData.push({
+                        time: slot,
+                        status: 'off_duty',
+                        status_label: 'Off Duty (Leave)',
+                        appointment: null
+                    });
+                    continue;
+                }
+
+                // If doctor has custom/half-day shift and slot is outside shift hours
+                if (customHours && !allowedSlotsForDoc.includes(slot)) {
+                    slotsData.push({
+                        time: slot,
+                        status: 'off_duty',
+                        status_label: `Off Duty (${customHours.label || 'Shift'})`,
+                        appointment: null
+                    });
+                    continue;
+                }
+
                 const bookedApt = dateAppts.find(a => {
                     const matchDoc = !a.doctor_name || a.doctor_name === docName || a.doctor_name === 'First Available Doctor';
                     const matchTime = (a.time_slot || a.appointment_time) === slot;

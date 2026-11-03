@@ -493,6 +493,14 @@ body {
     margin-bottom: 24px;
 }
 
+.mb-3 {
+    margin-bottom: 20px;
+}
+
+.mb-4 {
+    margin-bottom: 28px;
+}
+
 .pt-1 {
     padding-top: 12px;
 }
@@ -2911,4 +2919,374 @@ button {
 [data-theme="dark"] .timeline-step.active .timeline-dot {
     background: var(--primary);
     border-color: var(--primary);
+}
+
+
+/* Google Account Chooser Popup Styles */
+.google-chooser-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+}
+.google-chooser-overlay.active {
+    display: flex;
+    animation: googleFadeIn 0.2s ease-out;
+}
+@keyframes googleFadeIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+.google-chooser-card {
+    max-width: 440px;
+    width: 90%;
+    background: #202124;
+    color: #e8eaed;
+    border-radius: 20px;
+    padding: 24px 20px 20px 20px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+    text-align: left;
+    border: 1px solid #3c4043;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Google Sans", Arial, sans-serif;
+    box-sizing: border-box;
+}
+.google-acc-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 10px;
+    border-bottom: 1px solid #3c4043;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+    user-select: none;
+}
+.google-acc-row:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+.google-acc-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.google-acc-name {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #e8eaed;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.google-acc-email {
+    font-size: 12px;
+    color: #9aa0a6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* Doctor Availability Calendar & Day Tile Styles */
+.btn-xs-preset, .doc-preset-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.btn-xs-preset:hover, .doc-preset-btn:hover {
+    background: rgba(14, 177, 177, 0.1);
+    color: #0EB1B1;
+    border-color: #0EB1B1;
+}
+.btn-xs-preset.clear:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.doc-day-tiles-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.doc-day-tile, .doc-day-card {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 8px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.doc-day-tile:hover, .doc-day-card:hover {
+    border-color: #0EB1B1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+.doc-day-tile.active, .doc-day-card.active {
+    background: linear-gradient(135deg, #0EB1B1 0%, #088b8b 100%);
+    border-color: #088b8b;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(14, 177, 177, 0.35);
+}
+.doc-day-tile.active .doc-day-tile-code,
+.doc-day-tile.active .doc-day-tile-name,
+.doc-day-tile.active i,
+.doc-day-card.active .doc-day-code,
+.doc-day-card.active .doc-day-name,
+.doc-day-card.active .doc-day-status {
+    color: #ffffff !important;
+}
+.doc-day-tile-code, .doc-day-code {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #1e293b;
+    margin-bottom: 2px;
+}
+.doc-day-tile-name, .doc-day-name {
+    font-size: 10px;
+    color: #64748b;
+    display: block;
+    margin-bottom: 2px;
+}
+.doc-day-status {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #94a3b8;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.04);
+}
+.doc-day-card.active .doc-day-status {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.doc-calendar-container {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 10px;
+}
+.doc-cal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.doc-cal-nav-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #475569;
+    transition: all 0.15s ease;
+}
+.doc-cal-nav-btn:hover {
+    background: #f1f5f9;
+    color: #0EB1B1;
+    border-color: #0EB1B1;
+}
+.doc-cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.doc-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+.doc-off-count-badge {
+    font-size: 10px;
+    font-weight: 700;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    padding: 2px 7px;
+    border-radius: 10px;
+}
+.doc-exception-chips-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+.doc-specific-off-wrap {
+    background: #fffbeb;
+    border: 1px solid #fef3c7;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.doc-cal-cell {
+    padding: 8px 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s ease;
+    position: relative;
+    user-select: none;
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    min-height: 38px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.doc-cal-cell:hover {
+    transform: scale(1.06);
+    z-index: 2;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+}
+.doc-cal-cell.is-duty {
+    background: rgba(14, 177, 177, 0.12);
+    border: 1.5px solid #0EB1B1;
+    color: #0a8f8f;
+    font-weight: 700;
+}
+.doc-cal-cell.is-off {
+    color: #94a3b8;
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+}
+.doc-cal-cell.is-other-month {
+    opacity: 0.25;
+    pointer-events: none;
+}
+.doc-cal-cell.is-today {
+    box-shadow: inset 0 0 0 1.5px #3b82f6;
+}
+.doc-cal-cell .duty-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #0EB1B1;
+    margin-top: 2px;
+}
+
+
+/* Doctor Specific Date Exceptions Styles */
+.doc-cal-cell.is-specific-off {
+    background: #fff1f2 !important;
+    border: 1.5px dashed #f43f5e !important;
+    color: #e11d48 !important;
+    font-weight: 700 !important;
+}
+.doc-cal-cell.is-extra-duty {
+    background: rgba(99, 102, 241, 0.15) !important;
+    border: 1.5px solid #6366f1 !important;
+    color: #4f46e5 !important;
+    font-weight: 700 !important;
+}
+.doc-exception-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+.doc-exception-chip .btn-remove-chip {
+    cursor: pointer;
+    font-size: 13px;
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    border: none;
+    background: none;
+    padding: 0;
+    margin-left: 2px;
+}
+.doc-exception-chip .btn-remove-chip:hover {
+    color: #7f1d1d;
+}
+
+
+/* Doctor Shift Customizer & Half-Day Styles */
+.shift-option-card {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.shift-option-card:hover {
+    border-color: #0EB1B1;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    transform: translateY(-1px);
+}
+.shift-icon-wrap {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.doc-cal-cell.is-half-day {
+    background: #fffbeb !important;
+    border: 1.5px solid #f59e0b !important;
+    color: #b45309 !important;
+    font-weight: 700 !important;
+}
+.doc-cal-cell.is-half-day .duty-dot {
+    background: #f59e0b !important;
+}
+.doc-cal-cell.is-custom-shift {
+    background: #eef2ff !important;
+    border: 1.5px solid #6366f1 !important;
+    color: #4338ca !important;
+    font-weight: 700 !important;
+}
+.doc-cal-cell.is-custom-shift .duty-dot {
+    background: #6366f1 !important;
 }

@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Icons -->
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <!-- QR Code Generator (C-010) -->
+    <script src="js/qrcode.min.js"></script>
     <!-- Base CSS -->
     <link rel="stylesheet" href="css/style.css">
     <style>
@@ -353,22 +355,24 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 100;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(5px);
+            z-index: 1200;
             align-items: center;
             justify-content: center;
             padding: 1rem;
         }
-        .modal-dialog {
-            background: var(--pat-surface);
-            border-radius: 16px;
+        .modal-dialog, .modal-card {
+            background: var(--pat-surface, #ffffff);
+            color: var(--pat-text, #0f172a);
+            border-radius: 18px;
             width: 100%;
             max-width: 580px;
             max-height: 90vh;
             overflow-y: auto;
             padding: 1.75rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--pat-border, #e2e8f0);
             position: relative;
         }
 
@@ -712,6 +716,304 @@
                 display: none !important;
             }
         }
+
+        /* ── C-009 & C-010: Notification, Calendar & QR Code Styles ── */
+        .notif-badge-count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #EF4444;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 10px;
+            border: 2px solid #ffffff;
+            line-height: 1.2;
+        }
+
+        .btn-view-toggle {
+            background: none;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--pat-text-muted);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+        }
+        .btn-view-toggle.active {
+            background: #ffffff;
+            color: var(--pat-primary-dark);
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        /* Monthly Calendar View */
+        .client-cal-container {
+            background: var(--pat-surface);
+            border: 1.5px solid var(--pat-border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-top: 10px;
+        }
+        .client-cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .cal-count-badge {
+            background: #e0f2fe;
+            color: #0284c7;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 20px;
+        }
+        .client-cal-nav-btn {
+            background: var(--pat-surface);
+            border: 1px solid var(--pat-border);
+            color: var(--pat-text);
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.15s ease;
+        }
+        .client-cal-nav-btn:hover {
+            border-color: var(--pat-primary);
+            color: var(--pat-primary);
+        }
+        .client-cal-nav-btn.today {
+            width: auto;
+            padding: 0 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .client-cal-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--pat-text-muted);
+            margin-bottom: 8px;
+        }
+        .client-cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+        .client-cal-cell {
+            background: var(--pat-surface);
+            border: 1px solid var(--pat-border);
+            border-radius: 10px;
+            min-height: 80px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+        .client-cal-cell.is-other-month {
+            opacity: 0.3;
+            background: rgba(0,0,0,0.02);
+        }
+        .client-cal-cell.is-today {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+        .client-cal-date-num {
+            font-size: 11.5px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--pat-text);
+        }
+        .client-cal-event-chip {
+            background: rgba(14, 177, 177, 0.12);
+            border-left: 3px solid #0EB1B1;
+            border-radius: 4px;
+            padding: 3px 5px;
+            font-size: 10px;
+            line-height: 1.25;
+            color: #0a8f8f;
+            font-weight: 700;
+            margin-bottom: 3px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .client-cal-event-chip:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            background: rgba(14, 177, 177, 0.2);
+        }
+        .client-cal-event-chip.status-completed {
+            background: #f0fdf4;
+            border-left-color: #22c55e;
+            color: #15803d;
+        }
+        .client-cal-event-chip.status-cancelled {
+            background: #fff1f2;
+            border-left-color: #f43f5e;
+            color: #be123c;
+            text-decoration: line-through;
+        }
+
+        /* Notification Drawer */
+        .notif-drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 1300;
+            display: none;
+            justify-content: flex-end;
+        }
+        .notif-drawer {
+            width: 100%;
+            max-width: 420px;
+            height: 100%;
+            background: var(--pat-surface);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            animation: slideInRight 0.25s ease-out;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        .notif-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--pat-border);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            transition: background 0.15s ease;
+            cursor: pointer;
+        }
+        .notif-item:hover {
+            background: rgba(0,0,0,0.02);
+        }
+        .notif-item.unread {
+            background: rgba(14, 177, 177, 0.05);
+            border-left: 3px solid #0EB1B1;
+        }
+        .notif-icon-box {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        /* QR Pass Modal */
+        .qr-pass-card {
+            background: #ffffff;
+            border: 2px dashed #0EB1B1;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .qr-code-wrapper {
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            margin: 12px 0;
+        }
+        .qr-code-wrapper img, .qr-code-wrapper canvas {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* ── Dental Services & Price Guide Styles ── */
+        .service-price-card {
+            background: var(--pat-surface, #FFFFFF);
+            border: 1.5px solid var(--pat-border, #E2E8F0);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            box-sizing: border-box;
+        }
+        .service-price-card:hover {
+            border-color: #0EB1B1;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(14, 177, 177, 0.14);
+        }
+        .service-cat-pill {
+            font-size: 9.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            background: #E0F2FE;
+            color: #0369A1;
+            padding: 2.5px 8px;
+            border-radius: 6px;
+        }
+        .service-time-pill {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748B;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .cat-filter-chip {
+            background: #F1F5F9;
+            color: #475569;
+            border: 1px solid var(--pat-border, #E2E8F0);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .cat-filter-chip:hover {
+            background: #E2E8F0;
+            color: #1E293B;
+        }
+        .cat-filter-chip.active {
+            background: #0EB1B1;
+            color: #FFFFFF;
+            border-color: #0EB1B1;
+            box-shadow: 0 2px 6px rgba(14, 177, 177, 0.35);
+        }
+        .services-price-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding: 6px;
+        }
+
     </style>
 </head>
 <body>
@@ -726,12 +1028,19 @@
                     </div>
                     <div style="font-size: 10px; color: var(--pat-text-muted); font-weight: 600;">PATIENT PORTAL</div>
                 </div>
-                <span class="portal-tag"><i class='bx bx-check-shield'></i> Verified Patient</span>
+                <span class="portal-tag" id="navVerifiedTag" onclick="openPatientOTPModal()" style="cursor: pointer;" title="Account verification status (C-009) — Click to verify via OTP">
+                    <i class='bx bx-check-shield'></i> Verified Patient
+                </span>
             </div>
 
             <div class="pat-header-actions">
                 <button class="btn-pat-primary" onclick="openBookModal()">
                     <i class='bx bx-calendar-plus'></i> Book Appointment
+                </button>
+                <!-- Notification Bell (C-009) -->
+                <button class="btn-pat-secondary btn-sm nav-notif-btn" onclick="toggleNotificationDrawer()" title="View notifications and OTP alerts (C-009)" style="position: relative; padding: 6px 10px;">
+                    <i class='bx bx-bell' style="font-size: 18px;"></i>
+                    <span id="navNotifBadge" class="notif-badge-count" style="display: none;">0</span>
                 </button>
                 <div style="display: flex; align-items: center; gap: 8px; padding-left: 8px; border-left: 1px solid var(--pat-border);">
                     <div onclick="openEditProfileModal()" class="nav-profile-clickable" title="Click to customize your profile, contact details, and photo (C-008)" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 8px; border-radius: 10px;">
@@ -767,7 +1076,10 @@
                     Manage your upcoming clinic visits, review clinical treatment history, and schedule your next oral care appointments.
                 </p>
             </div>
-            <div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn-pat-secondary" onclick="openServicesPriceModal()" style="background: white; border: 1.5px solid #CCFBF1; color: #0D9488; font-weight: 700; box-shadow: 0 2px 8px rgba(14, 177, 177, 0.08);">
+                    <i class='bx bx-receipt'></i> View Dental Services &amp; Prices
+                </button>
                 <button class="btn-pat-primary" onclick="openBookModal()" style="box-shadow: 0 4px 14px rgba(14, 177, 177, 0.3);">
                     <i class='bx bx-plus-circle'></i> Schedule New Appointment
                 </button>
@@ -835,16 +1147,26 @@
         <!-- TAB 1: Upcoming Appointments -->
         <section id="tab-upcoming" class="tab-pane active">
             <div class="content-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h3 style="margin: 0; font-size: 16px; font-weight: 800;">My Scheduled Clinic Appointments</h3>
                         <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--pat-text-muted);">
                             Active dental appointments, operatory assignments, and daily lobby queue tickets.
                         </p>
                     </div>
+                    <!-- View Switcher (C-010) -->
+                    <div style="display: flex; gap: 4px; align-items: center; background: #F1F5F9; padding: 3px; border-radius: 8px;">
+                        <button type="button" id="btnViewList" class="btn-view-toggle active" onclick="setUpcomingView('list')">
+                            <i class='bx bx-list-ul'></i> List View
+                        </button>
+                        <button type="button" id="btnViewCalendar" class="btn-view-toggle" onclick="setUpcomingView('calendar')">
+                            <i class='bx bx-calendar'></i> Calendar View
+                        </button>
+                    </div>
                 </div>
 
-                <div class="table-responsive">
+                <!-- 1. Table List View -->
+                <div id="upcomingListView" class="table-responsive">
                     <table class="pat-table">
                         <thead>
                             <tr>
@@ -860,6 +1182,34 @@
                             <tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--pat-text-muted);">Loading appointments...</td></tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- 2. Interactive Monthly Appointment Calendar View (C-010) -->
+                <div id="upcomingCalendarView" style="display: none;">
+                    <div class="client-cal-container">
+                        <div class="client-cal-header">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class='bx bx-calendar text-primary' style="font-size: 20px;"></i>
+                                <h4 id="clientCalMonthYear" style="margin: 0; font-size: 15px; font-weight: 800; color: var(--pat-text);">Month Year</h4>
+                                <span id="clientCalApptCountBadge" class="cal-count-badge">0 Appointments</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <button type="button" class="client-cal-nav-btn" onclick="navigateClientCal(-1)"><i class='bx bx-chevron-left'></i></button>
+                                <button type="button" class="client-cal-nav-btn today" onclick="resetClientCalToday()">Today</button>
+                                <button type="button" class="client-cal-nav-btn" onclick="navigateClientCal(1)"><i class='bx bx-chevron-right'></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Weekdays header -->
+                        <div class="client-cal-weekdays">
+                            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                        </div>
+
+                        <!-- Dates grid -->
+                        <div id="clientCalGrid" class="client-cal-grid">
+                            <!-- Rendered dynamically via JS -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1034,10 +1384,45 @@
 
             <form id="form-client-book" onsubmit="submitClientBooking(event)">
                 <div class="form-group" style="margin-bottom: 1rem;">
-                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 4px;">Dental Service / Procedure *</label>
-                    <select id="bookServiceSelect" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pat-text-muted); margin-bottom: 0;">Dental Service / Procedure *</label>
+                        <button type="button" onclick="openServicesPriceModal()" style="background: none; border: none; color: var(--pat-primary); font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px;">
+                            <i class='bx bx-list-check' style="font-size: 16px;"></i> View Full Price List
+                        </button>
+                    </div>
+                    <select id="bookServiceSelect" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--pat-border); border-radius: 8px;" onchange="updateSelectedServicePreview()">
                         <!-- Populated by JS -->
                     </select>
+
+                    <!-- Real-Time Service & Price Info Card -->
+                    <div id="servicePricePreviewBox" style="display: none; margin-top: 10px; background: linear-gradient(135deg, #F0FDFA 0%, #E6FFFA 100%); border: 1.5px solid #99F6E4; border-radius: 10px; padding: 12px 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 190px;">
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                    <span id="servicePreviewCategory" style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: #0D9488; color: white; padding: 2px 7px; border-radius: 4px;">Diagnostic</span>
+                                    <span style="font-size: 11px; color: #0F766E; font-weight: 600; display: inline-flex; align-items: center; gap: 3px;">
+                                        <i class='bx bx-time'></i> <span id="servicePreviewDuration">30 mins</span>
+                                    </span>
+                                </div>
+                                <div id="servicePreviewName" style="font-size: 13.5px; font-weight: 800; color: #0F172A; line-height: 1.3;">
+                                    Dental Consultation & Oral Examination
+                                </div>
+                                <div id="servicePreviewDesc" style="font-size: 11.5px; color: #475569; margin-top: 3px; line-height: 1.35;">
+                                    Comprehensive dental checkup, soft tissue exam, digital charting, and personalized treatment plan.
+                                </div>
+                            </div>
+                            <div style="text-align: right; background: white; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #CCFBF1; box-shadow: 0 2px 5px rgba(13, 148, 136, 0.08); flex-shrink: 0;">
+                                <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748B; letter-spacing: 0.4px;">Estimated Fee</div>
+                                <div id="servicePreviewPrice" style="font-size: 18px; font-weight: 900; color: #0D9488; letter-spacing: -0.3px;">
+                                    ₱500.00
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #99F6E4; font-size: 11px; color: #0F766E; display: flex; align-items: center; gap: 5px;">
+                            <i class='bx bx-check-shield' style="font-size: 14px; flex-shrink: 0;"></i>
+                            <span>Standard clinic rate. Final fees may adjust depending on specific clinical requirements.</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 1rem;">
@@ -1557,6 +1942,235 @@
         </div>
     </div>
 
+    <!-- ── NOTIFICATION INBOX DRAWER (C-009) ── -->
+    <div id="notifDrawerOverlay" class="notif-drawer-overlay" onclick="closeNotificationDrawer(event)">
+        <div class="notif-drawer" onclick="event.stopPropagation()">
+            <!-- Drawer Header -->
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--pat-border); display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class='bx bx-bell text-primary' style="font-size: 22px;"></i>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--pat-text);">Notification Center</h3>
+                    <span id="drawerUnreadBadge" style="background: #EF4444; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 10px;">0 New</span>
+                </div>
+                <button type="button" class="btn-pat-secondary btn-sm" onclick="closeNotificationDrawer()"><i class='bx bx-x' style="font-size: 20px;"></i></button>
+            </div>
+
+            <!-- Drawer Filter Tabs & Mark All -->
+            <div style="padding: 10px 16px; border-bottom: 1px solid var(--pat-border); background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 4px;">
+                    <button type="button" class="btn-pat-secondary btn-sm" id="btnNotifFilterAll" onclick="filterNotifDrawer('all')" style="font-size: 11px; font-weight: 700; padding: 3px 8px;">All</button>
+                    <button type="button" class="btn-pat-secondary btn-sm" id="btnNotifFilterAppt" onclick="filterNotifDrawer('appt')" style="font-size: 11px; padding: 3px 8px;">Visits</button>
+                    <button type="button" class="btn-pat-secondary btn-sm" id="btnNotifFilterSec" onclick="filterNotifDrawer('sec')" style="font-size: 11px; padding: 3px 8px;">Security</button>
+                </div>
+                <button type="button" onclick="markAllNotificationsRead()" style="background: none; border: none; font-size: 11px; font-weight: 700; color: var(--pat-primary-dark); cursor: pointer; text-decoration: underline;">
+                    Mark All Read
+                </button>
+            </div>
+
+            <!-- Notification Items List -->
+            <div id="notifListContainer" style="flex: 1; overflow-y: auto;">
+                <div style="padding: 30px; text-align: center; color: var(--pat-text-muted); font-size: 13px;">
+                    <i class='bx bx-loader-alt bx-spin' style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                    Loading notifications...
+                </div>
+            </div>
+
+            <!-- Drawer Footer (Quick Preferences) -->
+            <div style="padding: 12px 16px; border-top: 1px solid var(--pat-border); background: #f8fafc; font-size: 11.5px; color: var(--pat-text-muted); display: flex; justify-content: space-between; align-items: center;">
+                <span><i class='bx bx-check-shield text-primary'></i> SMS &amp; Email Alerts Active</span>
+                <span onclick="openPatientOTPModal()" style="color: var(--pat-primary); font-weight: 700; cursor: pointer; text-decoration: underline;">Verify Account</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── DIGITAL APPOINTMENT QR FAST-PASS MODAL (C-010) ── -->
+    <div id="appointmentQRModal" class="modal-overlay" style="z-index: 1250;">
+        <div class="modal-dialog printable-modal" style="max-width: 480px; padding: 1.75rem; border-radius: 18px; background: var(--pat-surface, #ffffff); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); border: 1px solid var(--pat-border, #E2E8F0);">
+            <div class="flex-between border-bottom pb-2 mb-3 no-print">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class='bx bx-qr-scan text-primary' style="font-size: 24px;"></i>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--pat-text);">Digital QR Fast-Pass</h3>
+                        <p style="margin: 0; font-size: 11px; color: var(--pat-text-muted);">Self-Service Check-In &amp; Calendar Export (C-010)</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-pat-secondary btn-sm" onclick="closeAppointmentQRModal()"><i class='bx bx-x' style="font-size: 20px;"></i></button>
+            </div>
+
+            <!-- The QR Boarding Card -->
+            <div class="qr-pass-card" id="qrPassPrintableArea">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; margin-bottom: 10px;">
+                    <div style="text-align: left;">
+                        <span style="font-size: 10px; font-weight: 800; color: #0EB1B1; text-transform: uppercase; letter-spacing: 1px;">OptiDent Clinic</span>
+                        <div style="font-size: 14px; font-weight: 800; color: #0f172a;" id="qrPassService">Dental Consultation</div>
+                    </div>
+                    <span id="qrPassRefCode" style="font-size: 11px; font-weight: 800; font-family: monospace; background: #e0f2fe; color: #0284c7; padding: 3px 8px; border-radius: 6px;">
+                        OPT-APT-10024
+                    </span>
+                </div>
+
+                <!-- High-Definition QR Code -->
+                <div class="qr-code-wrapper" id="qrCodeContainer">
+                    <!-- Rendered dynamically by qrcodejs -->
+                </div>
+                <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-top: -4px; margin-bottom: 12px;">
+                    Scan at clinic reception or operatory kiosk for instant queue check-in
+                </div>
+
+                <!-- Appointment Details Summary Grid -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 12px; text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div>
+                        <span style="display: block; font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Patient Name</span>
+                        <strong id="qrPassPatientName" style="color: #0f172a;">Juan Dela Cruz</strong>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Attending Doctor</span>
+                        <strong id="qrPassDoctorName" style="color: #0f172a;">Dr. Specialist</strong>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Date &amp; Time</span>
+                        <strong id="qrPassDateTime" style="color: #0EB1B1;">2026-11-25 @ 09:00 AM</strong>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Operatory Station</span>
+                        <strong id="qrPassChair" style="color: #0f172a;">Chair 1</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Sync Actions (C-010) -->
+            <div class="no-print" style="margin-top: 16px; border-top: 1px solid var(--pat-border); padding-top: 14px;">
+                <span style="display: block; font-size: 11px; font-weight: 700; color: var(--pat-text-muted); margin-bottom: 8px; text-transform: uppercase;">
+                    <i class='bx bx-calendar-event text-primary'></i> Sync to Personal Calendar:
+                </span>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <button type="button" class="btn-pat-secondary flex-1" onclick="triggerGoogleCalendarAdd()" style="height: 36px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class='bx bxl-google text-red-500'></i> Google Calendar
+                    </button>
+                    <button type="button" class="btn-pat-secondary flex-1" onclick="triggerICalDownload()" style="height: 36px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class='bx bx-calendar-plus text-primary'></i> iCal / Outlook (.ics)
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-pat-secondary flex-1" onclick="printQRPass()" style="height: 36px; font-size: 12px; font-weight: 600;">
+                        <i class='bx bx-printer mr-1'></i> Print / Save PDF
+                    </button>
+                    <button type="button" class="btn-pat-primary flex-1" onclick="closeAppointmentQRModal()" style="height: 36px; font-size: 12px; font-weight: 700;">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── PATIENT ACCOUNT OTP VERIFICATION MODAL (C-009) ── -->
+    <div id="patientOTPModal" class="modal-overlay" style="z-index: 1260;">
+        <div class="modal-dialog" style="max-width: 440px; padding: 1.75rem; border-radius: 18px; text-align: center; background: var(--pat-surface, #ffffff); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); border: 1px solid var(--pat-border, #E2E8F0);">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(14, 177, 177, 0.12); color: var(--pat-primary); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 12px auto;">
+                <i class='bx bx-shield-quarter'></i>
+            </div>
+            <h3 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 800; color: var(--pat-text);">Patient Identity &amp; OTP Verification</h3>
+            <p style="margin: 0 0 16px 0; font-size: 12.5px; color: var(--pat-text-muted); line-height: 1.45;">
+                Securely verify your account to activate instant SMS/Email appointment alerts and your <strong>Verified Patient</strong> badge.
+            </p>
+
+            <div id="otpStatusBanner" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; font-size: 12px; margin-bottom: 16px; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 600; color: var(--pat-text-muted);">Current Status:</span>
+                <span id="otpStatusBadge" style="font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 6px; background: #fee2e2; color: #b91c1c;">Unverified</span>
+            </div>
+
+            <!-- Step 1: Request Code -->
+            <div id="otpStepRequest" style="display: block;">
+                <p style="font-size: 12px; color: var(--pat-text-muted); margin-bottom: 14px;">
+                    We will send a 6-digit one-time password (OTP) to your registered email: <br>
+                    <strong id="otpEmailTarget" style="color: var(--pat-text);">patient@gmail.com</strong>
+                </p>
+                <button type="button" id="btnRequestOtp" class="btn-pat-primary" onclick="requestPatientOTP()" style="width: 100%; height: 40px; font-size: 13px; font-weight: 700; border-radius: 8px;">
+                    <i class='bx bx-paper-plane mr-1'></i> Send 6-Digit OTP Code
+                </button>
+            </div>
+
+            <!-- Step 2: Enter & Verify Code -->
+            <div id="otpStepVerify" style="display: none;">
+                <p style="font-size: 12px; color: var(--pat-text-muted); margin-bottom: 12px;">
+                    Enter the 6-digit verification code sent to your email / SMS:
+                </p>
+                <div style="margin-bottom: 14px;">
+                    <input type="text" id="otpCodeInput" maxlength="6" placeholder="• • • • • •" style="width: 200px; height: 46px; font-size: 24px; font-weight: 800; text-align: center; letter-spacing: 8px; border: 2px solid var(--pat-primary); border-radius: 10px; font-family: monospace; outline: none;">
+                </div>
+                <div id="otpTimerMsg" style="font-size: 11px; color: #64748b; margin-bottom: 14px;">
+                    Code valid for: <strong id="otpCountdown">10:00</strong>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-pat-secondary flex-1" onclick="requestPatientOTP()" style="height: 38px; font-size: 12px; font-weight: 600;">
+                        Resend Code
+                    </button>
+                    <button type="button" id="btnVerifyOtp" class="btn-pat-primary flex-1" onclick="submitPatientOTP()" style="height: 38px; font-size: 12px; font-weight: 700;">
+                        <i class='bx bx-check-shield mr-1'></i> Verify OTP
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-top: 16px; border-top: 1px solid var(--pat-border); padding-top: 12px; display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-pat-secondary btn-sm" onclick="closePatientOTPModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: COMPLETE DENTAL SERVICES & PRICE GUIDE ─────────── -->
+    <div id="servicesPriceModal" class="modal-overlay" style="z-index: 1240;">
+        <div class="modal-dialog modal-lg" style="max-width: 880px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; padding: 1.75rem; border-radius: 18px; background: #ffffff; background: var(--pat-surface, #ffffff); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45); border: 1.5px solid var(--pat-border, #E2E8F0);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--pat-border); padding-bottom: 1rem; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(14, 177, 177, 0.12); color: var(--pat-primary); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+                        <i class='bx bx-receipt'></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--pat-text); letter-spacing: -0.2px;">Clinical Dental Services &amp; Price Guide</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--pat-text-muted);">Standardized treatment fees, durations, and clinical coverage for all procedures.</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-pat-secondary btn-sm" onclick="closeServicesPriceModal()" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
+                    <i class='bx bx-x' style="font-size: 22px;"></i>
+                </button>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div style="margin-bottom: 1rem; display: flex; flex-direction: column; gap: 10px;">
+                <div style="position: relative; width: 100%;">
+                    <i class='bx bx-search' style="position: absolute; left: 14px; top: 12px; font-size: 18px; color: #94A3B8;"></i>
+                    <input type="text" id="servicePriceSearchInput" oninput="onPriceSearchInput(this.value)" placeholder="Search service name, description, or category (e.g. cleaning, extraction, filling)..." style="width: 100%; box-sizing: border-box; padding: 10px 14px 10px 42px; border: 1.5px solid var(--pat-border); border-radius: 10px; font-size: 13px; outline: none; background: var(--pat-surface, #ffffff); color: var(--pat-text);">
+                </div>
+
+                <!-- Category Filters -->
+                <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin;" id="priceCatFilterBar">
+                    <button type="button" class="cat-filter-chip active" onclick="filterPriceCategory('all', this)">All Procedures</button>
+                    <button type="button" class="cat-filter-chip" onclick="filterPriceCategory('Diagnostic', this)">Diagnostic</button>
+                    <button type="button" class="cat-filter-chip" onclick="filterPriceCategory('Preventive', this)">Preventive</button>
+                    <button type="button" class="cat-filter-chip" onclick="filterPriceCategory('Restorative', this)">Restorative</button>
+                    <button type="button" class="cat-filter-chip" onclick="filterPriceCategory('Oral Surgery', this)">Oral Surgery</button>
+                    <button type="button" class="cat-filter-chip" onclick="filterPriceCategory('Endodontics', this)">Endodontics</button>
+                    <button type="button" class="cat-filter-chip" onclick="filterPriceCategory('Cosmetic', this)">Cosmetic</button>
+                    <button type="button" class="cat-filter-chip" onclick="filterPriceCategory('Orthodontics', this)">Orthodontics</button>
+                </div>
+            </div>
+
+            <!-- Services Grid -->
+            <div id="servicesPriceGrid" class="services-price-grid">
+                <!-- Dynamically populated -->
+            </div>
+
+            <!-- Footer Notice -->
+            <div style="margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--pat-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 11.5px; color: var(--pat-text-muted); display: flex; align-items: center; gap: 5px;">
+                    <i class='bx bx-info-circle text-primary'></i>
+                    <span>Displayed prices reflect standard clinic rates in Philippine Peso (PHP). Final charges may vary based on clinical assessment.</span>
+                </div>
+                <button type="button" class="btn-pat-secondary btn-sm" onclick="closeServicesPriceModal()" style="font-weight: 700; padding: 6px 16px;">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Banner -->
     <div id="toastBanner" class="toast-banner">
         <i id="toastIcon" class='bx bx-check-circle' style="font-size: 18px;"></i>
@@ -1588,6 +2202,7 @@
                     renderPastAppointments(data.past_appointments);
                     populateBookingDropdowns(data.doctors, data.services, data.clinic_settings);
                     loadMedicalHistorySummary();
+                    fetchNotifications();
                 } else {
                     showToast('error', data.message || 'Unable to load client data.');
                 }
@@ -1869,6 +2484,9 @@
                     if (canResched) {
                         actionBtns = `
                             <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                                <button class="btn-pat-secondary" style="padding: 4px 8px; font-size: 11px; color: #0EB1B1; border-color: #99E6E6;" onclick="openAppointmentQRModal('${apt._id}')" title="Digital QR Pass &amp; Calendar Export (C-010)">
+                                    <i class='bx bx-qr-scan'></i> QR Pass
+                                </button>
                                 <button class="btn-pat-secondary" style="padding: 4px 8px; font-size: 11px; color: #4F46E5; border-color: #C7D2FE;" onclick="openClientReschedModal('${apt._id}')" title="Reschedule Date & Time">
                                     <i class='bx bx-calendar-edit'></i> Reschedule
                                 </button>
@@ -1901,7 +2519,10 @@
                             <div style="font-size: 11px; color: var(--pat-primary); font-weight: 600;">${escapeHtml(apt.time)}</div>
                         </td>
                         <td style="font-weight: 600;">${escapeHtml(apt.doctor_name || 'First Available Doctor')}</td>
-                        <td>${escapeHtml(apt.service_name || 'Dental Consultation')}</td>
+                        <td>
+                            <div style="font-weight: 600;">${escapeHtml(apt.service_name || 'Dental Consultation')}</div>
+                            <div style="font-size: 11px; color: #059669; font-weight: 700; margin-top: 2px;">₱${(apt.price || 500).toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                        </td>
                         <td>${escapeHtml(apt.operatory_chair || '--')}</td>
                         <td>
                             <span class="status-badge ${statusClass}">
@@ -2351,9 +2972,14 @@
                     doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization)})</option>`).join('');
             }
 
+            window.clientAvailableServices = services || [];
             const servSel = document.getElementById('bookServiceSelect');
             if (servSel && services) {
-                servSel.innerHTML = services.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.duration)})</option>`).join('');
+                servSel.innerHTML = services.map(s => {
+                    const pricePart = s.price ? ` — ${s.price}` : '';
+                    return `<option value="${escapeHtml(s.name)}" data-price="${escapeHtml(s.price || '')}" data-duration="${escapeHtml(s.duration || '')}" data-category="${escapeHtml(s.category || '')}">${escapeHtml(s.name)}${pricePart} (${escapeHtml(s.duration || '30 mins')})</option>`;
+                }).join('');
+                updateSelectedServicePreview();
             }
 
             // Populate system-wide Master Operating Hours Time Slots
@@ -2665,8 +3291,20 @@
             }
         }
 
-        function openBookModal() {
+        function openBookModal(preselectedService) {
             document.getElementById('bookModal').style.display = 'flex';
+            if (preselectedService) {
+                const servSel = document.getElementById('bookServiceSelect');
+                if (servSel) {
+                    for (let opt of servSel.options) {
+                        if (opt.value === preselectedService) {
+                            servSel.value = preselectedService;
+                            break;
+                        }
+                    }
+                }
+            }
+            updateSelectedServicePreview();
             fetchClientAvailableSlots();
             startSlotPolling('book');
         }
@@ -2914,6 +3552,631 @@
             const ok = await verifySessionRole();
             if (ok) loadClientDashboard();
         })();
+
+        // ── C-009 & C-010: Notification, Calendar & QR Code Handlers ─────────
+        let activeQRAppointment = null;
+        let clientCalCurrentDate = new Date();
+        let cachedNotifications = [];
+        let otpCountdownInterval = null;
+
+        // View toggle: 'list' or 'calendar'
+        function setUpcomingView(mode) {
+            const listEl = document.getElementById('upcomingListView');
+            const calEl = document.getElementById('upcomingCalendarView');
+            const btnList = document.getElementById('btnViewList');
+            const btnCal = document.getElementById('btnViewCalendar');
+
+            if (mode === 'calendar') {
+                if (listEl) listEl.style.display = 'none';
+                if (calEl) calEl.style.display = 'block';
+                if (btnList) btnList.classList.remove('active');
+                if (btnCal) btnCal.classList.add('active');
+                renderClientAppointmentCalendar();
+            } else {
+                if (listEl) listEl.style.display = 'block';
+                if (calEl) calEl.style.display = 'none';
+                if (btnList) btnList.classList.add('active');
+                if (btnCal) btnCal.classList.remove('active');
+            }
+        }
+
+        // Render Monthly Calendar for Patient
+        function renderClientAppointmentCalendar() {
+            const monthYearEl = document.getElementById('clientCalMonthYear');
+            const grid = document.getElementById('clientCalGrid');
+            const badge = document.getElementById('clientCalApptCountBadge');
+            if (!grid) return;
+
+            const year = clientCalCurrentDate.getFullYear();
+            const month = clientCalCurrentDate.getMonth();
+
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            if (monthYearEl) {
+                monthYearEl.textContent = `${monthNames[month]} ${year}`;
+            }
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            const today = new Date();
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+            const todayDate = today.getDate();
+
+            const appts = (clientData && clientData.upcoming_appointments) ? clientData.upcoming_appointments : [];
+            let monthApptCount = 0;
+
+            let html = '';
+            // Previous month padding
+            for (let i = firstDayIndex - 1; i >= 0; i--) {
+                const prevD = daysInPrevMonth - i;
+                html += `<div class="client-cal-cell is-other-month"><div class="client-cal-date-num">${prevD}</div></div>`;
+            }
+
+            const pad = n => String(n).padStart(2, '0');
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateKey = `${year}-${pad(month + 1)}-${pad(d)}`;
+                const isToday = isCurrentMonth && d === todayDate;
+
+                // Match appointments on this date
+                const matchedAppts = appts.filter(a => (a.date || a.appointment_date) === dateKey);
+                monthApptCount += matchedAppts.length;
+
+                let eventsHtml = '';
+                matchedAppts.forEach(apt => {
+                    const statusClass = (apt.status || 'scheduled').toLowerCase();
+                    eventsHtml += `
+                        <div class="client-cal-event-chip status-${statusClass}" 
+                             onclick="openAppointmentQRModal('${apt._id || apt.id}')" 
+                             title="Click to view QR Pass & Details: ${escapeHtml(apt.service_name || 'Visit')}">
+                            <i class='bx bx-time'></i> ${escapeHtml(apt.time || apt.time_slot)}
+                            <div style="font-size: 9.5px; opacity: 0.9; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                ${escapeHtml(apt.service_name || 'Consultation')}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <div class="client-cal-cell ${isToday ? 'is-today' : ''}">
+                        <div class="client-cal-date-num">${d}</div>
+                        ${eventsHtml}
+                    </div>
+                `;
+            }
+
+            // Next month trailing days
+            const totalRendered = firstDayIndex + daysInMonth;
+            const remaining = (7 - (totalRendered % 7)) % 7;
+            for (let j = 1; j <= remaining; j++) {
+                html += `<div class="client-cal-cell is-other-month"><div class="client-cal-date-num">${j}</div></div>`;
+            }
+
+            grid.innerHTML = html;
+            if (badge) {
+                badge.textContent = `${monthApptCount} Scheduled Visit${monthApptCount === 1 ? '' : 's'}`;
+            }
+        }
+
+        function navigateClientCal(dir) {
+            clientCalCurrentDate.setMonth(clientCalCurrentDate.getMonth() + dir);
+            renderClientAppointmentCalendar();
+        }
+
+        function resetClientCalToday() {
+            clientCalCurrentDate = new Date();
+            renderClientAppointmentCalendar();
+        }
+
+        // ── Digital QR Pass Handlers (C-010) ─────────────────────────
+        async function openAppointmentQRModal(apptId) {
+            const allAppts = [
+                ...(clientData?.upcoming_appointments || []),
+                ...(clientData?.past_appointments || [])
+            ];
+            const apt = allAppts.find(a => (a._id || a.id) === apptId);
+            if (!apt) {
+                showToast('error', 'Appointment record not found.');
+                return;
+            }
+
+            activeQRAppointment = apt;
+
+            document.getElementById('qrPassService').textContent = apt.service_name || 'Dental Consultation';
+            const refCode = `OPT-APT-${String(apt._id || apt.id).slice(-6).toUpperCase()}`;
+            document.getElementById('qrPassRefCode').textContent = refCode;
+            document.getElementById('qrPassPatientName').textContent = apt.patient_name || clientData?.patient?.full_name || 'Patient';
+            document.getElementById('qrPassDoctorName').textContent = apt.doctor_name || 'Assigned Specialist';
+            document.getElementById('qrPassDateTime').textContent = `${apt.date || apt.appointment_date} @ ${apt.time || apt.time_slot}`;
+            document.getElementById('qrPassChair').textContent = apt.operatory_chair || 'Operatory Chair 1';
+
+            // Generate QR Code via qrcodejs
+            const qrContainer = document.getElementById('qrCodeContainer');
+            if (qrContainer) {
+                qrContainer.innerHTML = '';
+                const qrPayload = JSON.stringify({
+                    clinic: "OptiDent Dental Clinic",
+                    ref: refCode,
+                    apt_id: String(apt._id || apt.id),
+                    patient: apt.patient_name || clientData?.patient?.full_name,
+                    date: apt.date || apt.appointment_date,
+                    time: apt.time || apt.time_slot,
+                    doctor: apt.doctor_name,
+                    service: apt.service_name
+                });
+
+                if (typeof QRCode !== 'undefined') {
+                    new QRCode(qrContainer, {
+                        text: qrPayload,
+                        width: 160,
+                        height: 160,
+                        colorDark: "#0f172a",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } else {
+                    qrContainer.innerHTML = `<div style="font-family: monospace; font-size: 11px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0;">[QR Pass: ${refCode}]</div>`;
+                }
+            }
+
+            document.getElementById('appointmentQRModal').style.display = 'flex';
+        }
+
+        function closeAppointmentQRModal() {
+            document.getElementById('appointmentQRModal').style.display = 'none';
+            activeQRAppointment = null;
+        }
+
+        // Calendar Sync 1: Google Calendar URL template
+        function triggerGoogleCalendarAdd() {
+            if (!activeQRAppointment) return;
+            const apt = activeQRAppointment;
+            const dateStr = apt.date || apt.appointment_date || '';
+            const timeStr = apt.time || apt.time_slot || '09:00 AM';
+            const service = apt.service_name || 'Dental Appointment';
+            const doctor = apt.doctor_name || 'Dental Specialist';
+
+            // Format date and time for Google Calendar (YYYYMMDDTHHMMSS)
+            const m = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            let h = 9, min = 0;
+            if (m) {
+                h = parseInt(m[1], 10);
+                min = parseInt(m[2], 10);
+                if (m[3].toUpperCase() === 'PM' && h !== 12) h += 12;
+                if (m[3].toUpperCase() === 'AM' && h === 12) h = 0;
+            }
+            const pad = n => String(n).padStart(2, '0');
+            const cleanDate = dateStr.replace(/-/g, '');
+            const startIso = `${cleanDate}T${pad(h)}${pad(min)}00`;
+            const endIso = `${cleanDate}T${pad(h + 1)}${pad(min)}00`;
+
+            const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('OptiDent: ' + service)}&dates=${startIso}/${endIso}&details=${encodeURIComponent('Dental visit with ' + doctor + ' at OptiDent Dental Clinic. Please present your Digital QR Pass upon arrival.')}&location=${encodeURIComponent('OptiDent Dental Clinic, Fortich St., Malaybalay City')}`;
+
+            window.open(gCalUrl, '_blank');
+        }
+
+        // Calendar Sync 2: Download .ics file
+        function triggerICalDownload() {
+            if (!activeQRAppointment) return;
+            const aptId = activeQRAppointment._id || activeQRAppointment.id;
+            window.location.href = `api/client/get_appointment_ics.php?appointment_id=${encodeURIComponent(aptId)}`;
+        }
+
+        function printQRPass() {
+            window.print();
+        }
+
+        // ── Notification Center Handlers (C-009) ───────────────────────
+        async function fetchNotifications() {
+            try {
+                const res = await fetch('api/client/get_notifications.php');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    cachedNotifications = data.notifications || [];
+                    const badge = document.getElementById('navNotifBadge');
+                    const drawerBadge = document.getElementById('drawerUnreadBadge');
+                    const unread = data.unread_count || 0;
+
+                    if (badge) {
+                        badge.style.display = unread > 0 ? 'inline-block' : 'none';
+                        badge.textContent = unread > 9 ? '9+' : unread;
+                    }
+                    if (drawerBadge) {
+                        drawerBadge.textContent = `${unread} New`;
+                        drawerBadge.style.display = unread > 0 ? 'inline-block' : 'none';
+                    }
+
+                    // Update verified patient badge in nav
+                    const verifiedTag = document.getElementById('navVerifiedTag');
+                    const otpBadge = document.getElementById('otpStatusBadge');
+                    if (verifiedTag) {
+                        if (data.is_verified) {
+                            verifiedTag.className = 'portal-tag';
+                            verifiedTag.innerHTML = "<i class='bx bx-check-shield'></i> Verified Patient";
+                            verifiedTag.style.background = '';
+                            verifiedTag.style.color = '';
+                            verifiedTag.style.borderColor = '';
+                        } else {
+                            verifiedTag.className = 'portal-tag unverified';
+                            verifiedTag.innerHTML = "<i class='bx bx-shield-quarter'></i> Verify via OTP";
+                            verifiedTag.style.background = '#fff1f2';
+                            verifiedTag.style.color = '#e11d48';
+                            verifiedTag.style.borderColor = '#fecdd3';
+                        }
+                    }
+                    if (otpBadge) {
+                        otpBadge.textContent = data.is_verified ? 'Verified Account' : 'Unverified';
+                        otpBadge.style.background = data.is_verified ? '#dcfce7' : '#fee2e2';
+                        otpBadge.style.color = data.is_verified ? '#15803d' : '#b91c1c';
+                    }
+
+                    renderNotificationList(cachedNotifications);
+                }
+            } catch (err) {
+                console.error("Notifications fetch error:", err);
+            }
+        }
+
+        function toggleNotificationDrawer() {
+            const drawer = document.getElementById('notifDrawerOverlay');
+            if (!drawer) return;
+            const isOpen = drawer.style.display === 'flex';
+            if (!isOpen) {
+                drawer.style.display = 'flex';
+                fetchNotifications();
+            } else {
+                drawer.style.display = 'none';
+            }
+        }
+
+        function closeNotificationDrawer(e) {
+            const drawer = document.getElementById('notifDrawerOverlay');
+            if (drawer) drawer.style.display = 'none';
+        }
+
+        function renderNotificationList(list) {
+            const container = document.getElementById('notifListContainer');
+            if (!container) return;
+
+            if (!list || list.length === 0) {
+                container.innerHTML = `
+                    <div style="padding: 40px 20px; text-align: center; color: var(--pat-text-muted);">
+                        <i class='bx bx-bell-off' style="font-size: 36px; opacity: 0.4; display: block; margin-bottom: 8px;"></i>
+                        No notifications or alerts yet.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = list.map(n => {
+                const isUnread = !n.is_read;
+                let iconClass = 'bx-bell';
+                let iconBg = '#e0f2fe';
+                let iconColor = '#0284c7';
+
+                if (n.type === 'appointment_booked') {
+                    iconClass = 'bx-calendar-check';
+                    iconBg = '#dcfce7';
+                    iconColor = '#15803d';
+                } else if (n.type === 'appointment_rescheduled') {
+                    iconClass = 'bx-calendar-edit';
+                    iconBg = '#eef2ff';
+                    iconColor = '#4f46e5';
+                } else if (n.type === 'appointment_cancelled') {
+                    iconClass = 'bx-calendar-x';
+                    iconBg = '#fee2e2';
+                    iconColor = '#b91c1c';
+                } else if (n.type === 'security_otp') {
+                    iconClass = 'bx-shield-quarter';
+                    iconBg = '#fef3c7';
+                    iconColor = '#b45309';
+                }
+
+                const timeAgo = formatTimeAgo(n.created_at);
+
+                return `
+                    <div class="notif-item ${isUnread ? 'unread' : ''}" onclick="handleNotificationClick('${n._id}', '${n.type}', '${n.metadata?.appointment_id || ''}')">
+                        <div class="notif-icon-box" style="background: ${iconBg}; color: ${iconColor};">
+                            <i class='bx ${iconClass}'></i>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 6px;">
+                                <div style="font-weight: 700; font-size: 12.5px; color: var(--pat-text);">${escapeHtml(n.title)}</div>
+                                <span style="font-size: 10px; color: var(--pat-text-muted); white-space: nowrap;">${timeAgo}</span>
+                            </div>
+                            <div style="font-size: 11.5px; color: var(--pat-text-muted); line-height: 1.4; margin-top: 2px;">
+                                ${escapeHtml(n.message)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterNotifDrawer(category) {
+            let filtered = cachedNotifications;
+            if (category === 'appt') {
+                filtered = cachedNotifications.filter(n => n.type && n.type.startsWith('appointment'));
+            } else if (category === 'sec') {
+                filtered = cachedNotifications.filter(n => n.type === 'security_otp');
+            }
+            renderNotificationList(filtered);
+        }
+
+        async function handleNotificationClick(notifId, type, apptId) {
+            try {
+                await fetch('api/client/mark_notification_read.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: notifId })
+                });
+                fetchNotifications();
+
+                if (apptId) {
+                    closeNotificationDrawer();
+                    openAppointmentQRModal(apptId);
+                }
+            } catch (e) {}
+        }
+
+        async function markAllNotificationsRead() {
+            try {
+                await fetch('api/client/mark_notification_read.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mark_all: true })
+                });
+                showToast('success', 'All notifications marked as read.');
+                fetchNotifications();
+            } catch (e) {
+                showToast('error', 'Failed to update notifications.');
+            }
+        }
+
+        function formatTimeAgo(isoStr) {
+            if (!isoStr) return '';
+            const sec = Math.floor((new Date() - new Date(isoStr)) / 1000);
+            if (sec < 60) return 'Just now';
+            const min = Math.floor(sec / 60);
+            if (min < 60) return `${min}m ago`;
+            const hr = Math.floor(min / 60);
+            if (hr < 24) return `${hr}h ago`;
+            const days = Math.floor(hr / 24);
+            return `${days}d ago`;
+        }
+
+        // ── OTP Verification Modal Handlers (C-009) ───────────────────
+        function openPatientOTPModal() {
+            const modal = document.getElementById('patientOTPModal');
+            if (!modal) return;
+            const email = clientData?.patient?.email || '';
+            const emailEl = document.getElementById('otpEmailTarget');
+            if (emailEl) emailEl.textContent = email;
+
+            document.getElementById('otpStepRequest').style.display = 'block';
+            document.getElementById('otpStepVerify').style.display = 'none';
+            modal.style.display = 'flex';
+        }
+
+        function closePatientOTPModal() {
+            const modal = document.getElementById('patientOTPModal');
+            if (modal) modal.style.display = 'none';
+            if (otpCountdownInterval) clearInterval(otpCountdownInterval);
+        }
+
+        async function requestPatientOTP() {
+            const btn = document.getElementById('btnRequestOtp');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Sending Code...";
+            }
+
+            try {
+                const res = await fetch('api/client/send_otp.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('success', data.message);
+                    document.getElementById('otpStepRequest').style.display = 'none';
+                    document.getElementById('otpStepVerify').style.display = 'block';
+                    startOTPCountdown(data.expires_in || 600);
+                    fetchNotifications();
+                } else {
+                    showToast('error', data.message || 'Failed to send OTP.');
+                }
+            } catch (err) {
+                showToast('error', 'Network error sending OTP.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-paper-plane mr-1'></i> Send 6-Digit OTP Code";
+                }
+            }
+        }
+
+        function startOTPCountdown(seconds) {
+            if (otpCountdownInterval) clearInterval(otpCountdownInterval);
+            let rem = seconds;
+            const timerEl = document.getElementById('otpCountdown');
+
+            otpCountdownInterval = setInterval(() => {
+                rem--;
+                if (rem <= 0) {
+                    clearInterval(otpCountdownInterval);
+                    if (timerEl) timerEl.textContent = "Expired";
+                    return;
+                }
+                const m = Math.floor(rem / 60);
+                const s = rem % 60;
+                if (timerEl) timerEl.textContent = `${m}:${String(s).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        async function submitPatientOTP() {
+            const codeInput = document.getElementById('otpCodeInput');
+            const code = (codeInput?.value || '').trim();
+            if (code.length !== 6) {
+                showToast('error', 'Please enter a valid 6-digit verification code.');
+                return;
+            }
+
+            const btn = document.getElementById('btnVerifyOtp');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Verifying...";
+            }
+
+            try {
+                const res = await fetch('api/client/verify_otp.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('success', data.message);
+                    closePatientOTPModal();
+                    fetchNotifications();
+                } else {
+                    showToast('error', data.message || 'Verification failed.');
+                }
+            } catch (err) {
+                showToast('error', 'Network error verifying code.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-check-shield mr-1'></i> Verify OTP";
+                }
+            }
+        }
+
+        // ── Dental Services & Price Guide Handlers ──────────────────
+        function updateSelectedServicePreview() {
+            const servSel = document.getElementById('bookServiceSelect');
+            if (!servSel) return;
+            const selectedName = servSel.value;
+            const services = window.clientAvailableServices || (clientData && clientData.services) || [];
+            const serv = services.find(s => s.name === selectedName) || {
+                name: selectedName,
+                price: '₱500.00',
+                duration: '30 mins',
+                category: 'Diagnostic',
+                description: 'Standard clinical dental procedure.'
+            };
+
+            const previewBox = document.getElementById('servicePricePreviewBox');
+            if (!previewBox) return;
+
+            const nameEl = document.getElementById('servicePreviewName');
+            const priceEl = document.getElementById('servicePreviewPrice');
+            const durationEl = document.getElementById('servicePreviewDuration');
+            const catEl = document.getElementById('servicePreviewCategory');
+            const descEl = document.getElementById('servicePreviewDesc');
+
+            if (nameEl) nameEl.textContent = serv.name;
+            if (priceEl) priceEl.textContent = serv.price || '₱500.00';
+            if (durationEl) durationEl.textContent = serv.duration || '30 mins';
+            if (catEl) catEl.textContent = serv.category || 'General';
+            if (descEl) descEl.textContent = serv.description || 'Standard clinic dental procedure.';
+            previewBox.style.display = 'block';
+        }
+
+        let currentPriceFilterCategory = 'all';
+        let currentPriceSearchQuery = '';
+
+        function openServicesPriceModal(initialCat = 'all') {
+            currentPriceFilterCategory = initialCat;
+            currentPriceSearchQuery = '';
+            const searchInput = document.getElementById('servicePriceSearchInput');
+            if (searchInput) searchInput.value = '';
+            document.querySelectorAll('.cat-filter-chip').forEach(c => c.classList.remove('active'));
+            const firstChip = document.querySelector('.cat-filter-chip');
+            if (firstChip) firstChip.classList.add('active');
+            renderServicesPriceModalGrid();
+            document.getElementById('servicesPriceModal').style.display = 'flex';
+        }
+
+        function closeServicesPriceModal() {
+            document.getElementById('servicesPriceModal').style.display = 'none';
+        }
+
+        function filterPriceCategory(cat, btn) {
+            currentPriceFilterCategory = cat;
+            document.querySelectorAll('.cat-filter-chip').forEach(c => c.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderServicesPriceModalGrid();
+        }
+
+        function onPriceSearchInput(val) {
+            currentPriceSearchQuery = (val || '').toLowerCase().trim();
+            renderServicesPriceModalGrid();
+        }
+
+        function renderServicesPriceModalGrid() {
+            const services = window.clientAvailableServices || (clientData && clientData.services) || [];
+            const grid = document.getElementById('servicesPriceGrid');
+            if (!grid) return;
+
+            let filtered = services.filter(s => {
+                const matchCat = (currentPriceFilterCategory === 'all') || (s.category && s.category.toLowerCase() === currentPriceFilterCategory.toLowerCase());
+                const matchQuery = !currentPriceSearchQuery || 
+                    (s.name && s.name.toLowerCase().includes(currentPriceSearchQuery)) ||
+                    (s.category && s.category.toLowerCase().includes(currentPriceSearchQuery)) ||
+                    (s.description && s.description.toLowerCase().includes(currentPriceSearchQuery)) ||
+                    (s.price && s.price.toLowerCase().includes(currentPriceSearchQuery));
+                return matchCat && matchQuery;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 2.5rem 1rem; color: var(--pat-text-muted);">
+                        <i class='bx bx-search-alt' style="font-size: 38px; color: #94A3B8; margin-bottom: 6px;"></i>
+                        <div style="font-weight: 700; font-size: 14px; color: var(--pat-text);">No matching dental services found</div>
+                        <div style="font-size: 12px; margin-top: 4px;">Try searching for a different keyword or reset category filter.</div>
+                        <button type="button" class="btn-pat-secondary btn-sm" onclick="filterPriceCategory('all', this)" style="margin-top: 10px;">View All Procedures</button>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(s => {
+                return `
+                    <div class="service-price-card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
+                            <span class="service-cat-pill">${escapeHtml(s.category || 'General')}</span>
+                            <span class="service-time-pill"><i class='bx bx-time'></i> ${escapeHtml(s.duration || '30 mins')}</span>
+                        </div>
+                        <h4 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 800; color: #0F172A; line-height: 1.35;">
+                            ${escapeHtml(s.name)}
+                        </h4>
+                        <p style="margin: 0 0 12px 0; font-size: 12px; color: #64748B; line-height: 1.45; min-height: 34px;">
+                            ${escapeHtml(s.description || 'Professional dental procedure administered by licensed clinic practitioners.')}
+                        </p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #E2E8F0; padding-top: 10px; margin-top: auto;">
+                            <div>
+                                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94A3B8; letter-spacing: 0.3px;">Standard Fee</div>
+                                <div style="font-size: 16px; font-weight: 900; color: #0D9488;">${escapeHtml(s.price || '₱500.00')}</div>
+                            </div>
+                            <button type="button" class="btn-pat-primary btn-sm" onclick="selectServiceAndBook('${escapeHtml(s.name)}')" style="padding: 6px 12px; font-size: 11.5px;">
+                                <i class='bx bx-calendar-plus'></i> Book Service
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectServiceAndBook(serviceName) {
+            closeServicesPriceModal();
+            openBookModal(serviceName);
+        }
+
     </script>
 </body>
 </html>

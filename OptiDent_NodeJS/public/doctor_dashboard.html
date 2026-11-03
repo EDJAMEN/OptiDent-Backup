@@ -11,7 +11,7 @@
     <!-- Icons: Boxicons -->
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <!-- Base CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2.2">
     <style>
         /* ── Doctor Dashboard: uses same teal brand as Admin (#0EB1B1) ── */
         :root {
@@ -641,6 +641,278 @@
             border: 1px solid var(--doctor-border);
             padding: 1.75rem;
             box-sizing: border-box;
+        }
+
+        /* ── DOCTOR WORKING HOURS & INTERACTIVE CALENDAR UI ───────── */
+        .doc-preset-btn, .btn-xs-preset {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .doc-preset-btn:hover, .btn-xs-preset:hover {
+            background: rgba(14, 177, 177, 0.1);
+            color: #0EB1B1;
+            border-color: #0EB1B1;
+        }
+
+        .doc-day-tiles-grid {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            gap: 6px !important;
+        }
+
+        .doc-day-tile, .doc-day-card {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 8px 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box;
+        }
+        .doc-day-tile:hover, .doc-day-card:hover {
+            border-color: #0EB1B1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .doc-day-tile.active, .doc-day-card.active {
+            background: linear-gradient(135deg, #0EB1B1 0%, #088b8b 100%) !important;
+            border-color: #088b8b !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(14, 177, 177, 0.35);
+        }
+        .doc-day-tile.active .doc-day-tile-code,
+        .doc-day-tile.active .doc-day-tile-name,
+        .doc-day-tile.active i,
+        .doc-day-card.active .doc-day-code,
+        .doc-day-card.active .doc-day-name,
+        .doc-day-card.active .doc-day-status {
+            color: #ffffff !important;
+        }
+        .doc-day-tile-code, .doc-day-code {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #1e293b;
+            margin-bottom: 2px;
+            line-height: 1;
+        }
+        .doc-day-tile-name, .doc-day-name {
+            font-size: 10px;
+            color: #64748b;
+            display: block;
+            margin-bottom: 2px;
+            line-height: 1;
+        }
+
+        .doc-calendar-container {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        .doc-cal-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 10px !important;
+        }
+        .doc-cal-nav-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer;
+            font-size: 14px;
+            color: #475569;
+            transition: all 0.15s ease;
+        }
+        .doc-cal-nav-btn:hover {
+            background: #f1f5f9;
+            color: #0EB1B1;
+            border-color: #0EB1B1;
+        }
+        .doc-cal-weekdays {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            text-align: center;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .doc-cal-grid {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            gap: 5px !important;
+        }
+        .doc-cal-cell {
+            padding: 8px 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.15s ease;
+            position: relative;
+            user-select: none;
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+            min-height: 42px;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box;
+        }
+        .doc-cal-cell:hover {
+            transform: scale(1.05);
+            z-index: 2;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+        }
+        .doc-cal-cell.is-duty {
+            background: rgba(14, 177, 177, 0.12) !important;
+            border: 1.5px solid #0EB1B1 !important;
+            color: #0a8f8f !important;
+            font-weight: 700 !important;
+        }
+        .doc-cal-cell.is-off {
+            color: #94a3b8;
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+        }
+        .doc-cal-cell.is-other-month {
+            opacity: 0.25;
+            pointer-events: none;
+        }
+        .doc-cal-cell.is-today {
+            box-shadow: inset 0 0 0 1.5px #3b82f6;
+        }
+        .doc-cal-cell .duty-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #0EB1B1;
+            margin-top: 2px;
+        }
+        .doc-cal-cell.is-specific-off {
+            background: #fff1f2 !important;
+            border: 1.5px dashed #f43f5e !important;
+            color: #e11d48 !important;
+            font-weight: 700 !important;
+        }
+        .doc-cal-cell.is-extra-duty {
+            background: rgba(99, 102, 241, 0.15) !important;
+            border: 1.5px solid #6366f1 !important;
+            color: #4f46e5 !important;
+            font-weight: 700 !important;
+        }
+        .doc-cal-cell.is-half-day {
+            background: #fffbeb !important;
+            border: 1.5px solid #f59e0b !important;
+            color: #b45309 !important;
+            font-weight: 700 !important;
+        }
+        .doc-cal-cell.is-half-day .duty-dot {
+            background: #f59e0b !important;
+        }
+        .doc-cal-cell.is-custom-shift {
+            background: #eef2ff !important;
+            border: 1.5px solid #6366f1 !important;
+            color: #4f46e5 !important;
+            font-weight: 700 !important;
+        }
+        .doc-cal-cell.is-custom-shift .duty-dot {
+            background: #6366f1 !important;
+        }
+
+        .doc-off-count-badge {
+            font-size: 10px;
+            font-weight: 700;
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+        .doc-specific-off-wrap {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .doc-exception-chips-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .doc-exception-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .doc-exception-chip .btn-remove-chip {
+            cursor: pointer;
+            font-size: 13px;
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            border: none;
+            background: none;
+            padding: 0;
+            margin-left: 2px;
+        }
+        .doc-exception-chip .btn-remove-chip:hover {
+            color: #7f1d1d;
+        }
+
+        .shift-option-card {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .shift-option-card:hover {
+            border-color: #0EB1B1;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            transform: translateY(-1px);
+        }
+        .shift-icon-wrap {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -1283,22 +1555,100 @@
                         </p>
 
                         <form id="form-doctor-schedule" onsubmit="event.preventDefault(); confirmDoctorScheduleSave();">
-                            <div class="form-row-2col mb-2">
-                                <div>
-                                    <label class="text-xs font-bold text-dim uppercase">Working Duty Days</label>
-                                    <select id="docWorkingDays" class="custom-input" onchange="renderDocHoursPreview()" style="width: 100%; padding: 8px 10px; border-radius: 8px; margin-top: 4px; font-size: 12px;">
-                                        <option value="Mon - Fri" selected>Mon - Fri (Standard Weekdays)</option>
-                                        <option value="Mon - Sat">Mon - Sat (Six-Day Clinic Duty)</option>
-                                        <option value="Mon - Thu">Mon - Thu (Four-Day Clinic Duty)</option>
-                                        <option value="Tue - Sat">Tue - Sat (Tuesday to Saturday)</option>
-                                        <option value="Mon - Sun">Mon - Sun (Full Week Coverage)</option>
-                                    </select>
+                            <!-- Working Duty Days Interactive Calendar & Day Selector (D-006) -->
+                            <div class="mb-3">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <label class="text-xs font-bold text-dim uppercase" style="margin: 0;">Weekly Duty Days &amp; Calendar Availability</label>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button type="button" class="doc-preset-btn" onclick="setDocDaysPreset('weekdays')">Mon - Fri</button>
+                                        <button type="button" class="doc-preset-btn" onclick="setDocDaysPreset('sixdays')">Mon - Sat</button>
+                                        <button type="button" class="doc-preset-btn" onclick="setDocDaysPreset('all')">All Week</button>
+                                    </div>
                                 </div>
+
+                                <!-- Hidden input for form submission -->
+                                <input type="hidden" id="docWorkingDays" value="Mon - Fri">
+
+                                <!-- Weekday Selector Tiles -->
+                                <div id="docWeekdayTilesGrid" class="doc-day-tiles-grid" style="margin-bottom: 12px;">
+                                    <!-- Rendered dynamically via JS -->
+                                </div>
+
+                                <!-- Interactive Monthly Duty & Shift Calendar -->
+                                <div class="doc-calendar-container">
+                                    <!-- Calendar Header -->
+                                    <div class="doc-cal-header">
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <i class='bx bx-calendar text-primary' style="font-size: 16px;"></i>
+                                            <span id="docCalMonthYear" style="font-weight: 700; font-size: 13px; color: var(--doctor-text);">Month Year</span>
+                                            <span id="docDateExceptionsSummaryBadge" class="doc-off-count-badge" style="display: none;">0 Exceptions</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 4px;">
+                                            <button type="button" class="doc-cal-nav-btn" onclick="navigateDocCalendar(-1)" title="Previous Month">
+                                                <i class='bx bx-chevron-left'></i>
+                                            </button>
+                                            <button type="button" class="doc-cal-nav-btn" onclick="resetDocCalendarToToday()" title="Current Month" style="font-size: 11px; padding: 0 8px; width: auto;">
+                                                Today
+                                            </button>
+                                            <button type="button" class="doc-cal-nav-btn" onclick="navigateDocCalendar(1)" title="Next Month">
+                                                <i class='bx bx-chevron-right'></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Weekday Headers -->
+                                    <div class="doc-cal-weekdays">
+                                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                                    </div>
+
+                                    <!-- Dates Grid -->
+                                    <div id="docCalDatesGrid" class="doc-cal-grid">
+                                        <!-- Rendered dynamically via renderDoctorMiniCalendar() -->
+                                    </div>
+
+                                    <!-- Calendar Legend -->
+                                    <div class="doc-cal-legend" style="border-top: 1px dashed var(--doctor-border); padding-top: 8px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 10.5px; color: var(--doctor-text-muted);">
+                                        <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Full Day
+                                        </span>
+                                        <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <span style="width: 8px; height: 8px; border-radius: 2px; background: #f59e0b; display: inline-block;"></span> Half Day
+                                        </span>
+                                        <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <span style="width: 8px; height: 8px; border-radius: 2px; background: #6366f1; display: inline-block;"></span> Custom Shift
+                                        </span>
+                                        <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <span style="width: 8px; height: 8px; border-radius: 2px; background: #f43f5e; display: inline-block;"></span> Off-Duty
+                                        </span>
+                                        <span style="margin-left: auto; font-style: italic; font-size: 10px; color: #64748b;">Click any date to customize shift or mark off-duty</span>
+                                    </div>
+                                </div>
+
+                                <!-- Specific Date Exceptions & Custom Shifts Summary Box -->
+                                <div id="docSpecificExceptionsWrap" class="doc-specific-off-wrap" style="display: none; margin-top: 8px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span style="font-size: 11px; font-weight: 700; color: #b45309;">
+                                            <i class='bx bx-calendar-star'></i> Specific Date Shifts &amp; Exceptions (<span id="docSpecificOffCount">0</span>):
+                                        </span>
+                                        <button type="button" onclick="clearAllSpecificDateExceptions()" style="background: none; border: none; font-size: 10.5px; color: #dc2626; font-weight: 600; cursor: pointer; text-decoration: underline;">
+                                            Clear All Exceptions
+                                        </button>
+                                    </div>
+                                    <div id="docSpecificOffChips" class="doc-exception-chips-list"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-row-2col mb-2">
                                 <div>
                                     <label class="text-xs font-bold text-dim uppercase">Timezone</label>
                                     <select id="docTimezone" class="custom-input" style="width: 100%; padding: 8px 10px; border-radius: 8px; margin-top: 4px; font-size: 12px;">
                                         <option value="Asia/Manila" selected>Asia/Manila (GMT+8)</option>
                                     </select>
+                                </div>
+                                <div style="display: flex; align-items: flex-end; padding-bottom: 4px;">
+                                    <span style="font-size: 11px; color: var(--doctor-text-muted); line-height: 1.4;">
+                                        <i class='bx bx-info-circle text-primary'></i> Standard duty slots apply to all active duty days.
+                                    </span>
                                 </div>
                             </div>
 
@@ -1919,6 +2269,14 @@
                         <!-- Chips dynamically populated -->
                     </div>
                 </div>
+
+                <!-- Specific Date Exceptions Row in Modal -->
+                <div id="confirmDocExceptionsRow" style="display: none; border-top: 1px dashed #fca5a5; padding-top: 8px; margin-top: 8px;">
+                    <span style="font-size: 10.5px; font-weight: 700; color: #dc2626; display: block; margin-bottom: 3px;">
+                        <i class='bx bx-calendar-x'></i> Date Shifts &amp; Exceptions:
+                    </span>
+                    <span id="confirmDocExceptionsText" style="font-size: 11px; color: #991b1b; font-weight: 600;">None</span>
+                </div>
             </div>
 
             <!-- Impact Notice -->
@@ -1978,7 +2336,137 @@
         </div>
     </div>
 
-    <!-- MODAL: Doctor Cancel Consultation (D-007) -->
+        <!-- ── DOCTOR DATE SHIFT & WORKING HOURS CUSTOMIZER MODAL ── -->
+    <div id="doctorDateShiftModal" class="doc-modal-overlay" style="z-index: 1220;">
+        <div class="doc-modal-content" style="max-width: 480px; padding: 1.5rem; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.22); border: 1.5px solid var(--doctor-border);">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center border-bottom pb-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 177, 177, 0.12); color: var(--doctor-primary-dark); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        <i class='bx bx-calendar-edit'></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base" style="margin: 0; color: var(--doctor-text);">Configure Day Shift &amp; Hours</h3>
+                        <p id="docDateShiftModalSubtitle" class="text-dim text-xs" style="margin: 0; font-weight: 600; color: var(--doctor-primary-dark);">Wednesday, Nov 12, 2026</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-icon" onclick="closeDoctorDateShiftModal()"><i class='bx bx-x' style="font-size: 24px;"></i></button>
+            </div>
+
+            <!-- Current Status Box -->
+            <div id="docDateShiftCurrentStatusBox" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; color: var(--doctor-text-muted); font-weight: 600;">Current Status:</span>
+                <span id="docDateShiftCurrentStatusBadge" style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #e0f2fe; color: #0284c7;">Regular Full Day</span>
+            </div>
+
+            <!-- Shift Selection Options -->
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+                <!-- Full Day -->
+                <div class="shift-option-card" onclick="applyDoctorDateShift('full')" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="shift-icon-wrap" style="background: rgba(14, 177, 177, 0.12); color: #0d9488;">
+                        <i class='bx bx-sun'></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12.5px; font-weight: 700; color: var(--doctor-text);">Full Day Duty</div>
+                        <div style="font-size: 11px; color: var(--doctor-text-muted);">Standard clinic hours (09:00 AM - 05:00 PM)</div>
+                    </div>
+                    <i class='bx bx-chevron-right' style="color: #94a3b8; font-size: 18px;"></i>
+                </div>
+
+                <!-- Half Day Morning -->
+                <div class="shift-option-card" onclick="applyDoctorDateShift('half_day_am')" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="shift-icon-wrap" style="background: #fef3c7; color: #d97706;">
+                        <i class='bx bx-time'></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12.5px; font-weight: 700; color: var(--doctor-text);">Half Day — Morning Shift</div>
+                        <div style="font-size: 11px; color: #b45309; font-weight: 600;">09:00 AM – 12:00 PM (Afternoon Closed)</div>
+                    </div>
+                    <i class='bx bx-chevron-right' style="color: #94a3b8; font-size: 18px;"></i>
+                </div>
+
+                <!-- Half Day Afternoon -->
+                <div class="shift-option-card" onclick="applyDoctorDateShift('half_day_pm')" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="shift-icon-wrap" style="background: #ffedd5; color: #ea580c;">
+                        <i class='bx bx-moon'></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12.5px; font-weight: 700; color: var(--doctor-text);">Half Day — Afternoon Shift</div>
+                        <div style="font-size: 11px; color: #c2410c; font-weight: 600;">01:00 PM – 05:00 PM (Morning Closed)</div>
+                    </div>
+                    <i class='bx bx-chevron-right' style="color: #94a3b8; font-size: 18px;"></i>
+                </div>
+
+                <!-- Custom Hours Toggle Card -->
+                <div class="shift-option-card" onclick="toggleDoctorCustomShiftPanel()" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="shift-icon-wrap" style="background: #eef2ff; color: #4f46e5;">
+                        <i class='bx bx-slider-alt'></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12.5px; font-weight: 700; color: var(--doctor-text);">Custom Working Hours</div>
+                        <div style="font-size: 11px; color: var(--doctor-text-muted);">Set custom start &amp; end time for this date</div>
+                    </div>
+                    <i id="docCustomShiftChevron" class='bx bx-chevron-down' style="color: #6366f1; font-size: 18px;"></i>
+                </div>
+
+                <!-- Custom Hours Sub-Panel (Collapsible) -->
+                <div id="docCustomShiftPanel" style="display: none; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 10px; padding: 12px; margin-top: -2px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div>
+                            <label style="display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--doctor-text-muted); margin-bottom: 4px;">Start Duty</label>
+                            <select id="docModalCustomStartTime" class="form-control" style="width: 100%; height: 34px; font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                <option value="08:00 AM">08:00 AM</option>
+                                <option value="09:00 AM" selected>09:00 AM</option>
+                                <option value="10:00 AM">10:00 AM</option>
+                                <option value="11:00 AM">11:00 AM</option>
+                                <option value="12:00 PM">12:00 PM</option>
+                                <option value="01:00 PM">01:00 PM</option>
+                                <option value="02:00 PM">02:00 PM</option>
+                                <option value="03:00 PM">03:00 PM</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--doctor-text-muted); margin-bottom: 4px;">End Duty</label>
+                            <select id="docModalCustomEndTime" class="form-control" style="width: 100%; height: 34px; font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                <option value="11:00 AM">11:00 AM</option>
+                                <option value="12:00 PM">12:00 PM</option>
+                                <option value="01:00 PM">01:00 PM</option>
+                                <option value="02:00 PM">02:00 PM</option>
+                                <option value="03:00 PM">03:00 PM</option>
+                                <option value="04:00 PM">04:00 PM</option>
+                                <option value="05:00 PM" selected>05:00 PM</option>
+                                <option value="06:00 PM">06:00 PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="button" onclick="applyDoctorCustomShiftHours()" class="btn-primary" style="width: 100%; height: 34px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class='bx bx-check'></i> Apply Custom Shift Hours
+                    </button>
+                </div>
+
+                <!-- Mark Off-Duty -->
+                <div class="shift-option-card" onclick="applyDoctorDateShift('off')" style="display: flex; align-items: center; gap: 12px; border-color: #fecdd3; background: #fff1f2;">
+                    <div class="shift-icon-wrap" style="background: #ffe4e6; color: #e11d48;">
+                        <i class='bx bx-calendar-x'></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12.5px; font-weight: 700; color: #be123c;">Off-Duty / Leave Day</div>
+                        <div style="font-size: 11px; color: #9f1239;">Unselect this day &bull; No appointments can be booked</div>
+                    </div>
+                    <i class='bx bx-chevron-right' style="color: #f43f5e; font-size: 18px;"></i>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="border-top: 1px solid var(--doctor-border); padding-top: 10px; display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-outline" onclick="closeDoctorDateShiftModal()" style="height: 34px; padding: 0 16px; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+<!-- MODAL: Doctor Cancel Consultation (D-007) -->
     <div id="doctorCancelModal" class="doc-modal-overlay">
         <div class="doc-modal-content" style="max-width: 480px;">
             <div class="flex justify-between items-center border-bottom pb-2 mb-3">
@@ -4021,6 +4509,473 @@
         });
 
         // ── D-006: Doctor Schedule Management ─────────────────────────
+        const DOC_WEEKDAYS = [
+            { code: 'Sun', name: 'Sunday', index: 0 },
+            { code: 'Mon', name: 'Monday', index: 1 },
+            { code: 'Tue', name: 'Tuesday', index: 2 },
+            { code: 'Wed', name: 'Wednesday', index: 3 },
+            { code: 'Thu', name: 'Thursday', index: 4 },
+            { code: 'Fri', name: 'Friday', index: 5 },
+            { code: 'Sat', name: 'Saturday', index: 6 }
+        ];
+
+        let docActiveDays = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+        let docOffDutyDates = new Set();    // 'YYYY-MM-DD' specific dates unselected by doctor
+        let docExtraDutyDates = new Set();  // 'YYYY-MM-DD' special dates added by doctor
+        let docCustomDateHours = {};        // 'YYYY-MM-DD' => { start, end, type, label }
+        let docCalCurrentDate = new Date();
+        let selectedModalDateKey = null;
+        let selectedModalIsDefaultDuty = false;
+
+        function parseDaysStringToSet(daysStr) {
+            if (!daysStr) return new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+            const lower = daysStr.toLowerCase().trim();
+
+            if (lower.includes('daily') || lower.includes('mon - sun') || lower.includes('mon-sun') || lower.includes('all')) {
+                return new Set(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            }
+            if (lower.includes('mon - sat') || lower.includes('mon-sat')) {
+                return new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            }
+            if (lower.includes('mon - fri') || lower.includes('mon-fri') || lower.includes('weekdays')) {
+                return new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+            }
+            if (lower.includes('mon - thu') || lower.includes('mon-thu')) {
+                return new Set(['Mon', 'Tue', 'Wed', 'Thu']);
+            }
+            if (lower.includes('tue - sat') || lower.includes('tue-sat')) {
+                return new Set(['Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            }
+
+            const s = new Set();
+            DOC_WEEKDAYS.forEach(w => {
+                if (daysStr.includes(w.code) || lower.includes(w.name.toLowerCase())) {
+                    s.add(w.code);
+                }
+            });
+            return s.size > 0 ? s : new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+        }
+
+        function formatDaysSetToString(daysSet) {
+            if (daysSet.size === 7) return 'Mon - Sun';
+            const standardWeekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+            const sixDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const isStandard = standardWeekdays.every(d => daysSet.has(d)) && daysSet.size === 5;
+            if (isStandard) return 'Mon - Fri';
+            const isSix = sixDays.every(d => daysSet.has(d)) && daysSet.size === 6;
+            if (isSix) return 'Mon - Sat';
+
+            const ordered = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].filter(d => daysSet.has(d));
+            return ordered.length > 0 ? ordered.join(', ') : 'Closed';
+        }
+
+        function renderDoctorDayTiles() {
+            const container = document.getElementById('docWeekdayTilesGrid');
+            if (!container) return;
+
+            let html = '';
+            DOC_WEEKDAYS.forEach(day => {
+                const isActive = docActiveDays.has(day.code);
+                html += `
+                    <div class="doc-day-tile ${isActive ? 'active' : ''}" 
+                         onclick="toggleDoctorDay('${day.code}')"
+                         title="Click to toggle ${day.name}">
+                        <div class="doc-day-tile-code">${day.code}</div>
+                        <div class="doc-day-tile-name">${day.name.slice(0, 3)}</div>
+                        <i class='bx ${isActive ? 'bx-check-circle' : 'bx-circle'}' style="font-size: 14px; margin-top: 2px;"></i>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderDoctorMiniCalendar() {
+            const monthYearEl = document.getElementById('docCalMonthYear');
+            const datesGrid = document.getElementById('docCalDatesGrid');
+            if (!datesGrid) return;
+
+            const year = docCalCurrentDate.getFullYear();
+            const month = docCalCurrentDate.getMonth();
+
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            if (monthYearEl) {
+                monthYearEl.textContent = `${monthNames[month]} ${year}`;
+            }
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            const today = new Date();
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+            const todayDate = today.getDate();
+
+            let cellsHtml = '';
+
+            // Previous month trailing days
+            for (let i = firstDayIndex - 1; i >= 0; i--) {
+                const prevD = daysInPrevMonth - i;
+                cellsHtml += `<div class="doc-cal-cell is-other-month"><span>${prevD}</span></div>`;
+            }
+
+            // Current month days
+            const pad = n => String(n).padStart(2, '0');
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateObj = new Date(year, month, d);
+                const dayOfWeekIndex = dateObj.getDay();
+                const dayCode = DOC_WEEKDAYS[dayOfWeekIndex].code;
+                const isDefaultDuty = docActiveDays.has(dayCode);
+
+                const dateKey = `${year}-${pad(month + 1)}-${pad(d)}`;
+                const isSpecificOff = docOffDutyDates.has(dateKey);
+                const isSpecificExtra = docExtraDutyDates.has(dateKey);
+                const customShift = docCustomDateHours[dateKey];
+                const isHalfDay = !!(customShift && (customShift.type === 'half_day_am' || customShift.type === 'half_day_pm'));
+                const isCustomShift = !!(customShift && customShift.type === 'custom');
+                const isDuty = ((isDefaultDuty && !isSpecificOff) || isSpecificExtra) && !isSpecificOff;
+                const isToday = isCurrentMonth && d === todayDate;
+
+                let cellClass = 'doc-cal-cell';
+                let indicatorHtml = '';
+                let titleText = '';
+
+                if (isSpecificOff) {
+                    cellClass += ' is-specific-off';
+                    indicatorHtml = '<span style="font-size: 8px; line-height: 1; color: #e11d48; font-weight: 800; margin-top: 1px;">OFF</span>';
+                    titleText = `${dateKey}: Marked Off-Duty Leave for this day (Click to configure shift)`;
+                } else if (isHalfDay) {
+                    cellClass += ' is-half-day';
+                    const badgeText = customShift.type === 'half_day_am' ? 'HALF AM' : 'HALF PM';
+                    indicatorHtml = `<span style="font-size: 7.5px; line-height: 1; color: #b45309; font-weight: 800; margin-top: 1px;">${badgeText}</span>`;
+                    titleText = `${dateKey}: ${customShift.label || 'Half-Day Shift'} (${customShift.start} - ${customShift.end}) (Click to change)`;
+                } else if (isCustomShift) {
+                    cellClass += ' is-custom-shift';
+                    indicatorHtml = '<span style="font-size: 7.5px; line-height: 1; color: #4338ca; font-weight: 800; margin-top: 1px;">CUSTOM</span>';
+                    titleText = `${dateKey}: Custom Hours (${customShift.start} - ${customShift.end}) (Click to change)`;
+                } else if (isSpecificExtra) {
+                    cellClass += ' is-extra-duty';
+                    indicatorHtml = '<span style="font-size: 8px; line-height: 1; color: #4f46e5; font-weight: 800; margin-top: 1px;">DUTY</span>';
+                    titleText = `${dateKey}: Special Extra Duty Date (Click to configure)`;
+                } else if (isDuty) {
+                    cellClass += ' is-duty';
+                    indicatorHtml = '<span class="duty-dot"></span>';
+                    titleText = `${dateKey}: Regular On Duty (Click to configure shift or unselect)`;
+                } else {
+                    cellClass += ' is-off';
+                    titleText = `${dateKey}: Regular Off Duty (Click to add duty shift or day)`;
+                }
+
+                if (isToday) cellClass += ' is-today';
+
+                cellsHtml += `
+                    <div class="${cellClass}" 
+                         data-date="${dateKey}"
+                         onclick="openDoctorDateShiftModal('${dateKey}', ${isDefaultDuty})"
+                         title="${titleText}">
+                        <span style="line-height: 1;">${d}</span>
+                        ${indicatorHtml}
+                    </div>
+                `;
+            }
+
+            // Next month leading days
+            const totalRendered = firstDayIndex + daysInMonth;
+            const remaining = (7 - (totalRendered % 7)) % 7;
+            for (let j = 1; j <= remaining; j++) {
+                cellsHtml += `<div class="doc-cal-cell is-other-month"><span>${j}</span></div>`;
+            }
+
+            datesGrid.innerHTML = cellsHtml;
+        }
+
+        function toggleDoctorDay(dayCode) {
+            if (docActiveDays.has(dayCode)) {
+                docActiveDays.delete(dayCode);
+            } else {
+                docActiveDays.add(dayCode);
+            }
+            syncDoctorWorkingDaysUI();
+        }
+
+        function openDoctorDateShiftModal(dateKey, isDefaultDuty) {
+            selectedModalDateKey = dateKey;
+            selectedModalIsDefaultDuty = isDefaultDuty;
+
+            const modal = document.getElementById('doctorDateShiftModal');
+            if (!modal) return;
+
+            const parts = dateKey.split('-');
+            const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            const dayName = DOC_WEEKDAYS[d.getDay()].name;
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const formattedDate = `${dayName}, ${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+
+            const subTitleEl = document.getElementById('docDateShiftModalSubtitle');
+            if (subTitleEl) subTitleEl.textContent = formattedDate;
+
+            // Determine status
+            const isSpecificOff = docOffDutyDates.has(dateKey);
+            const custom = docCustomDateHours[dateKey];
+            const isSpecificExtra = docExtraDutyDates.has(dateKey);
+            const statusBadge = document.getElementById('docDateShiftCurrentStatusBadge');
+
+            if (statusBadge) {
+                if (isSpecificOff) {
+                    statusBadge.textContent = 'Off-Duty / Leave Day';
+                    statusBadge.style.background = '#ffe4e6';
+                    statusBadge.style.color = '#e11d48';
+                } else if (custom) {
+                    statusBadge.textContent = custom.label || `${custom.start} - ${custom.end}`;
+                    statusBadge.style.background = custom.type.startsWith('half') ? '#fef3c7' : '#e0e7ff';
+                    statusBadge.style.color = custom.type.startsWith('half') ? '#b45309' : '#4338ca';
+                } else if (isSpecificExtra) {
+                    statusBadge.textContent = 'Extra On-Duty Day';
+                    statusBadge.style.background = '#e0e7ff';
+                    statusBadge.style.color = '#4338ca';
+                } else if (isDefaultDuty) {
+                    statusBadge.textContent = 'Regular Full Day Duty';
+                    statusBadge.style.background = '#e0f2fe';
+                    statusBadge.style.color = '#0284c7';
+                } else {
+                    statusBadge.textContent = 'Regular Off-Duty Day';
+                    statusBadge.style.background = '#f1f5f9';
+                    statusBadge.style.color = '#64748b';
+                }
+            }
+
+            // Close custom panel by default
+            const customPanel = document.getElementById('docCustomShiftPanel');
+            if (customPanel) customPanel.style.display = 'none';
+            const chev = document.getElementById('docCustomShiftChevron');
+            if (chev) chev.className = 'bx bx-chevron-down';
+
+            modal.style.display = 'flex';
+        }
+
+        function closeDoctorDateShiftModal() {
+            const modal = document.getElementById('doctorDateShiftModal');
+            if (modal) modal.style.display = 'none';
+            selectedModalDateKey = null;
+        }
+
+        function toggleDoctorCustomShiftPanel() {
+            const panel = document.getElementById('docCustomShiftPanel');
+            const chev = document.getElementById('docCustomShiftChevron');
+            if (!panel) return;
+            const isOpen = panel.style.display === 'block';
+            panel.style.display = isOpen ? 'none' : 'block';
+            if (chev) chev.className = isOpen ? 'bx bx-chevron-down' : 'bx bx-chevron-up';
+        }
+
+        function applyDoctorDateShift(type) {
+            if (!selectedModalDateKey) return;
+            const dateKey = selectedModalDateKey;
+
+            if (type === 'off') {
+                docOffDutyDates.add(dateKey);
+                docExtraDutyDates.delete(dateKey);
+                delete docCustomDateHours[dateKey];
+                showDoctorToast(`Unselected ${dateKey}: Marked as Off-Duty for this day.`, 'info');
+            } else if (type === 'full') {
+                docOffDutyDates.delete(dateKey);
+                delete docCustomDateHours[dateKey];
+                if (!selectedModalIsDefaultDuty) {
+                    docExtraDutyDates.add(dateKey);
+                    showDoctorToast(`Added ${dateKey} as special on-duty date (Full Day).`, 'success');
+                } else {
+                    showDoctorToast(`Set ${dateKey} to normal Full Day Duty.`, 'success');
+                }
+            } else if (type === 'half_day_am') {
+                docOffDutyDates.delete(dateKey);
+                if (!selectedModalIsDefaultDuty) docExtraDutyDates.add(dateKey);
+                docCustomDateHours[dateKey] = {
+                    start: '09:00 AM',
+                    end: '12:00 PM',
+                    type: 'half_day_am',
+                    label: 'Half Day AM (09:00 AM - 12:00 PM)'
+                };
+                showDoctorToast(`Set ${dateKey} to Half Day — Morning (09:00 AM - 12:00 PM).`, 'success');
+            } else if (type === 'half_day_pm') {
+                docOffDutyDates.delete(dateKey);
+                if (!selectedModalIsDefaultDuty) docExtraDutyDates.add(dateKey);
+                docCustomDateHours[dateKey] = {
+                    start: '01:00 PM',
+                    end: '05:00 PM',
+                    type: 'half_day_pm',
+                    label: 'Half Day PM (01:00 PM - 05:00 PM)'
+                };
+                showDoctorToast(`Set ${dateKey} to Half Day — Afternoon (01:00 PM - 05:00 PM).`, 'success');
+            }
+
+            closeDoctorDateShiftModal();
+            syncDoctorWorkingDaysUI();
+        }
+
+        function applyDoctorCustomShiftHours() {
+            if (!selectedModalDateKey) return;
+            const dateKey = selectedModalDateKey;
+            const startTime = document.getElementById('docModalCustomStartTime')?.value || '09:00 AM';
+            const endTime = document.getElementById('docModalCustomEndTime')?.value || '05:00 PM';
+
+            if (startTime === endTime) {
+                showDoctorToast('Start time and End time cannot be the same.', 'warning');
+                return;
+            }
+
+            docOffDutyDates.delete(dateKey);
+            if (!selectedModalIsDefaultDuty) docExtraDutyDates.add(dateKey);
+
+            docCustomDateHours[dateKey] = {
+                start: startTime,
+                end: endTime,
+                type: 'custom',
+                label: `Custom Shift (${startTime} - ${endTime})`
+            };
+
+            showDoctorToast(`Set ${dateKey} custom duty shift: ${startTime} - ${endTime}.`, 'success');
+            closeDoctorDateShiftModal();
+            syncDoctorWorkingDaysUI();
+        }
+
+        function removeSpecificOffDate(dateKey) {
+            docOffDutyDates.delete(dateKey);
+            docExtraDutyDates.delete(dateKey);
+            delete docCustomDateHours[dateKey];
+            showDoctorToast(`Cleared date shift/exception for ${dateKey}.`, 'info');
+            syncDoctorWorkingDaysUI();
+        }
+
+        function clearAllSpecificDateExceptions() {
+            docOffDutyDates.clear();
+            docExtraDutyDates.clear();
+            docCustomDateHours = {};
+            showDoctorToast('All specific date shifts & exceptions cleared.', 'info');
+            syncDoctorWorkingDaysUI();
+        }
+
+        function renderSpecificOffDatesPills() {
+            const wrap = document.getElementById('docSpecificExceptionsWrap');
+            const chips = document.getElementById('docSpecificOffChips');
+            const countEl = document.getElementById('docSpecificOffCount');
+            const summaryBadge = document.getElementById('docDateExceptionsSummaryBadge');
+
+            const customKeys = Object.keys(docCustomDateHours);
+            const totalExceptions = docOffDutyDates.size + docExtraDutyDates.size + customKeys.length;
+
+            if (totalExceptions === 0) {
+                if (wrap) wrap.style.display = 'none';
+                if (summaryBadge) summaryBadge.style.display = 'none';
+                return;
+            }
+
+            if (wrap) wrap.style.display = 'block';
+            if (countEl) countEl.textContent = totalExceptions;
+            if (summaryBadge) {
+                summaryBadge.style.display = 'inline-block';
+                summaryBadge.textContent = `${totalExceptions} Custom Shift / Off-Day(s)`;
+            }
+
+            if (chips) {
+                let html = '';
+                // Off-duty leaves
+                docOffDutyDates.forEach(dateKey => {
+                    const parts = dateKey.split('-');
+                    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    const dayCode = DOC_WEEKDAYS[d.getDay()].code;
+                    html += `
+                        <span class="doc-exception-chip">
+                            <i class='bx bx-calendar-x'></i> ${dateKey} (${dayCode}) • Off-Duty Leave
+                            <button type="button" class="btn-remove-chip" onclick="removeSpecificOffDate('${dateKey}')" title="Restore this day to on-duty">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </span>
+                    `;
+                });
+
+                // Custom / Half-day shifts
+                customKeys.forEach(dateKey => {
+                    const parts = dateKey.split('-');
+                    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    const dayCode = DOC_WEEKDAYS[d.getDay()].code;
+                    const shift = docCustomDateHours[dateKey];
+                    const isHalf = shift.type.startsWith('half');
+                    const bgStyle = isHalf 
+                        ? 'background: #fffbeb; color: #b45309; border: 1px solid #fde68a;' 
+                        : 'background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe;';
+                    const icon = isHalf ? 'bx-time-five' : 'bx-slider-alt';
+                    html += `
+                        <span class="doc-exception-chip" style="${bgStyle}">
+                            <i class='bx ${icon}'></i> ${dateKey} (${dayCode}) • ${escapeHtml(shift.label || `${shift.start} - ${shift.end}`)}
+                            <button type="button" class="btn-remove-chip" onclick="removeSpecificOffDate('${dateKey}')" style="${isHalf ? 'color: #b45309;' : 'color: #4338ca;'}" title="Revert to standard full day">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </span>
+                    `;
+                });
+
+                // Extra duty days
+                docExtraDutyDates.forEach(dateKey => {
+                    if (docCustomDateHours[dateKey]) return; // already rendered
+                    const parts = dateKey.split('-');
+                    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    const dayCode = DOC_WEEKDAYS[d.getDay()].code;
+                    html += `
+                        <span class="doc-exception-chip" style="background: rgba(99, 102, 241, 0.15); color: #4338ca; border-color: #a5b4fc;">
+                            <i class='bx bx-calendar-plus'></i> ${dateKey} (${dayCode}) • Extra Duty
+                            <button type="button" class="btn-remove-chip" onclick="removeSpecificOffDate('${dateKey}')" style="color: #6366f1;" title="Revert to off-duty">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </span>
+                    `;
+                });
+                chips.innerHTML = html;
+            }
+        }
+
+        function setDocDaysPreset(preset) {
+            if (preset === 'weekdays') {
+                docActiveDays = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+            } else if (preset === 'sixdays') {
+                docActiveDays = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            } else if (preset === 'all') {
+                docActiveDays = new Set(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            }
+            syncDoctorWorkingDaysUI();
+        }
+
+        function navigateDocCalendar(dir) {
+            docCalCurrentDate.setMonth(docCalCurrentDate.getMonth() + dir);
+            renderDoctorMiniCalendar();
+        }
+
+        function resetDocCalendarToToday() {
+            docCalCurrentDate = new Date();
+            renderDoctorMiniCalendar();
+        }
+
+        function syncDoctorWorkingDaysUI() {
+            const formatted = formatDaysSetToString(docActiveDays);
+            const hiddenInp = document.getElementById('docWorkingDays');
+            if (hiddenInp) hiddenInp.value = formatted;
+
+            renderDoctorDayTiles();
+            renderDoctorMiniCalendar();
+            renderSpecificOffDatesPills();
+            renderDocHoursPreview();
+        }
+
+        function setDoctorWorkingDaysFromValue(val, offDates = [], extraDates = [], customHours = {}) {
+            docActiveDays = parseDaysStringToSet(val);
+            docOffDutyDates = new Set(Array.isArray(offDates) ? offDates : []);
+            docExtraDutyDates = new Set(Array.isArray(extraDates) ? extraDates : []);
+            docCustomDateHours = (customHours && typeof customHours === 'object' && !Array.isArray(customHours)) ? { ...customHours } : {};
+            syncDoctorWorkingDaysUI();
+        }
+
         function parseTimeStrToMinutes(tStr) {
             const parts = tStr.trim().split(' ');
             const timeParts = parts[0].split(':');
@@ -4093,8 +5048,8 @@
 
         function loadDoctorScheduleData(doc) {
             if (!doc) return;
-            const wDays = document.getElementById('docWorkingDays');
-            if (wDays && doc.working_days) wDays.value = doc.working_days;
+            const rawDays = doc.working_days || 'Mon - Fri';
+            setDoctorWorkingDaysFromValue(rawDays, doc.off_duty_dates || [], doc.extra_duty_dates || [], doc.custom_date_hours || {});
 
             const tStart = document.getElementById('docDutyStartTime');
             if (tStart && doc.opening_time) tStart.value = doc.opening_time;
@@ -4134,6 +5089,24 @@
                         ${escapeHtml(s)}
                     </span>
                 `).join('');
+            }
+
+            // Sync date exceptions & custom shifts in review modal
+            const excCount = docOffDutyDates.size;
+            const customCount = Object.keys(docCustomDateHours).length;
+            const excEl = document.getElementById('confirmDocExceptionsText');
+            const excRow = document.getElementById('confirmDocExceptionsRow');
+            if (excEl) {
+                let excSummary = [];
+                if (excCount > 0) excSummary.push(`${excCount} Off-Duty Day(s): ${Array.from(docOffDutyDates).join(', ')}`);
+                if (customCount > 0) {
+                    const cDetails = Object.entries(docCustomDateHours).map(([dt, obj]) => `${dt} (${obj.label || obj.start + ' - ' + obj.end})`).join(', ');
+                    excSummary.push(`${customCount} Modified Shift(s): ${cDetails}`);
+                }
+                excEl.textContent = excSummary.length > 0 ? excSummary.join(' | ') : 'None';
+            }
+            if (excRow) {
+                excRow.style.display = (excCount > 0 || customCount > 0) ? 'block' : 'none';
             }
 
             document.getElementById('confirmDoctorScheduleModal').style.display = 'flex';
@@ -4188,6 +5161,9 @@
                 doctor_email: cachedDashboardData?.doctor?.email || '',
                 doctor_name: cachedDashboardData?.doctor?.full_name || '',
                 working_days: document.getElementById('docWorkingDays')?.value || 'Mon - Fri',
+                off_duty_dates: Array.from(docOffDutyDates),
+                extra_duty_dates: Array.from(docExtraDutyDates),
+                custom_date_hours: docCustomDateHours,
                 opening_time: document.getElementById('docDutyStartTime')?.value || '09:00 AM',
                 closing_time: document.getElementById('docDutyEndTime')?.value || '05:00 PM',
                 lunch_break: document.getElementById('docLunchBreak')?.checked ? 'yes' : 'no',

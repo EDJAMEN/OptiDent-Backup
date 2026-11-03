@@ -1008,7 +1008,7 @@
                                             <div class="text-xs text-dim" style="font-size: 11px;">Restricts general staff/patient access for maintenance</div>
                                         </div>
                                         <label class="master-toggle" title="Toggle Maintenance Mode">
-                                            <input type="checkbox" id="settingMaintenanceMode" onchange="updateMaintenanceBadge(this.checked)">
+                                            <input type="checkbox" id="settingMaintenanceMode" onchange="requestIntegrationToggle('maintenance_mode', this.checked, this)">
                                             <span class="master-toggle-slider"></span>
                                         </label>
                                     </div>
@@ -1264,7 +1264,7 @@
 
                 <!-- 7. HISTORICAL DATA ARCHIVES TAB (SA-007) -->
                 <div id="tab-archive" class="admin-tab" style="display: none;">
-                    <header class="admin-header flex justify-between items-center mb-2 pb-1 border-bottom" style="flex-wrap: wrap; gap: 8px;">
+                    <header class="admin-header flex justify-between items-center pb-1 border-bottom" style="flex-wrap: wrap; gap: 8px; margin-bottom: 24px;">
                         <div>
                             <div class="flex items-center gap-1">
                                 <h2 class="font-bold text-xl mb-0">Historical Data Archives</h2>
@@ -1291,8 +1291,8 @@
                     </header>
 
                     <!-- Archive Summary Statistics -->
-                    <div class="stats-grid mb-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem;">
-                        <div class="card bg-white soft-shadow-sm p-2 flex items-center gap-2">
+                    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-bottom: 24px;">
+                        <div class="card bg-white soft-shadow-sm p-2 flex items-center gap-2" style="border: 1px solid #e2e8f0; border-radius: 12px;">
                             <div style="width: 46px; height: 46px; border-radius: 12px; background: rgba(99, 102, 241, 0.1); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 22px;">
                                 <i class='bx bx-archive'></i>
                             </div>
@@ -1303,7 +1303,7 @@
                             </div>
                         </div>
 
-                        <div class="card bg-white soft-shadow-sm p-2 flex items-center gap-2">
+                        <div class="card bg-white soft-shadow-sm p-2 flex items-center gap-2" style="border: 1px solid #e2e8f0; border-radius: 12px;">
                             <div style="width: 46px; height: 46px; border-radius: 12px; background: rgba(14, 165, 233, 0.1); color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 22px;">
                                 <i class='bx bx-calendar-check'></i>
                             </div>
@@ -1314,7 +1314,7 @@
                             </div>
                         </div>
 
-                        <div class="card bg-white soft-shadow-sm p-2 flex items-center gap-2">
+                        <div class="card bg-white soft-shadow-sm p-2 flex items-center gap-2" style="border: 1px solid #e2e8f0; border-radius: 12px;">
                             <div style="width: 46px; height: 46px; border-radius: 12px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 22px;">
                                 <i class='bx bx-user-check'></i>
                             </div>
@@ -1325,7 +1325,7 @@
                             </div>
                         </div>
 
-                        <div class="card bg-white soft-shadow-sm p-2 flex items-center gap-2">
+                        <div class="card bg-white soft-shadow-sm p-2 flex items-center gap-2" style="border: 1px solid #e2e8f0; border-radius: 12px;">
                             <div style="width: 46px; height: 46px; border-radius: 12px; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 22px;">
                                 <i class='bx bx-pulse'></i>
                             </div>
@@ -1338,7 +1338,7 @@
                     </div>
 
                     <!-- Automated Batch Policy Presets Card -->
-                    <div class="card bg-white soft-shadow-sm mb-2" style="padding: 14px 18px; border-left: 4px solid #6366f1;">
+                    <div class="card bg-white soft-shadow-sm" style="padding: 18px 24px; margin-bottom: 24px; border: 1px solid #e2e8f0; border-radius: 12px;">
                         <div class="flex items-center justify-between gap-1" style="flex-wrap: wrap;">
                             <div>
                                 <div class="font-bold text-sm text-dark flex items-center gap-1">
@@ -1364,7 +1364,7 @@
                     </div>
 
                     <!-- Search and Category Filters -->
-                    <div class="card bg-white soft-shadow-sm mb-2" style="padding: 12px 16px;">
+                    <div class="card bg-white soft-shadow-sm" style="padding: 14px 20px; margin-bottom: 24px; border: 1px solid #e2e8f0; border-radius: 12px;">
                         <div class="flex items-center justify-between gap-1" style="flex-wrap: wrap;">
                             <div class="flex items-center gap-1" style="flex: 1; min-width: 250px;">
                                 <i class='bx bx-search text-dim'></i>
@@ -1385,7 +1385,7 @@
                     </div>
 
                     <!-- Archive Repository Records Table -->
-                    <div class="card detail-card bg-white soft-shadow-sm p-0 overflow-hidden mb-3">
+                    <div class="card detail-card bg-white soft-shadow-sm p-0 overflow-hidden" style="border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 32px;">
                         <div class="table-responsive">
                             <table class="data-table w-full" style="font-size: 13px;">
                                 <thead class="bg-muted">
@@ -1416,7 +1416,7 @@
                 <div id="tab-reports" class="admin-tab" style="display: none;">
                     
                     <!-- Top Action / Header Card -->
-                    <div class="card bg-white soft-shadow-sm mb-2" style="padding: 16px 20px;">
+                    <div class="card bg-white soft-shadow-sm" style="padding: 18px 24px; margin-bottom: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
                         <div class="flex items-center justify-between gap-1" style="flex-wrap: wrap;">
                             <div>
                                 <div class="flex items-center gap-1 mb-1">
@@ -1428,23 +1428,59 @@
                                 </p>
                             </div>
                             <div class="flex items-center gap-1" style="flex-wrap: wrap;">
-                                <button class="btn-primary text-xs" onclick="exportReportsPdf()" style="padding: 8px 16px; background: #0eb1b1; border-color: #0c9696; display: inline-flex; align-items: center; gap: 6px;">
-                                    <i class='bx bx-printer'></i> Official PDF Report
-                                </button>
-                                <button class="btn-outline text-xs" onclick="loadReportsWorkspace()" title="Refresh live report data" style="padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px;">
+                                <!-- Download / Export Dropdown Button -->
+                                <div style="position: relative; display: inline-block;">
+                                    <button type="button" class="btn-primary text-xs" onclick="toggleReportsExportMenu(event)" style="padding: 8px 16px; background: #0eb1b1; border-color: #0c9696; color: white; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; border-radius: 8px; cursor: pointer;">
+                                        <i class='bx bx-download'></i> Download Report <i class='bx bx-chevron-down' style="font-size: 14px;"></i>
+                                    </button>
+                                    <div id="reportsExportDropdown" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 6px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); z-index: 1000; min-width: 250px; overflow: hidden;">
+                                        <a href="javascript:void(0)" onclick="exportSelectedReportCsv()" style="display: flex; align-items: center; gap: 10px; padding: 11px 16px; text-decoration: none; color: #1e293b; font-size: 12px; font-weight: 600; border-bottom: 1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                            <i class='bx bxs-file-export' style="font-size: 18px; color: #10b981;"></i>
+                                            <div>
+                                                <div>Download as Excel / CSV</div>
+                                                <div style="font-size: 10px; color: #64748b; font-weight: 400;">Full data export with summary</div>
+                                            </div>
+                                        </a>
+                                        <a href="javascript:void(0)" onclick="exportReportsPdf()" style="display: flex; align-items: center; gap: 10px; padding: 11px 16px; text-decoration: none; color: #1e293b; font-size: 12px; font-weight: 600;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                            <i class='bx bxs-file-pdf' style="font-size: 18px; color: #ef4444;"></i>
+                                            <div>
+                                                <div>Official Printable PDF</div>
+                                                <div style="font-size: 10px; color: #64748b; font-weight: 400;">Formatted clinical report</div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <button class="btn-outline text-xs" onclick="loadReportsWorkspace()" title="Refresh live report data" style="padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;">
                                     <i class='bx bx-refresh'></i> Refresh
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Multi-Parameter Filters Toolbar -->
-                    <div class="card bg-white soft-shadow-sm mb-3" style="padding: 14px 18px;">
-                        <div class="flex items-center gap-2" style="flex-wrap: wrap;">
+                    <!-- Multi-Parameter Filters & Report Generator Toolbar -->
+                    <div class="card bg-white soft-shadow-sm" style="padding: 22px 26px; margin-bottom: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <div style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 18px;">
+                            <!-- Report Type Dropdown -->
+                            <div style="flex: 1.4; min-width: 240px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px;">
+                                    <i class='bx bx-pie-chart-alt-2 text-primary' style="font-size: 16px;"></i> Select Report Type
+                                </label>
+                                <select id="reportsCategorySelect" class="form-control" onchange="onReportsCategorySelectChange(this.value)" style="height: 40px; padding: 0 14px; border-radius: 8px; border: 1.5px solid var(--primary); width: 100%; background: #F0FBFA; color: var(--primary-dark); font-weight: 600; font-size: 13px; cursor: pointer; outline: none;">
+                                    <option value="earnings">Financial Earnings &amp; Revenue</option>
+                                    <option value="appointments">Appointments &amp; Procedures</option>
+                                    <option value="patients">Patient Registry &amp; Demographics</option>
+                                    <option value="queues">Live Patient Flow Queue</option>
+                                    <option value="cancellations">Cancellations &amp; Attrition</option>
+                                    <option value="audit_logs">System Security &amp; Audit Trail</option>
+                                </select>
+                            </div>
+
                             <!-- Date Preset -->
                             <div style="flex: 1; min-width: 170px;">
-                                <label class="text-xs font-bold text-dim uppercase d-block mb-1">Date Period</label>
-                                <select id="reportsDatePreset" class="form-control text-xs" onchange="onReportsDatePresetChange()" style="padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px;">
+                                    <i class='bx bx-calendar text-primary' style="font-size: 16px;"></i> Date Period
+                                </label>
+                                <select id="reportsDatePreset" class="form-control" onchange="onReportsDatePresetChange()" style="height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; font-size: 13px; background: #ffffff; color: #1e293b; outline: none;">
                                     <option value="all_time">All Time Records</option>
                                     <option value="today">Today Only</option>
                                     <option value="yesterday">Yesterday</option>
@@ -1456,29 +1492,37 @@
                             </div>
 
                             <!-- Custom Date Range (hidden unless custom selected) -->
-                            <div id="reportsCustomDateContainer" style="display: none; align-items: center; gap: 6px; flex: 2; min-width: 250px;">
+                            <div id="reportsCustomDateContainer" style="display: none; align-items: flex-end; gap: 12px; flex: 2; min-width: 260px;">
                                 <div style="flex: 1;">
-                                    <label class="text-xs font-bold text-dim uppercase d-block mb-1">From Date</label>
-                                    <input type="date" id="reportsDateFrom" onchange="onReportsFilterChange()" class="form-control text-xs" style="padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%;">
+                                    <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px;">
+                                        <i class='bx bx-time' style="font-size: 15px;"></i> From Date
+                                    </label>
+                                    <input type="date" id="reportsDateFrom" onchange="onReportsFilterChange()" class="form-control" style="height: 40px; padding: 0 10px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; font-size: 13px; outline: none;">
                                 </div>
                                 <div style="flex: 1;">
-                                    <label class="text-xs font-bold text-dim uppercase d-block mb-1">To Date</label>
-                                    <input type="date" id="reportsDateTo" onchange="onReportsFilterChange()" class="form-control text-xs" style="padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%;">
+                                    <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px;">
+                                        <i class='bx bx-time-five' style="font-size: 15px;"></i> To Date
+                                    </label>
+                                    <input type="date" id="reportsDateTo" onchange="onReportsFilterChange()" class="form-control" style="height: 40px; padding: 0 10px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; font-size: 13px; outline: none;">
                                 </div>
                             </div>
 
                             <!-- Doctor Filter -->
-                            <div style="flex: 1; min-width: 170px;">
-                                <label class="text-xs font-bold text-dim uppercase d-block mb-1">Attending Doctor</label>
-                                <select id="reportsDoctorFilter" class="form-control text-xs" onchange="onReportsFilterChange()" style="padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%;">
+                            <div style="flex: 1; min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px;">
+                                    <i class='bx bx-user-pin text-primary' style="font-size: 16px;"></i> Attending Doctor
+                                </label>
+                                <select id="reportsDoctorFilter" class="form-control" onchange="onReportsFilterChange()" style="height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; font-size: 13px; background: #ffffff; color: #1e293b; outline: none;">
                                     <option value="all">All Attending Doctors</option>
                                 </select>
                             </div>
 
                             <!-- Appointment Status Filter -->
                             <div style="flex: 1; min-width: 170px;">
-                                <label class="text-xs font-bold text-dim uppercase d-block mb-1">Appointment Status</label>
-                                <select id="reportsStatusFilter" class="form-control text-xs" onchange="onReportsFilterChange()" style="padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px;">
+                                    <i class='bx bx-check-shield text-primary' style="font-size: 16px;"></i> Status Filter
+                                </label>
+                                <select id="reportsStatusFilter" class="form-control" onchange="onReportsFilterChange()" style="height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; font-size: 13px; background: #ffffff; color: #1e293b; outline: none;">
                                     <option value="all">All Statuses</option>
                                     <option value="completed">Completed Only</option>
                                     <option value="scheduled">Scheduled / Booked</option>
@@ -1487,115 +1531,50 @@
                                 </select>
                             </div>
 
-                            <!-- Reset Button -->
-                            <div style="display: flex; align-items: flex-end; padding-bottom: 2px;">
-                                <button type="button" class="btn-outline text-xs" onclick="resetReportsFilters()" style="padding: 7px 12px; height: 32px;" title="Reset Filters">
-                                    <i class='bx bx-reset mr-1'></i> Reset
+                            <!-- Actions: Generate Report & Reset -->
+                            <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 1px;">
+                                <button type="button" class="btn-primary" onclick="loadReportsWorkspace()" style="height: 40px; padding: 0 18px; border-radius: 8px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
+                                    <i class='bx bx-filter-alt' style="font-size: 16px;"></i> Generate Report
+                                </button>
+                                <button type="button" class="btn-outline" onclick="resetReportsFilters()" style="height: 40px; padding: 0 14px; border-radius: 8px; font-weight: 600; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;" title="Reset Filters">
+                                    <i class='bx bx-reset' style="font-size: 16px;"></i> Reset
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 6 Metric KPI Summary Cards -->
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px;">
-                        <!-- Patients Card -->
-                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" onclick="setReportTableCategory('patients')" style="cursor: pointer; border-left: 4px solid #0eb1b1;">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs text-dim font-bold uppercase">Patients Registry</span>
-                                <i class='bx bx-group text-primary' style="font-size: 20px;"></i>
-                            </div>
-                            <div class="text-2xl font-bold text-dark" id="reportKpiPatients">0</div>
-                            <div class="text-xs text-dim mt-1" id="reportKpiPatientsSub">Active clinical records</div>
+                    <!-- Compact Executive Metric Summary Bar (Replaces bulky cards) -->
+                    <div id="reportsActiveSummaryBar" class="card bg-white soft-shadow-sm" style="padding: 16px 24px; margin-bottom: 24px; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <span class="badge" id="reportSummaryBadge" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-weight: 700; font-size: 12px; padding: 6px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class='bx bx-dollar-circle' style="font-size: 16px;"></i> Financial Earnings &amp; Revenue
+                            </span>
+                            <span id="reportSummarySubtitle" style="font-size: 12px; color: #64748b; font-weight: 500;">Real-time calculations for selected period</span>
                         </div>
-
-                        <!-- Appointments Volume -->
-                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" onclick="setReportTableCategory('appointments')" style="cursor: pointer; border-left: 4px solid #3b82f6;">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs text-dim font-bold uppercase">Appointments</span>
-                                <i class='bx bx-calendar-check' style="font-size: 20px; color: #3b82f6;"></i>
-                            </div>
-                            <div class="text-2xl font-bold text-dark" id="reportKpiAppointments">0</div>
-                            <div class="text-xs text-dim mt-1" id="reportKpiAppointmentsSub">0 completed &bull; 0 scheduled</div>
-                        </div>
-
-                        <!-- Completion Rate -->
-                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" style="border-left: 4px solid #10b981;">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs text-dim font-bold uppercase">Completion Rate</span>
-                                <i class='bx bx-check-double' style="font-size: 20px; color: #10b981;"></i>
-                            </div>
-                            <div class="text-2xl font-bold text-dark" id="reportKpiCompletionRate">0%</div>
-                            <div class="text-xs text-dim mt-1" id="reportKpiCompletionSub">Successful treatments</div>
-                        </div>
-
-                        <!-- Live Queue Today -->
-                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" onclick="setReportTableCategory('queues')" style="cursor: pointer; border-left: 4px solid #f59e0b;">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs text-dim font-bold uppercase">Live Flow Queue</span>
-                                <i class='bx bx-time-five' style="font-size: 20px; color: #f59e0b;"></i>
-                            </div>
-                            <div class="text-2xl font-bold text-dark" id="reportKpiQueue">0</div>
-                            <div class="text-xs text-dim mt-1" id="reportKpiQueueSub">Active patients in flow</div>
-                        </div>
-
-                        <!-- Cancellations & Attrition -->
-                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" onclick="setReportTableCategory('cancellations')" style="cursor: pointer; border-left: 4px solid #ef4444;">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs text-dim font-bold uppercase">Cancellations</span>
-                                <i class='bx bx-calendar-x' style="font-size: 20px; color: #ef4444;"></i>
-                            </div>
-                            <div class="text-2xl font-bold text-dark" id="reportKpiCancellations">0</div>
-                            <div class="text-xs text-danger mt-1" id="reportKpiCancellationsSub">0% cancellation rate</div>
-                        </div>
-
-                        <!-- System Activities -->
-                        <div class="card bg-white soft-shadow-sm p-3 hover-lift" onclick="setReportTableCategory('audit_logs')" style="cursor: pointer; border-left: 4px solid #8b5cf6;">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs text-dim font-bold uppercase">Audit Events</span>
-                                <i class='bx bx-shield-quarter' style="font-size: 20px; color: #8b5cf6;"></i>
-                            </div>
-                            <div class="text-2xl font-bold text-dark" id="reportKpiAudit">0</div>
-                            <div class="text-xs text-dim mt-1" id="reportKpiAuditSub">System operations logged</div>
+                        <div id="reportSummaryMetricsList" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <!-- Populated with compact inline pills -->
                         </div>
                     </div>
 
                     <!-- Interactive Data Tables Section -->
-                    <div class="card detail-card bg-white soft-shadow-sm p-0 overflow-hidden mb-3">
-                        <!-- Table Sub-Navigation -->
-                        <div class="flex items-center justify-between border-bottom px-3 py-2 bg-muted" style="flex-wrap: wrap; gap: 8px;">
-                            <div class="flex items-center gap-1" id="reportTableCategoryNav" style="flex-wrap: wrap;">
-                                <button id="btnReportCatAppointments" class="btn-text font-bold text-primary text-xs" onclick="setReportTableCategory('appointments')">
-                                    <i class='bx bx-calendar mr-1'></i> Appointments (<span id="catCountAppointments">0</span>)
-                                </button>
-                                <span class="text-dim">|</span>
-                                <button id="btnReportCatPatients" class="btn-text text-dim text-xs" onclick="setReportTableCategory('patients')">
-                                    <i class='bx bx-group mr-1'></i> Patients (<span id="catCountPatients">0</span>)
-                                </button>
-                                <span class="text-dim">|</span>
-                                <button id="btnReportCatQueues" class="btn-text text-dim text-xs" onclick="setReportTableCategory('queues')">
-                                    <i class='bx bx-time-five mr-1'></i> Live Queue (<span id="catCountQueues">0</span>)
-                                </button>
-                                <span class="text-dim">|</span>
-                                <button id="btnReportCatCancellations" class="btn-text text-dim text-xs" onclick="setReportTableCategory('cancellations')">
-                                    <i class='bx bx-calendar-x mr-1'></i> Cancellations (<span id="catCountCancellations">0</span>)
-                                </button>
-                                <span class="text-dim">|</span>
-                                <button id="btnReportCatAudit" class="btn-text text-dim text-xs" onclick="setReportTableCategory('audit_logs')">
-                                    <i class='bx bx-shield-quarter mr-1'></i> System Activity (<span id="catCountAudit">0</span>)
-                                </button>
+                    <div class="card detail-card bg-white soft-shadow-sm p-0 overflow-hidden" style="border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 32px;">
+                        <!-- Table Sub-Header -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; gap: 12px;">
+                            <div class="font-bold text-dark flex items-center gap-2" id="reportCurrentTableHeading" style="font-size: 13px;">
+                                <i class='bx bx-table text-primary' style="font-size: 17px;"></i> <span>Detailed Record Ledger</span>
                             </div>
 
-                            <div class="flex items-center gap-1" style="min-width: 260px;">
-                                <i class='bx bx-search text-dim'></i>
+                            <div style="display: flex; align-items: center; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 5px 12px; min-width: 280px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                                <i class='bx bx-search' style="color: #64748b; font-size: 16px; margin-right: 8px;"></i>
                                 <input type="text" id="reportsSearchInput" oninput="filterReportsTableLive(this.value)"
-                                    placeholder="Search displayed report records..." class="form-control"
-                                    style="border: none; background: transparent; padding: 4px; width: 100%; outline: none; font-size: 13px;">
+                                    placeholder="Search displayed report records..."
+                                    style="border: none; background: transparent; padding: 2px 0; width: 100%; outline: none; font-size: 12px; color: #1e293b;">
                             </div>
                         </div>
 
                         <!-- Data Table Container -->
                         <div class="table-responsive">
-                            <table class="data-table w-full" style="font-size: 13px;">
+                            <table class="data-table w-full" style="font-size: 13px; width: 100%;">
                                 <thead class="bg-muted" id="reportsTableHead">
                                     <!-- Populated dynamically based on category -->
                                 </thead>
@@ -3439,6 +3418,9 @@
             const lMaint = document.getElementById('labelMaintenanceModeTopStatus');
             const sMaint = document.getElementById('switchMaintenanceModeTop');
             if (sMaint) sMaint.checked = maint;
+            const lowMaint = document.getElementById('settingMaintenanceMode');
+            if (lowMaint) lowMaint.checked = maint;
+            updateMaintenanceBadge(maint);
             if (bMaint) {
                 bMaint.textContent = maint ? 'MAINTENANCE ACTIVE' : 'NORMAL';
                 bMaint.style.background = maint ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.1)';
@@ -3557,12 +3539,12 @@
                 criticalOnDisable: false
             },
             'maintenance_mode': {
-                name: 'Emergency Maintenance Mode',
-                icon: 'bx-error-alt',
+                name: 'System Maintenance Mode',
+                icon: 'bx-wrench',
                 iconColor: '#ef4444',
                 iconBg: 'rgba(239, 68, 68, 0.12)',
-                descOn: 'Freezes clinic operations and displays an active maintenance banner across all non-admin portals for emergency repairs or database migration.',
-                descOff: 'Deactivates maintenance mode and restores normal clinic system operations.',
+                descOn: 'Restricts the login portal strictly to Super Admin emergency access. Removes patient registration, hides non-admin login options, and displays an active maintenance alert.',
+                descOff: 'Deactivates maintenance mode, restores the standard unified login portal with patient sign-up, and re-allows patient, receptionist, and doctor logins.',
                 criticalOnEnable: true
             },
             'recaptcha_enabled': {
@@ -4776,6 +4758,11 @@
             }
 
             try {
+                const catSelect = document.getElementById('reportsCategorySelect');
+                if (catSelect) {
+                    reportsState.category = catSelect.value || 'earnings';
+                }
+
                 const params = new URLSearchParams({
                     category: reportsState.category,
                     date_preset: reportsState.datePreset,
@@ -4812,15 +4799,20 @@
                     doctorsOptionsPopulated = true;
                 }
 
-                // Render KPI metrics and data tables directly
-                renderReportsKpis(json.metrics || {});
-                updateReportCategoryCounts(json.data || {});
+                // Render dynamic executive summary bar and data tables directly
+                renderReportsActiveSummary();
                 renderReportsTable();
 
             } catch (err) {
                 console.error("Reports API error:", err);
                 showToast('error', 'Network error connecting to reports engine.');
             }
+        }
+
+        function onReportsCategorySelectChange(cat) {
+            reportsState.category = cat;
+            renderReportsActiveSummary();
+            renderReportsTable();
         }
 
         function onReportsDatePresetChange() {
@@ -4848,6 +4840,8 @@
         }
 
         function resetReportsFilters() {
+            const catSelect = document.getElementById('reportsCategorySelect');
+            if (catSelect) catSelect.value = 'earnings';
             document.getElementById('reportsDatePreset').value = 'all_time';
             document.getElementById('reportsDoctorFilter').value = 'all';
             document.getElementById('reportsStatusFilter').value = 'all';
@@ -4855,6 +4849,7 @@
             document.getElementById('reportsDateFrom').value = '';
             document.getElementById('reportsDateTo').value = '';
             document.getElementById('reportsSearchInput').value = '';
+            reportsState.category = 'earnings';
             reportsState.datePreset = 'all_time';
             reportsState.dateFrom = '';
             reportsState.dateTo = '';
@@ -4866,75 +4861,130 @@
 
         function setReportTableCategory(cat) {
             reportsState.category = cat;
-            const categories = ['appointments', 'patients', 'queues', 'cancellations', 'audit_logs'];
-            categories.forEach(c => {
-                const btnId = c === 'appointments' ? 'btnReportCatAppointments' :
-                              c === 'patients' ? 'btnReportCatPatients' :
-                              c === 'queues' ? 'btnReportCatQueues' :
-                              c === 'cancellations' ? 'btnReportCatCancellations' : 'btnReportCatAudit';
-                const el = document.getElementById(btnId);
-                if (el) {
-                    if (c === cat) {
-                        el.className = 'btn-text font-bold text-primary text-xs';
-                    } else {
-                        el.className = 'btn-text text-dim text-xs';
-                    }
-                }
-            });
+            const catSelect = document.getElementById('reportsCategorySelect');
+            if (catSelect) catSelect.value = cat;
+            renderReportsActiveSummary();
             renderReportsTable();
         }
 
-        function updateReportCategoryCounts(data) {
-            if (!data) return;
-            const apptCount = (data.appointments || []).length;
-            const patCount = (data.patients || []).length;
-            const queueCount = (data.queues || []).length;
-            const cancelCount = (data.cancellations || []).length;
-            const auditCount = (data.audit_logs || []).length;
+        function renderReportsActiveSummary() {
+            const badge = document.getElementById('reportSummaryBadge');
+            const subtitle = document.getElementById('reportSummarySubtitle');
+            const metricsList = document.getElementById('reportSummaryMetricsList');
+            const tableHeading = document.getElementById('reportCurrentTableHeading');
+            const cat = reportsState.category || 'earnings';
+            const m = reportsState.data?.metrics || {};
+            const d = reportsState.data?.data || {};
 
-            const elAppt = document.getElementById('catCountAppointments');
-            const elPat = document.getElementById('catCountPatients');
-            const elQ = document.getElementById('catCountQueues');
-            const elC = document.getElementById('catCountCancellations');
-            const elA = document.getElementById('catCountAudit');
+            const meta = {
+                earnings: {
+                    title: 'Financial Earnings & Revenue',
+                    icon: 'bx-dollar-circle',
+                    badgeBg: 'rgba(16, 185, 129, 0.12)',
+                    badgeColor: '#059669',
+                    border: '#10b981',
+                    subtitle: 'Real-time billing, collections & procedure revenue',
+                    pills: [
+                        { label: 'Total Revenue', val: m.formatted_total_revenue || '₱0.00', color: '#059669', bold: true },
+                        { label: 'Completed Treatments', val: m.formatted_completed_revenue || '₱0.00', color: '#166534' },
+                        { label: 'Projected Scheduled', val: m.formatted_scheduled_revenue || '₱0.00', color: '#b45309' },
+                        { label: 'Total Analyzed', val: (d.earnings || d.appointments || []).length }
+                    ]
+                },
+                appointments: {
+                    title: 'Appointments & Procedures',
+                    icon: 'bx-calendar-check',
+                    badgeBg: 'rgba(59, 130, 246, 0.12)',
+                    badgeColor: '#2563eb',
+                    border: '#3b82f6',
+                    subtitle: 'Clinical visit volume, operatory assignments & completion rate',
+                    pills: [
+                        { label: 'Appointments Volume', val: m.total_appointments || 0, bold: true },
+                        { label: 'Completed', val: m.completed_count || 0, color: '#059669' },
+                        { label: 'Ongoing', val: m.in_progress_count || 0, color: '#2563eb' },
+                        { label: 'Completion Rate', val: `${m.completion_rate || 0}%`, color: '#059669' }
+                    ]
+                },
+                patients: {
+                    title: 'Patient Registry & Demographics',
+                    icon: 'bx-group',
+                    badgeBg: 'rgba(14, 177, 177, 0.12)',
+                    badgeColor: '#0eb1b1',
+                    border: '#0eb1b1',
+                    subtitle: 'Registered patient directory, medical alerts & safety records',
+                    pills: [
+                        { label: 'Total Registered', val: m.total_patients || 0, color: '#0eb1b1', bold: true },
+                        { label: 'Walk-in Patients', val: m.walkin_count || 0 }
+                    ]
+                },
+                queues: {
+                    title: 'Live Patient Flow Queue',
+                    icon: 'bx-time-five',
+                    badgeBg: 'rgba(245, 158, 11, 0.12)',
+                    badgeColor: '#d97706',
+                    border: '#f59e0b',
+                    subtitle: 'Real-time operatory reception queue & patient wait-times today',
+                    pills: [
+                        { label: 'Patients in Flow Today', val: m.today_queue_count || 0, color: '#d97706', bold: true },
+                        { label: 'Walk-ins', val: m.walkin_count || 0 }
+                    ]
+                },
+                cancellations: {
+                    title: 'Cancellations & Attrition',
+                    icon: 'bx-calendar-x',
+                    badgeBg: 'rgba(239, 68, 68, 0.12)',
+                    badgeColor: '#dc2626',
+                    border: '#ef4444',
+                    subtitle: 'Patient no-shows, cancellation reasons & clinic attrition rate',
+                    pills: [
+                        { label: 'Cancelled Appointments', val: m.cancelled_count || 0, color: '#dc2626', bold: true },
+                        { label: 'Attrition Rate', val: `${m.cancellation_rate || 0}%`, color: '#dc2626' }
+                    ]
+                },
+                audit_logs: {
+                    title: 'System Security & Audit Trail',
+                    icon: 'bx-shield-quarter',
+                    badgeBg: 'rgba(139, 92, 246, 0.12)',
+                    badgeColor: '#7c3aed',
+                    border: '#8b5cf6',
+                    subtitle: 'Comprehensive audit trace for clinical governance and compliance',
+                    pills: [
+                        { label: 'Total Audit Events', val: (m.audit_events_count || 0).toLocaleString(), color: '#7c3aed', bold: true },
+                        { label: 'Security Events', val: m.security_events_count || 0, color: '#dc2626' }
+                    ]
+                }
+            };
 
-            if (elAppt) elAppt.textContent = apptCount;
-            if (elPat) elPat.textContent = patCount;
-            if (elQ) elQ.textContent = queueCount;
-            if (elC) elC.textContent = cancelCount;
-            if (elA) elA.textContent = auditCount;
-        }
+            const cur = meta[cat] || meta.earnings;
+            const bar = document.getElementById('reportsActiveSummaryBar');
+            if (bar) {
+                bar.style.border = '1px solid #e2e8f0';
+                bar.style.borderLeft = '1px solid #e2e8f0';
+            }
 
-        function renderReportsKpis(m) {
-            const elPat = document.getElementById('reportKpiPatients');
-            const elPatSub = document.getElementById('reportKpiPatientsSub');
-            if (elPat) elPat.textContent = (m.total_patients || 0).toLocaleString();
-            if (elPatSub) elPatSub.textContent = `Active registered patients`;
+            if (badge) {
+                badge.style.background = cur.badgeBg;
+                badge.style.color = cur.badgeColor;
+                badge.innerHTML = `<i class='bx ${cur.icon}' style="font-size: 15px; vertical-align: -2px; margin-right: 4px;"></i> ${escapeHtml(cur.title)}`;
+            }
+            if (subtitle) {
+                subtitle.textContent = cur.subtitle;
+                subtitle.style.color = '#64748b';
+                subtitle.style.fontSize = '12px';
+                subtitle.style.fontWeight = '500';
+            }
+            if (tableHeading) {
+                tableHeading.innerHTML = `<i class='bx ${cur.icon} text-primary' style="font-size: 18px;"></i> <span>${escapeHtml(cur.title)} Ledger</span>`;
+            }
 
-            const elAppt = document.getElementById('reportKpiAppointments');
-            const elApptSub = document.getElementById('reportKpiAppointmentsSub');
-            if (elAppt) elAppt.textContent = (m.total_appointments || 0).toLocaleString();
-            if (elApptSub) elApptSub.textContent = `${m.completed_count || 0} completed • ${m.in_progress_count || 0} ongoing`;
-
-            const elComp = document.getElementById('reportKpiCompletionRate');
-            const elCompSub = document.getElementById('reportKpiCompletionSub');
-            if (elComp) elComp.textContent = `${m.completion_rate || 0}%`;
-            if (elCompSub) elCompSub.textContent = `${m.completed_count || 0} treatments completed`;
-
-            const elQ = document.getElementById('reportKpiQueue');
-            const elQSub = document.getElementById('reportKpiQueueSub');
-            if (elQ) elQ.textContent = m.today_queue_count || 0;
-            if (elQSub) elQSub.textContent = `${m.walkin_count || 0} walk-in patient(s)`;
-
-            const elCanc = document.getElementById('reportKpiCancellations');
-            const elCancSub = document.getElementById('reportKpiCancellationsSub');
-            if (elCanc) elCanc.textContent = m.cancelled_count || 0;
-            if (elCancSub) elCancSub.textContent = `${m.cancellation_rate || 0}% cancellation rate`;
-
-            const elAudit = document.getElementById('reportKpiAudit');
-            const elAuditSub = document.getElementById('reportKpiAuditSub');
-            if (elAudit) elAudit.textContent = (m.audit_events_count || 0).toLocaleString();
-            if (elAuditSub) elAuditSub.textContent = `${m.security_events_count || 0} security events`;
+            if (metricsList) {
+                metricsList.innerHTML = (cur.pills || []).map(p => `
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                        <span style="color: #64748b; font-weight: 500;">${escapeHtml(p.label)}:</span>
+                        <strong style="color: ${p.color || '#0f172a'}; font-size: ${p.bold ? '13px' : '12px'}; font-weight: 700;">${escapeHtml(p.val)}</strong>
+                    </div>
+                `).join('');
+            }
         }
 
         function filterReportsTableLive(searchVal) {
@@ -4953,19 +5003,20 @@
             const q = reportsState.searchQuery;
             const cat = reportsState.category;
 
-            if (cat === 'appointments') {
+            if (cat === 'earnings') {
                 thead.innerHTML = `
                     <tr>
                         <th style="padding: 10px 14px;">Date &amp; Time</th>
-                        <th style="padding: 10px 14px;">Patient Info</th>
-                        <th style="padding: 10px 14px;">Treatment / Procedure</th>
+                        <th style="padding: 10px 14px;">Patient Details</th>
+                        <th style="padding: 10px 14px;">Service / Treatment</th>
                         <th style="padding: 10px 14px;">Attending Doctor</th>
                         <th style="padding: 10px 14px;">Operatory Chair</th>
+                        <th style="padding: 10px 14px; text-align: right;">Price / Fee (₱)</th>
                         <th style="padding: 10px 14px; text-align: right;">Status</th>
                     </tr>
                 `;
 
-                let rows = data.appointments || [];
+                let rows = data.earnings || data.appointments || [];
                 if (q) {
                     rows = rows.filter(r => 
                         (r.patient_name || '').toLowerCase().includes(q) ||
@@ -4977,12 +5028,19 @@
                 }
 
                 if (rows.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-dim">No matching appointments found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-dim">No earnings records found matching criteria.</td></tr>`;
                     return;
                 }
 
-                tbody.innerHTML = rows.map(r => {
+                let totalSubtotal = 0;
+                let completedSubtotal = 0;
+
+                const rowsHtml = rows.map(r => {
                     const st = (r.status || 'scheduled').toLowerCase();
+                    const price = Number(r.price) || 500;
+                    totalSubtotal += price;
+                    if (st === 'completed') completedSubtotal += price;
+
                     let badgeStyle = 'background: rgba(245, 158, 11, 0.12); color: #d97706;';
                     if (st === 'completed') badgeStyle = 'background: rgba(16, 185, 129, 0.12); color: #059669;';
                     else if (['in_progress', 'ongoing', 'chair'].includes(st)) badgeStyle = 'background: rgba(59, 130, 246, 0.12); color: #2563eb;';
@@ -5003,6 +5061,94 @@
                             </td>
                             <td style="padding: 10px 14px;">
                                 <span>${escapeHtml(r.doctor_name || 'Unassigned')}</span>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span class="badge" style="background: rgba(14, 177, 177, 0.08); color: #0eb1b1;">${escapeHtml(r.operatory_chair || r.chair_room || 'Chair 1')}</span>
+                            </td>
+                            <td style="padding: 10px 14px; text-align: right;">
+                                <strong style="color: #059669; font-size: 14px;">₱${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong>
+                            </td>
+                            <td style="padding: 10px 14px; text-align: right;">
+                                <span class="badge uppercase font-bold" style="${badgeStyle}; padding: 3px 8px; border-radius: 4px; font-size: 10px;">
+                                    ${escapeHtml(st.replace('_', ' '))}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                const footerHtml = `
+                    <tr style="background: #f8fafc; border-top: 2px solid #cbd5e1; font-weight: bold;">
+                        <td colspan="5" style="padding: 12px 14px; text-align: right; font-size: 13px;">
+                            Filtered Revenue Summary:
+                        </td>
+                        <td style="padding: 12px 14px; text-align: right; color: #059669; font-size: 15px;">
+                            ₱${totalSubtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td style="padding: 12px 14px; text-align: right; font-size: 11px; color: #64748b;">
+                            (Completed: ₱${completedSubtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })})
+                        </td>
+                    </tr>
+                `;
+
+                tbody.innerHTML = rowsHtml + footerHtml;
+                return;
+
+            } else if (cat === 'appointments') {
+                thead.innerHTML = `
+                    <tr>
+                        <th style="padding: 10px 14px;">Date &amp; Time</th>
+                        <th style="padding: 10px 14px;">Patient Info</th>
+                        <th style="padding: 10px 14px;">Treatment / Procedure</th>
+                        <th style="padding: 10px 14px;">Attending Doctor</th>
+                        <th style="padding: 10px 14px;">Price / Fee</th>
+                        <th style="padding: 10px 14px;">Operatory Chair</th>
+                        <th style="padding: 10px 14px; text-align: right;">Status</th>
+                    </tr>
+                `;
+
+                let rows = data.appointments || [];
+                if (q) {
+                    rows = rows.filter(r => 
+                        (r.patient_name || '').toLowerCase().includes(q) ||
+                        (r.doctor_name || '').toLowerCase().includes(q) ||
+                        (r.service_name || '').toLowerCase().includes(q) ||
+                        (r.status || '').toLowerCase().includes(q) ||
+                        (r.appointment_date || '').toLowerCase().includes(q)
+                    );
+                }
+
+                if (rows.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-dim">No matching appointments found.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = rows.map(r => {
+                    const st = (r.status || 'scheduled').toLowerCase();
+                    const price = Number(r.price) || 500;
+                    let badgeStyle = 'background: rgba(245, 158, 11, 0.12); color: #d97706;';
+                    if (st === 'completed') badgeStyle = 'background: rgba(16, 185, 129, 0.12); color: #059669;';
+                    else if (['in_progress', 'ongoing', 'chair'].includes(st)) badgeStyle = 'background: rgba(59, 130, 246, 0.12); color: #2563eb;';
+                    else if (st === 'cancelled') badgeStyle = 'background: rgba(239, 68, 68, 0.12); color: #dc2626;';
+
+                    return `
+                        <tr>
+                            <td style="padding: 10px 14px;">
+                                <strong>${escapeHtml(r.appointment_date)}</strong>
+                                <div class="text-xs text-dim">${escapeHtml(r.appointment_time || '')}</div>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <strong>${escapeHtml(r.patient_name)}</strong>
+                                <div class="text-xs text-dim">${escapeHtml(r.patient_phone || r.patient_email || '')}</div>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span class="font-bold text-dark">${escapeHtml(r.service_name || 'Consultation')}</span>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span>${escapeHtml(r.doctor_name || 'Unassigned')}</span>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <strong style="color: #059669; font-size: 13px;">₱${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong>
                             </td>
                             <td style="padding: 10px 14px;">
                                 <span class="badge" style="background: rgba(14, 177, 177, 0.08); color: #0eb1b1;">${escapeHtml(r.chair_room || 'Chair 1')}</span>
@@ -5235,23 +5381,25 @@
             }
         }
 
-        function exportReportsPdf() {
-            const reportType = reportsState.category === 'all' ? 'comprehensive' : reportsState.category;
-            const params = new URLSearchParams({
-                report: reportType,
-                date_preset: reportsState.datePreset,
-                date_from: reportsState.dateFrom,
-                date_to: reportsState.dateTo,
-                doctor: reportsState.doctor,
-                status: reportsState.status
-            });
-            window.open(`api/admin/export_pdf.php?${params.toString()}`, '_blank');
+        function toggleReportsExportMenu(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('reportsExportDropdown');
+            if (menu) {
+                menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none';
+            }
         }
 
-        function exportReportsCsv() {
-            const reportType = reportsState.category === 'all' ? 'appointments' : reportsState.category;
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('reportsExportDropdown');
+            if (menu && !menu.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+        function exportSelectedReportCsv() {
+            const cat = reportsState.category || 'earnings';
             const params = new URLSearchParams({
-                type: reportType,
+                type: cat,
                 date_preset: reportsState.datePreset,
                 date_from: reportsState.dateFrom,
                 date_to: reportsState.dateTo,
@@ -5259,6 +5407,31 @@
                 status: reportsState.status
             });
             window.location.href = `api/admin/export_csv.php?${params.toString()}`;
+            const menu = document.getElementById('reportsExportDropdown');
+            if (menu) menu.style.display = 'none';
+        }
+
+        function exportReportsEarningsCsv() {
+            exportSelectedReportCsv();
+        }
+
+        function exportReportsPdf() {
+            const cat = reportsState.category || 'earnings';
+            const params = new URLSearchParams({
+                report: cat,
+                date_preset: reportsState.datePreset,
+                date_from: reportsState.dateFrom,
+                date_to: reportsState.dateTo,
+                doctor: reportsState.doctor,
+                status: reportsState.status
+            });
+            window.open(`api/admin/export_pdf.php?${params.toString()}`, '_blank');
+            const menu = document.getElementById('reportsExportDropdown');
+            if (menu) menu.style.display = 'none';
+        }
+
+        function exportReportsCsv() {
+            exportSelectedReportCsv();
         }
     </script>
 

@@ -4,6 +4,7 @@ import dbClient from '../config/db.js';
 import requireAuth from '../middleware/authGuard.js';
 import logAudit from '../config/auditLogger.js';
 import ClinicHoursHelper from '../config/clinicHoursHelper.js';
+import { getServicePrice, formatPhp } from '../config/servicePricing.js';
 
 const router = express.Router();
 
@@ -88,6 +89,8 @@ router.get('/get_dashboard_data', async (req, res) => {
                 patient_age: apt.patient_age || 'N/A',
                 patient_gender: apt.patient_gender || 'N/A',
                 service_name: apt.service_name || 'Dental Consultation',
+                price: apt.price !== undefined && apt.price !== null && !isNaN(Number(apt.price)) ? Number(apt.price) : getServicePrice(apt.service_name),
+                formatted_price: formatPhp(apt.price !== undefined && apt.price !== null && !isNaN(Number(apt.price)) ? Number(apt.price) : getServicePrice(apt.service_name)),
                 treatment_category: apt.treatment_category || 'General Dentistry',
                 appointment_date: aptDate,
                 date: aptDate,
@@ -218,6 +221,9 @@ router.get('/get_dashboard_data', async (req, res) => {
                 professional_id: doctor?.professional_id || 'PRC-VERIFIED',
                 schedule_days: docSched.schedule_days,
                 working_days: docSched.working_days,
+                off_duty_dates: doctor?.off_duty_dates || [],
+                extra_duty_dates: doctor?.extra_duty_dates || [],
+                custom_date_hours: doctor?.custom_date_hours || {},
                 opening_time: docSched.opening_time,
                 closing_time: docSched.closing_time,
                 lunch_break: docSched.lunch_break,
@@ -499,6 +505,9 @@ router.post('/update_schedule', async (req, res) => {
         }
 
         const workingDays = (body.working_days || 'Mon - Fri').trim();
+        const offDutyDates = Array.isArray(body.off_duty_dates) ? body.off_duty_dates : [];
+        const extraDutyDates = Array.isArray(body.extra_duty_dates) ? body.extra_duty_dates : [];
+        const customDateHours = (body.custom_date_hours && typeof body.custom_date_hours === 'object' && !Array.isArray(body.custom_date_hours)) ? body.custom_date_hours : {};
         let openingTime = (body.opening_time || '08:00 AM').trim();
         let closingTime = (body.closing_time || '05:00 PM').trim();
         const timezone = (body.timezone || 'Asia/Manila').trim();
@@ -509,6 +518,9 @@ router.post('/update_schedule', async (req, res) => {
 
         const updateFields = {
             working_days: workingDays,
+            off_duty_dates: offDutyDates,
+            extra_duty_dates: extraDutyDates,
+            custom_date_hours: customDateHours,
             opening_time: openingTime,
             closing_time: closingTime,
             lunch_break: lunchBreak,

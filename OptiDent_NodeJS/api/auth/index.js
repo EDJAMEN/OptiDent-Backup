@@ -8,7 +8,7 @@ import verifyRecaptcha from '../config/recaptcha.js';
 const router = express.Router();
 
 /**
- * Public reCAPTCHA Configuration
+ * Public reCAPTCHA & Maintenance Configuration
  */
 router.get('/recaptcha_config', async (req, res) => {
     try {
@@ -16,16 +16,37 @@ router.get('/recaptcha_config', async (req, res) => {
         const isEnabled = settings?.integrations?.recaptcha_enabled !== undefined
             ? !!settings.integrations.recaptcha_enabled
             : (process.env.ENABLE_RECAPTCHA === 'true');
+        const isMaintenance = !!(settings?.maintenance_mode || settings?.integrations?.maintenance_mode);
 
         return res.json({
             enabled: isEnabled,
-            site_key: process.env.RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+            site_key: process.env.RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+            maintenance_mode: isMaintenance,
+            clinic_name: settings?.clinic_name || 'OptiDent Dental Clinic'
         });
     } catch (_) {
         return res.json({
             enabled: process.env.ENABLE_RECAPTCHA === 'true',
-            site_key: process.env.RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+            site_key: process.env.RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+            maintenance_mode: false
         });
+    }
+});
+
+/**
+ * Public System Maintenance Status Check
+ */
+router.get('/maintenance_status', async (req, res) => {
+    try {
+        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
+        const isMaintenance = !!(settings?.maintenance_mode || settings?.integrations?.maintenance_mode);
+        return res.json({
+            status: 'success',
+            maintenance_mode: isMaintenance,
+            clinic_name: settings?.clinic_name || 'OptiDent Dental Clinic'
+        });
+    } catch (err) {
+        return res.json({ status: 'success', maintenance_mode: false });
     }
 });
 
@@ -72,15 +93,28 @@ router.post('/login', async (req, res) => {
 
         // Query user
         const user = await dbClient.findOne('users', { email });
+        const isMaintenance = !!(settings?.maintenance_mode || settings?.integrations?.maintenance_mode);
+
         if (!user) {
             return res.status(404).json({
                 status: 'error',
-                message: 'No account found matching this email address.'
+                message: isMaintenance 
+                    ? 'No authorized Super Administrator found matching this email.' 
+                    : 'No account found matching this email address.'
             });
         }
 
         const userRole = (user.role || '').toLowerCase();
         const isSuperAdmin = ['super_admin', 'admin'].includes(userRole) || !!user.is_master;
+
+        // System Maintenance Mode: Only Super Admin may login
+        if (isMaintenance && !isSuperAdmin) {
+            await logAudit(req, 'LOGIN_BLOCKED_MAINTENANCE', 'AUTH', { email, role: userRole }, 'failed');
+            return res.status(403).json({
+                status: 'error',
+                message: 'OptiDent is currently in System Maintenance Mode. Access is strictly restricted to Super Administrators only.'
+            });
+        }
 
         // Role verification if requested (ignore 'any')
         if (requiredRole && requiredRole !== 'any' && !isSuperAdmin && userRole !== requiredRole) {
@@ -179,6 +213,131 @@ router.post('/login', async (req, res) => {
 router.post('/client_login', (req, res, next) => {
     req.body.required_role = 'patient';
     return router.handle(req, res, next);
+});
+
+/**
+ * Google Sign-In Configuration
+ */
+router.get('/google_config', async (req, res) => {
+    try {
+        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
+        const integrations = settings?.integrations || {};
+        const clientId = process.env.GOOGLE_CLIENT_ID || settings?.google_client_id || integrations?.google_client_id || '';
+        return res.status(200).json({
+            status: 'success',
+            enabled: integrations.google_auth_enabled !== false,
+            client_id: clientId,
+            maintenance_mode: !!(settings?.maintenance_mode || integrations?.maintenance_mode)
+        });
+    } catch (err) {
+        return res.status(500).json({ status: 'error', message: err.message });
+    }
+});
+
+/**
+ * Google Sign-In Authentication (OAuth / Credential token or Google Account email)
+ */
+router.post('/google_login', async (req, res) => {
+    try {
+        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
+        const integrations = settings?.integrations || {};
+        
+        // 1. Check if Google Auth switch is enabled
+        if (integrations.google_auth_enabled === false) {
+            return res.status(403).json({
+                status: 'error',
+                message: 'Google Authentication is currently paused by clinic security policy.'
+            });
+        }
+
+        // 2. Check System Maintenance Mode
+        const isMaintenance = !!(settings?.maintenance_mode || integrations?.maintenance_mode);
+
+        const email = (req.body.email || '').trim().toLowerCase();
+        const fullName = (req.body.name || req.body.full_name || 'Google User').trim();
+        const googleId = req.body.sub || req.body.google_id || '';
+
+        if (!email) {
+            return res.status(400).json({ status: 'error', message: 'Google account email is required.' });
+        }
+
+        // Query user in MongoDB
+        let user = await dbClient.findOne('users', { email });
+        
+        if (!user) {
+            // If maintenance mode is active, new user creation is blocked
+            if (isMaintenance) {
+                return res.status(403).json({
+                    status: 'error',
+                    message: 'System is currently under maintenance. New account registration is paused.'
+                });
+            }
+
+            // Create new patient account via Google
+            const newUser = {
+                email,
+                full_name: fullName,
+                role: 'patient',
+                status: 'active',
+                google_id: googleId,
+                auth_provider: 'google',
+                created_at: new Date().toISOString()
+            };
+            const insertResult = await dbClient.insertOne('users', newUser);
+            user = { ...newUser, _id: insertResult.insertedId };
+            await logAudit(req, 'USER_REGISTERED_GOOGLE', 'AUTH', { email, role: 'patient' }, 'success');
+        } else {
+            // Check maintenance mode for existing user
+            const userRole = (user.role || '').toLowerCase();
+            const isSuperAdmin = ['super_admin', 'admin'].includes(userRole) || !!user.is_master;
+            if (isMaintenance && !isSuperAdmin) {
+                return res.status(403).json({
+                    status: 'error',
+                    message: 'OptiDent is currently in System Maintenance Mode. General access is restricted to Super Administrators only.'
+                });
+            }
+        }
+
+        const userRole = (user.role || 'patient').toLowerCase();
+
+        // Establish session
+        req.session.user_id = user._id;
+        req.session.email = user.email;
+        req.session.full_name = user.full_name;
+        req.session.role = userRole;
+        req.session.is_master = !!user.is_master;
+        req.session.logged_in_at = new Date().toISOString();
+
+        await logAudit(req, 'LOGIN_GOOGLE_SUCCESS', 'AUTH', { email, role: userRole }, 'success');
+
+        let redirectUrl = 'client_dashboard.html';
+        if (['super_admin', 'admin'].includes(userRole) || user.is_master) {
+            redirectUrl = 'admin_dashboard.html';
+        } else if (['doctor', 'dentist'].includes(userRole)) {
+            redirectUrl = 'doctor_dashboard.html';
+        } else if (['receptionist', 'staff'].includes(userRole)) {
+            redirectUrl = 'receptionist_dashboard.html';
+        }
+
+        req.session.save((err) => {
+            if (err) console.error('Session save error:', err);
+            return res.status(200).json({
+                status: 'success',
+                message: `Welcome, ${user.full_name}! Signed in via Google.`,
+                redirect: redirectUrl,
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    full_name: user.full_name,
+                    role: userRole,
+                    is_master: !!user.is_master
+                }
+            });
+        });
+    } catch (err) {
+        console.error('Google login error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to authenticate with Google.' });
+    }
 });
 
 /**
@@ -339,6 +498,15 @@ router.post('/logout', (req, res) => {
  */
 router.post('/send_patient_code', async (req, res) => {
     try {
+        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
+        const isMaintenance = !!(settings?.maintenance_mode || settings?.integrations?.maintenance_mode);
+        if (isMaintenance) {
+            return res.status(403).json({
+                status: 'error',
+                message: 'Patient registration is temporarily disabled during scheduled system maintenance.'
+            });
+        }
+
         const email = (req.body.email || '').trim().toLowerCase();
         const fullName = (req.body.full_name || 'Patient').trim();
 
@@ -424,6 +592,15 @@ router.post('/send_patient_code', async (req, res) => {
  */
 router.post('/client_register', async (req, res) => {
     try {
+        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
+        const isMaintenance = !!(settings?.maintenance_mode || settings?.integrations?.maintenance_mode);
+        if (isMaintenance) {
+            return res.status(403).json({
+                status: 'error',
+                message: 'Patient registration is temporarily disabled during scheduled system maintenance.'
+            });
+        }
+
         const body = req.body;
         const fullName = (body.full_name || '').trim();
         const email = (body.email || '').trim().toLowerCase();
@@ -519,6 +696,15 @@ router.post('/client_register', async (req, res) => {
  */
 router.post('/client_register_step1', async (req, res) => {
     try {
+        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
+        const isMaintenance = !!(settings?.maintenance_mode || settings?.integrations?.maintenance_mode);
+        if (isMaintenance) {
+            return res.status(403).json({
+                status: 'error',
+                message: 'Patient registration is temporarily disabled during scheduled system maintenance.'
+            });
+        }
+
         const body = req.body;
         const fullName = (body.full_name || '').trim();
         const email = (body.email || '').trim().toLowerCase();
@@ -887,6 +1073,18 @@ router.post('/forgot_password', async (req, res) => {
                 status: 'error',
                 message: 'No registered account found with that email address.'
             });
+        }
+
+        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
+        const isMaintenance = !!(settings?.maintenance_mode || settings?.integrations?.maintenance_mode);
+        if (isMaintenance) {
+            const isSuperAdmin = ['super_admin', 'admin'].includes((user.role || '').toLowerCase()) || !!user.is_master;
+            if (!isSuperAdmin) {
+                return res.status(403).json({
+                    status: 'error',
+                    message: 'System is currently in Maintenance Mode. Password reset is restricted to Super Administrators only.'
+                });
+            }
         }
 
         // Generate 6-digit code
