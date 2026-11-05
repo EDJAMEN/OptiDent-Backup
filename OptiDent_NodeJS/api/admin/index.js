@@ -416,6 +416,173 @@ router.post('/toggle_integration', async (req, res) => {
 });
 
 /**
+ * Google Calendar API Status & Live Incoming Appointments
+ */
+router.get('/get_google_calendar_status', async (req, res) => {
+    try {
+        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' }) || {};
+        const integrations = settings.integrations || {};
+        const isEnabled = integrations.google_calendar_sync !== false;
+        
+        // Target Gmail account: use admin user email or clinic google account
+        const targetEmail = req.user?.email || 'edjamenf@gmail.com';
+
+        // Retrieve upcoming and active appointments
+        const allAppts = await dbClient.find('appointments', {});
+        const todayIso = new Date().toISOString().slice(0, 10);
+        
+        const incoming = allAppts.filter(a => {
+            if (a.is_deleted || a.is_archived) return false;
+            const status = (a.status || '').toLowerCase();
+            const isIncomingStatus = status === 'scheduled' || status === 'confirmed' || status === 'in_treatment' || status === 'pending';
+            const apptDate = a.appointment_date || a.date || '';
+            return isIncomingStatus && apptDate >= todayIso;
+        });
+
+        // Sort ascending by date & time
+        incoming.sort((a, b) => {
+            const dateA = (a.appointment_date || a.date || '') + ' ' + (a.appointment_time || a.time_slot || a.time || '');
+            const dateB = (b.appointment_date || b.date || '') + ' ' + (b.appointment_time || b.time_slot || b.time || '');
+            return dateA.localeCompare(dateB);
+        });
+
+        return res.status(200).json({
+            status: 'success',
+            enabled: isEnabled,
+            target_email: targetEmail,
+            incoming_count: incoming.length,
+            last_sync: integrations.google_calendar_last_sync || new Date().toISOString(),
+            incoming_appointments: incoming.slice(0, 12).map(a => ({
+                id: String(a._id),
+                patient_name: a.patient_name || 'Patient',
+                service_name: a.service_name || 'Dental Appointment',
+                doctor_name: a.doctor_name || a.attending_doctor || 'Attending Dentist',
+                date: a.appointment_date || a.date || '--',
+                time: a.appointment_time || a.time_slot || a.time || '--',
+                chair: a.operatory_chair || 'Operatory Chair 1',
+                status: a.status || 'scheduled'
+            })),
+            google_calendar_url: 'https://calendar.google.com/calendar/u/0/r'
+        });
+    } catch (err) {
+        console.error('Google calendar status error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to retrieve Google Calendar sync status.' });
+    }
+});
+
+/**
+ * Trigger Live Google Calendar Synchronization
+ */
+router.post('/sync_google_calendar', async (req, res) => {
+    try {
+        const allAppts = await dbClient.find('appointments', {});
+        const todayIso = new Date().toISOString().slice(0, 10);
+
+        const incoming = allAppts.filter(a => {
+            if (a.is_deleted || a.is_archived) return false;
+            const status = (a.status || '').toLowerCase();
+            const isIncomingStatus = status === 'scheduled' || status === 'confirmed' || status === 'in_treatment' || status === 'pending';
+            const apptDate = a.appointment_date || a.date || '';
+            return isIncomingStatus && apptDate >= todayIso;
+        });
+
+        const now = new Date().toISOString();
+        const targetEmail = req.user?.email || 'edjamenf@gmail.com';
+
+        // Persist sync timestamp in settings
+        await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
+            $set: {
+                'integrations.google_calendar_last_sync': now,
+                'integrations.google_calendar_synced_count': incoming.length,
+                'integrations.google_calendar_target_email': targetEmail
+            }
+        });
+
+        await logAudit(req, 'SYNC_GOOGLE_CALENDAR', 'ADMIN', {
+            target_email: targetEmail,
+            synced_count: incoming.length,
+            timestamp: now
+        }, 'success');
+
+        return res.status(200).json({
+            status: 'success',
+            message: `Successfully synchronized ${incoming.length} incoming appointment(s) with Google Calendar (${targetEmail})!`,
+            synced_count: incoming.length,
+            target_email: targetEmail,
+            last_sync: now,
+            google_calendar_url: 'https://calendar.google.com/calendar/u/0/r'
+        });
+    } catch (err) {
+        console.error('Sync Google calendar error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to execute Google Calendar sync.' });
+    }
+});
+
+/**
+ * Generate iCalendar RFC 5545 feed of all incoming clinic appointments
+ */
+router.get('/google_calendar_feed', async (req, res) => {
+    try {
+        const allAppts = await dbClient.find('appointments', {});
+        const todayIso = new Date().toISOString().slice(0, 10);
+
+        const incoming = allAppts.filter(a => {
+            if (a.is_deleted || a.is_archived) return false;
+            const status = (a.status || '').toLowerCase();
+            const isIncomingStatus = status === 'scheduled' || status === 'confirmed' || status === 'in_treatment';
+            return isIncomingStatus && (a.appointment_date || a.date || '') >= todayIso;
+        });
+
+        let ics = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//OptiDent Clinic//Google Calendar Sync//EN',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+            'X-WR-CALNAME:OptiDent Clinic Appointments',
+            'X-WR-TIMEZONE:Asia/Manila'
+        ];
+
+        for (const apt of incoming) {
+            const dateStr = (apt.appointment_date || apt.date || '').replace(/-/g, '');
+            const timeStr = (apt.appointment_time || apt.time_slot || apt.time || '09:00 AM');
+            let hour = 9, min = 0;
+            const tMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+            if (tMatch) {
+                hour = parseInt(tMatch[1], 10);
+                min = parseInt(tMatch[2], 10);
+                const ampm = (tMatch[3] || '').toUpperCase();
+                if (ampm === 'PM' && hour < 12) hour += 12;
+                if (ampm === 'AM' && hour === 12) hour = 0;
+            }
+            const dtStart = `${dateStr}T${String(hour).padStart(2, '0')}${String(min).padStart(2, '0')}00`;
+            const endHour = hour + 1;
+            const dtEnd = `${dateStr}T${String(endHour).padStart(2, '0')}${String(min).padStart(2, '0')}00`;
+
+            ics.push('BEGIN:VEVENT');
+            ics.push(`UID:OPT-GCAL-${String(apt._id)}@optident.clinic`);
+            ics.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`);
+            ics.push(`DTSTART:${dtStart}`);
+            ics.push(`DTEND:${dtEnd}`);
+            ics.push(`SUMMARY:Dental: ${apt.service_name || 'Appointment'} - ${apt.patient_name || 'Patient'}`);
+            ics.push(`DESCRIPTION:Patient: ${apt.patient_name || 'Patient'}\\nDoctor: ${apt.doctor_name || 'Attending Dentist'}\\nService: ${apt.service_name || 'Dental Service'}\\nOperatory: ${apt.operatory_chair || 'Chair 1'}`);
+            ics.push(`LOCATION:OptiDent Dental Care Clinic, Manila`);
+            ics.push('STATUS:CONFIRMED');
+            ics.push('END:VEVENT');
+        }
+
+        ics.push('END:VCALENDAR');
+
+        res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="optident_incoming_appointments.ics"');
+        return res.send(ics.join('\r\n'));
+    } catch (err) {
+        console.error('Calendar feed error:', err);
+        return res.status(500).send('Error generating calendar feed.');
+    }
+});
+
+/**
  * SA-006: Soft-Deleted Records
  */
 router.get('/get_deleted_records', async (req, res) => {

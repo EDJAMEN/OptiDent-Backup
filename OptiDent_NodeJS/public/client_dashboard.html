@@ -2038,18 +2038,13 @@
                 </div>
             </div>
 
-            <!-- Calendar Sync Actions (C-010) -->
+            <!-- Automatic Calendar Sync Status (No Manual Clicks Required) -->
             <div class="no-print" style="margin-top: 16px; border-top: 1px solid var(--pat-border); padding-top: 14px;">
-                <span style="display: block; font-size: 11px; font-weight: 700; color: var(--pat-text-muted); margin-bottom: 8px; text-transform: uppercase;">
-                    <i class='bx bx-calendar-event text-primary'></i> Sync to Personal Calendar:
-                </span>
-                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                    <button type="button" class="btn-pat-secondary flex-1" onclick="triggerGoogleCalendarAdd()" style="height: 36px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                        <i class='bx bxl-google text-red-500'></i> Google Calendar
-                    </button>
-                    <button type="button" class="btn-pat-secondary flex-1" onclick="triggerICalDownload()" style="height: 36px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                        <i class='bx bx-calendar-plus text-primary'></i> iCal / Outlook (.ics)
-                    </button>
+                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: #065f46;">
+                    <i class='bx bx-check-shield' style="font-size: 20px; color: #10b981; flex-shrink: 0;"></i>
+                    <div>
+                        <strong>Automatic Google Calendar Sync Active:</strong> This visit is automatically added to your Google Calendar upon booking, and automatically removed if cancelled. No manual clicks needed!
+                    </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <button type="button" class="btn-pat-secondary flex-1" onclick="printQRPass()" style="height: 36px; font-size: 12px; font-weight: 600;">

@@ -98,8 +98,8 @@ router.post('/login', async (req, res) => {
         if (!user) {
             return res.status(404).json({
                 status: 'error',
-                message: isMaintenance 
-                    ? 'No authorized Super Administrator found matching this email.' 
+                message: isMaintenance
+                    ? 'No authorized Super Administrator found matching this email.'
                     : 'No account found matching this email address.'
             });
         }
@@ -120,9 +120,9 @@ router.post('/login', async (req, res) => {
         if (requiredRole && requiredRole !== 'any' && !isSuperAdmin && userRole !== requiredRole) {
             // Also accept 'client' / 'patient' and 'staff' / 'receptionist' synonyms
             const isMatch = (requiredRole === 'patient' && userRole === 'client') ||
-                            (requiredRole === 'client' && userRole === 'patient') ||
-                            (requiredRole === 'staff' && userRole === 'receptionist') ||
-                            (requiredRole === 'receptionist' && userRole === 'staff');
+                (requiredRole === 'client' && userRole === 'patient') ||
+                (requiredRole === 'staff' && userRole === 'receptionist') ||
+                (requiredRole === 'receptionist' && userRole === 'staff');
             if (!isMatch) {
                 return res.status(403).json({
                     status: 'error',
@@ -241,7 +241,7 @@ router.post('/google_login', async (req, res) => {
     try {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
         const integrations = settings?.integrations || {};
-        
+
         // 1. Check if Google Auth switch is enabled
         if (integrations.google_auth_enabled === false) {
             return res.status(403).json({
@@ -263,7 +263,7 @@ router.post('/google_login', async (req, res) => {
 
         // Query user in MongoDB
         let user = await dbClient.findOne('users', { email });
-        
+
         if (!user) {
             // If maintenance mode is active, new user creation is blocked
             if (isMaintenance) {
@@ -360,7 +360,7 @@ async function handleSessionCheck(req, res) {
             session.full_name = fresh.full_name || session.full_name;
             session.role = (fresh.role || session.role).toLowerCase();
         }
-    } catch (_) {}
+    } catch (_) { }
 
     const payload = {
         status: 'authenticated',
@@ -855,7 +855,7 @@ router.post('/accept_invite', async (req, res) => {
 
             if (!anyInvite) {
                 const allInvites = await dbClient.find('invitations', {});
-                anyInvite = allInvites.find(i => 
+                anyInvite = allInvites.find(i =>
                     (i.token && (i.token === token || i.token.includes(token) || token.includes(i.token))) ||
                     (Array.isArray(i.old_tokens) && i.old_tokens.some(ot => ot === token || ot.includes(token) || token.includes(ot)))
                 );
@@ -919,8 +919,8 @@ router.post('/accept_invite', async (req, res) => {
                 insertedUserId = user._id;
             }
         } else {
-            const defaultPos = (role === 'doctor') 
-                ? (`Doctor / ${specialization || 'Dentist'}`) 
+            const defaultPos = (role === 'doctor')
+                ? (`Doctor / ${specialization || 'Dentist'}`)
                 : (isPatient ? 'Client / Patient' : 'Front Desk Receptionist');
 
             const newUserDoc = {
@@ -978,8 +978,8 @@ router.post('/accept_invite', async (req, res) => {
             status: 'active'
         };
 
-        const redirectUrl = (role === 'doctor') 
-            ? 'doctor_dashboard.html' 
+        const redirectUrl = (role === 'doctor')
+            ? 'doctor_dashboard.html'
             : (role === 'receptionist' || role === 'staff' ? 'receptionist_dashboard.html' : 'client_dashboard.html');
 
         req.session.save((err) => {
@@ -1017,7 +1017,7 @@ router.get('/validate_invite', async (req, res) => {
         // If not found directly, search all invitations for partial/matching token or old_tokens
         if (!invite) {
             const allInvites = await dbClient.find('invitations', {});
-            invite = allInvites.find(i => 
+            invite = allInvites.find(i =>
                 (i.token && (i.token === token || i.token.includes(token) || token.includes(i.token))) ||
                 (Array.isArray(i.old_tokens) && i.old_tokens.some(ot => ot === token || ot.includes(token) || token.includes(ot)))
             );
@@ -1092,7 +1092,7 @@ router.post('/forgot_password', async (req, res) => {
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
         // Store reset request in password_resets
-        await dbClient.deleteMany('password_resets', { email }).catch(() => {});
+        await dbClient.deleteMany('password_resets', { email }).catch(() => { });
         await dbClient.insertOne('password_resets', {
             email,
             code: resetCode,
@@ -1161,7 +1161,7 @@ router.post('/reset_password', async (req, res) => {
         }
 
         if (new Date(resetRecord.expires_at) < new Date()) {
-            await dbClient.deleteMany('password_resets', { email }).catch(() => {});
+            await dbClient.deleteMany('password_resets', { email }).catch(() => { });
             return res.status(400).json({
                 status: 'error',
                 message: 'This reset code has expired. Please request a new code.'
@@ -1179,7 +1179,7 @@ router.post('/reset_password', async (req, res) => {
         });
 
         // Invalidate used reset code
-        await dbClient.deleteMany('password_resets', { email }).catch(() => {});
+        await dbClient.deleteMany('password_resets', { email }).catch(() => { });
 
         await logAudit(req, 'PASSWORD_RESET_COMPLETED', 'AUTH', { email }, 'success');
 

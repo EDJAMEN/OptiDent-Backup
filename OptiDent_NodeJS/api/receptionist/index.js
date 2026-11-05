@@ -5,6 +5,7 @@ import requireAuth from '../middleware/authGuard.js';
 import logAudit from '../config/auditLogger.js';
 import { getServicePrice, formatPhp } from '../config/servicePricing.js';
 import { ClinicHoursHelper } from '../config/clinicHoursHelper.js';
+import { sendAppointmentNotificationEmail } from '../config/mailer.js';
 
 const router = express.Router();
 
@@ -223,6 +224,15 @@ router.post('/create_appointment', async (req, res) => {
         const result = await dbClient.insertOne('appointments', newAppt);
         await logAudit(req, 'CREATE_APPOINTMENT', 'RECEPTIONIST', { appointment_id: result.insertedId, patientName, date, timeSlot }, 'success');
 
+        const targetPatientEmail = body.patient_email || (body.patient_id ? (await dbClient.findOne('users', { _id: body.patient_id }))?.email : '') || 'edjamenf@gmail.com';
+        sendAppointmentNotificationEmail(targetPatientEmail, patientName, {
+            id: String(result.insertedId || newAppt._id || ''),
+            date,
+            time: timeSlot,
+            doctor_name: newAppt.doctor_name,
+            service_name: newAppt.service_name
+        }, 'booked').catch(e => console.warn('[Email Warning] Receptionist create notify error:', e.message));
+
         return res.status(201).json({
             status: 'success',
             message: 'Appointment scheduled successfully!',
@@ -311,6 +321,15 @@ router.post('/reschedule_appointment', async (req, res) => {
         await dbClient.updateOne('appointments', { _id: apptId }, { $set: updateData });
         await logAudit(req, 'RESCHEDULE_APPOINTMENT', 'RECEPTIONIST', { appointment_id: apptId, newDate, newTime }, 'success');
 
+        const patientEmail = appt.patient_email || 'edjamenf@gmail.com';
+        sendAppointmentNotificationEmail(patientEmail, appt.patient_name, {
+            id: String(appt._id),
+            date: newDate,
+            time: newTime,
+            doctor_name: updateData.doctor_name || appt.doctor_name,
+            service_name: appt.service_name
+        }, 'rescheduled').catch(e => console.warn('[Email Warning] Receptionist reschedule notify error:', e.message));
+
         return res.status(200).json({
             status: 'success',
             message: 'Appointment successfully rescheduled.'
@@ -330,6 +349,7 @@ router.post('/cancel_appointment', async (req, res) => {
         const apptId = body.appointment_id;
         if (!apptId) return res.status(400).json({ status: 'error', message: 'Appointment ID is required.' });
 
+        const appt = await dbClient.findOne('appointments', { _id: apptId });
         await dbClient.updateOne('appointments', { _id: apptId }, {
             $set: {
                 status: 'cancelled',
@@ -337,6 +357,16 @@ router.post('/cancel_appointment', async (req, res) => {
                 cancelled_at: new Date().toISOString().replace('T', ' ').slice(0, 19)
             }
         });
+
+        if (appt && appt.patient_email) {
+            sendAppointmentNotificationEmail(appt.patient_email, appt.patient_name, {
+                id: String(appt._id),
+                date: appt.date || appt.appointment_date,
+                time: appt.time || appt.time_slot,
+                doctor_name: appt.doctor_name,
+                service_name: appt.service_name
+            }, 'cancelled').catch(e => console.warn('[Email Warning] Front desk cancel notify error:', e.message));
+        }
 
         await logAudit(req, 'CANCEL_APPOINTMENT', 'RECEPTIONIST', { appointment_id: apptId }, 'success');
         return res.status(200).json({ status: 'success', message: 'Appointment cancelled.' });

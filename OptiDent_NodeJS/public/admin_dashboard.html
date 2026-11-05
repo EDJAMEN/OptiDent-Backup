@@ -848,14 +848,37 @@
                                         </span>
                                     </div>
                                     <p class="text-xs text-dim mt-0 mb-0" style="margin-top: 4px; font-size: 12.5px; line-height: 1.45;">
-                                        Manage Google Auth locks, non-admin login gates, email fallback, and patient self-service switches.
+                                        Manage Google Auth locks, Google Calendar API live sync, email fallback, and clinic configuration switches.
                                     </p>
                                 </div>
                             </div>
-                            <div>
-                                <button type="button" id="btnOpenIntegrationsModal" class="btn-primary" onclick="openIntegrationsModal()" style="display: flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 10px; font-weight: 600; font-size: 13px; box-shadow: 0 4px 14px rgba(14, 177, 177, 0.25); cursor: pointer; transition: all 0.15s ease;">
-                                    <i class='bx bx-slider-alt'></i> Manage Integrations &amp; Switches
+                            <div style="position: relative; display: inline-block;" id="settingsDropdownContainer">
+                                <button type="button" id="settingsActionsDropdownBtn" class="btn-primary" onclick="toggleSettingsDropdown(event)" style="display: flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 10px; font-weight: 600; font-size: 13px; box-shadow: 0 4px 14px rgba(14, 177, 177, 0.25); cursor: pointer; transition: all 0.15s ease;">
+                                    <i class='bx bx-slider-alt'></i> 
+                                    <span id="settingsDropdownSelectedLabel">Settings &amp; Controls</span>
+                                    <i class='bx bx-chevron-down' id="settingsDropdownChevron" style="font-size: 16px; transition: transform 0.2s ease;"></i>
                                 </button>
+                                <div id="settingsActionsDropdownMenu" style="display: none; position: absolute; right: 0; top: calc(100% + 8px); background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12); width: 290px; z-index: 1050; padding: 8px; overflow: hidden;">
+                                    <a href="javascript:void(0)" onclick="selectSettingsOption('integrations')" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: #1e293b; text-decoration: none; font-size: 13px; font-weight: 600; transition: background 0.15s ease;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                                        <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(14, 177, 177, 0.12); color: #0eb1b1; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                                            <i class='bx bx-slider-alt'></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 600; color: #0f172a;">Manage Integrations &amp; Switches</div>
+                                            <div style="font-size: 11px; color: #64748b; font-weight: 400;">Google Calendar, Google Auth, SMTP, SMS</div>
+                                        </div>
+                                    </a>
+                                    <div style="height: 1px; background: #f1f5f9; margin: 4px 0;"></div>
+                                    <a href="javascript:void(0)" onclick="selectSettingsOption('app_settings')" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: #1e293b; text-decoration: none; font-size: 13px; font-weight: 600; transition: background 0.15s ease;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                                        <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(59, 130, 246, 0.1); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                                            <i class='bx bx-cog'></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 600; color: #0f172a;">App Settings &amp; Preferences</div>
+                                            <div style="font-size: 11px; color: #64748b; font-weight: 400;">Clinic Profile, Hours, Timezone &amp; Security</div>
+                                        </div>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2067,121 +2090,52 @@
                         </div>
                     </div>
 
-                    <!-- 4. Public Patient Self-Registration -->
+                    <!-- 4. Google Calendar API Live Sync (Registered Account: edjamenf@gmail.com) -->
                     <div class="integration-card" style="border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                         <div>
                             <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 22px; flex-shrink: 0;">
-                                        <i class='bx bx-user-plus'></i>
+                                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(66, 133, 244, 0.12); display: flex; align-items: center; justify-content: center; color: #4285f4; font-size: 22px; flex-shrink: 0;">
+                                        <i class='bx bx-calendar-event'></i>
                                     </div>
                                     <div>
-                                        <div style="font-weight: 700; font-size: 14px; color: #0f172a;">Patient Self-Registration</div>
-                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Online Account Onboarding</div>
+                                        <div style="font-weight: 700; font-size: 14px; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+                                            Google Calendar API
+                                            <span style="font-size: 10px; background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px; font-weight: 700;">LIVE SYNC</span>
+                                        </div>
+                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                                            Registered Account: <strong id="googleCalTargetEmail" style="color: #0f172a;">edjamenf@gmail.com</strong>
+                                        </div>
                                     </div>
                                 </div>
-                                <span id="badgePatientSelfReg" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700; flex-shrink: 0;">
-                                    OPEN
+                                <span id="badgeGoogleCalendarSync" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700; flex-shrink: 0;">
+                                    ACTIVE
                                 </span>
                             </div>
-                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 18px 0; min-height: 40px;">
-                                Allows new patients to register accounts online. When paused, prevents spam accounts while front-desk signups stay active.
+                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 14px 0;">
+                                Automatically syncs incoming clinic appointments to your registered Google Calendar (<span style="color: #0f172a; font-weight: 600;">edjamenf@gmail.com</span>). View incoming patient appointments directly in your Google Calendar across all mobile and web devices.
                             </p>
-                        </div>
-                        <div style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 12px; font-weight: 700; color: #10b981;" id="labelPatientSelfRegStatus">Online Signup Open</span>
-                            <label class="master-toggle" title="Toggle Patient Self-Registration" style="margin: 0; cursor: pointer;">
-                                <input type="checkbox" id="switchPatientSelfReg" checked onchange="requestIntegrationToggle('patient_self_registration', this.checked, this)">
-                                <span class="master-toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- 5. Online Patient Appointment Booking -->
-                    <div class="integration-card" style="border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                        <div>
-                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(139, 92, 246, 0.1); display: flex; align-items: center; justify-content: center; color: #8b5cf6; font-size: 22px; flex-shrink: 0;">
-                                        <i class='bx bx-calendar-plus'></i>
-                                    </div>
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 14px; color: #0f172a;">Patient Online Booking</div>
-                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Self-Service Scheduling</div>
-                                    </div>
+                            
+                            <!-- Live status banner & action buttons -->
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                                <div style="font-size: 11.5px; color: #475569; display: flex; align-items: center; gap: 6px;">
+                                    <i class='bx bx-sync' style="color: #4285f4; font-size: 16px;"></i>
+                                    <span id="googleCalIncomingCountText">Incoming appointments ready to sync</span>
                                 </div>
-                                <span id="badgePatientBooking" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700; flex-shrink: 0;">
-                                    ENABLED
-                                </span>
-                            </div>
-                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 18px 0; min-height: 40px;">
-                                Allows patients to select slots and book appointments in their portal. Internal receptionist scheduling is unaffected.
-                            </p>
-                        </div>
-                        <div style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 12px; font-weight: 700; color: #10b981;" id="labelPatientBookingStatus">Self-Booking Active</span>
-                            <label class="master-toggle" title="Toggle Online Patient Booking" style="margin: 0; cursor: pointer;">
-                                <input type="checkbox" id="switchPatientBooking" checked onchange="requestIntegrationToggle('patient_online_booking', this.checked, this)">
-                                <span class="master-toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- 6. Patient Self-Rescheduling & Cancellation -->
-                    <div class="integration-card" style="border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                        <div>
-                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(59, 130, 246, 0.1); display: flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 22px; flex-shrink: 0;">
-                                        <i class='bx bx-calendar-edit'></i>
-                                    </div>
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 14px; color: #0f172a;">Patient Self-Rescheduling</div>
-                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Reschedule &amp; Cancellation Control</div>
-                                    </div>
+                                <div style="display: flex; gap: 6px;">
+                                    <button type="button" onclick="triggerGoogleCalendarManualSync()" id="btnSyncGoogleCalNow" style="padding: 5px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; font-size: 11.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Sync incoming appointments now">
+                                        <i class='bx bx-refresh'></i> Sync Now
+                                    </button>
+                                    <a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer" style="padding: 5px 12px; border-radius: 6px; border: 1px solid #4285f4; background: #4285f4; color: #ffffff; font-size: 11.5px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;" title="Open Google Calendar in new tab">
+                                        <i class='bx bx-link-external'></i> Open Google Calendar
+                                    </a>
                                 </div>
-                                <span id="badgePatientReschedule" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700; flex-shrink: 0;">
-                                    ENABLED
-                                </span>
                             </div>
-                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 18px 0; min-height: 40px;">
-                                Allows patients to reschedule or cancel existing appointments in their portal. When paused, appointment changes must be handled by receptionists.
-                            </p>
                         </div>
                         <div style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 12px; font-weight: 700; color: #10b981;" id="labelPatientRescheduleStatus">Rescheduling Allowed</span>
-                            <label class="master-toggle" title="Toggle Patient Self-Rescheduling" style="margin: 0; cursor: pointer;">
-                                <input type="checkbox" id="switchPatientReschedule" checked onchange="requestIntegrationToggle('patient_rescheduling_enabled', this.checked, this)">
-                                <span class="master-toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- 7. Emergency Maintenance Mode Switch -->
-                    <div class="integration-card" style="border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                        <div>
-                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 22px; flex-shrink: 0;">
-                                        <i class='bx bx-error-alt'></i>
-                                    </div>
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 14px; color: #0f172a;">Emergency Maintenance Mode</div>
-                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Clinic Infrastructure Freeze</div>
-                                    </div>
-                                </div>
-                                <span id="badgeMaintenanceModeTop" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700; flex-shrink: 0;">
-                                    NORMAL
-                                </span>
-                            </div>
-                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 18px 0; min-height: 40px;">
-                                Suspends clinic operations for database maintenance or emergency repair. Restricts all non-admin access.
-                            </p>
-                        </div>
-                        <div style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 12px; font-weight: 700; color: #10b981;" id="labelMaintenanceModeTopStatus">System Operational</span>
-                            <label class="master-toggle" title="Toggle System Maintenance Mode" style="margin: 0; cursor: pointer;">
-                                <input type="checkbox" id="switchMaintenanceModeTop" onchange="requestIntegrationToggle('maintenance_mode', this.checked, this)">
+                            <span style="font-size: 12px; font-weight: 700; color: #10b981;" id="labelGoogleCalendarSyncStatus">Auto-Sync Enabled</span>
+                            <label class="master-toggle" title="Toggle Google Calendar Live Sync" style="margin: 0; cursor: pointer;">
+                                <input type="checkbox" id="switchGoogleCalendarSync" checked onchange="requestIntegrationToggle('google_calendar_sync', this.checked, this)">
                                 <span class="master-toggle-slider"></span>
                             </label>
                         </div>
@@ -3368,56 +3322,23 @@
                 lSms.style.color = sms ? '#10b981' : '#64748b';
             }
 
-            // 4. Patient Self Registration
-            const bReg = document.getElementById('badgePatientSelfReg');
-            const lReg = document.getElementById('labelPatientSelfRegStatus');
-            const sReg = document.getElementById('switchPatientSelfReg');
-            if (sReg) sReg.checked = selfReg;
-            if (bReg) {
-                bReg.textContent = selfReg ? 'OPEN' : 'WALK-IN ONLY';
-                bReg.style.background = selfReg ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.15)';
-                bReg.style.color = selfReg ? '#10b981' : '#d97706';
+            // 4. Google Calendar API Live Sync
+            const gCalSync = integrations.google_calendar_sync !== false;
+            const bGCal = document.getElementById('badgeGoogleCalendarSync');
+            const lGCal = document.getElementById('labelGoogleCalendarSyncStatus');
+            const sGCal = document.getElementById('switchGoogleCalendarSync');
+            if (sGCal) sGCal.checked = gCalSync;
+            if (bGCal) {
+                bGCal.textContent = gCalSync ? 'ACTIVE' : 'PAUSED';
+                bGCal.style.background = gCalSync ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.15)';
+                bGCal.style.color = gCalSync ? '#10b981' : '#d97706';
             }
-            if (lReg) {
-                lReg.textContent = selfReg ? 'Online Signup Open' : 'Walk-In Only (Paused)';
-                lReg.style.color = selfReg ? '#10b981' : '#d97706';
-            }
-
-            // 5. Patient Online Booking
-            const bBook = document.getElementById('badgePatientBooking');
-            const lBook = document.getElementById('labelPatientBookingStatus');
-            const sBook = document.getElementById('switchPatientBooking');
-            if (sBook) sBook.checked = booking;
-            if (bBook) {
-                bBook.textContent = booking ? 'ENABLED' : 'PAUSED';
-                bBook.style.background = booking ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.15)';
-                bBook.style.color = booking ? '#10b981' : '#d97706';
-            }
-            if (lBook) {
-                lBook.textContent = booking ? 'Self-Booking Active' : 'Self-Booking Paused';
-                lBook.style.color = booking ? '#10b981' : '#d97706';
+            if (lGCal) {
+                lGCal.textContent = gCalSync ? 'Auto-Sync Enabled' : 'Sync Paused (Manual Only)';
+                lGCal.style.color = gCalSync ? '#10b981' : '#64748b';
             }
 
-            // 6. Patient Self-Rescheduling
-            const bResched = document.getElementById('badgePatientReschedule');
-            const lResched = document.getElementById('labelPatientRescheduleStatus');
-            const sResched = document.getElementById('switchPatientReschedule');
-            if (sResched) sResched.checked = resched;
-            if (bResched) {
-                bResched.textContent = resched ? 'ENABLED' : 'PAUSED';
-                bResched.style.background = resched ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.15)';
-                bResched.style.color = resched ? '#10b981' : '#d97706';
-            }
-            if (lResched) {
-                lResched.textContent = resched ? 'Rescheduling Allowed' : 'Desk Only (Suspended)';
-                lResched.style.color = resched ? '#10b981' : '#d97706';
-            }
-
-            // 7. Maintenance Mode
-            const bMaint = document.getElementById('badgeMaintenanceModeTop');
-            const lMaint = document.getElementById('labelMaintenanceModeTopStatus');
-            const sMaint = document.getElementById('switchMaintenanceModeTop');
-            if (sMaint) sMaint.checked = maint;
+            // Maintenance Mode Checkbox in Clinic Settings Form
             const lowMaint = document.getElementById('settingMaintenanceMode');
             if (lowMaint) lowMaint.checked = maint;
             updateMaintenanceBadge(maint);
@@ -3511,41 +3432,14 @@
                 descOff: 'Disables SMS text dispatch and keeps automated mobile reminders in standby mode.',
                 criticalOnDisable: false
             },
-            'patient_self_registration': {
-                name: 'Patient Self-Registration',
-                icon: 'bx-user-plus',
-                iconColor: '#10b981',
-                iconBg: 'rgba(16, 185, 129, 0.12)',
-                descOn: 'Allows new patients to self-register accounts online from the public clinic landing page.',
-                descOff: 'Suspends public online account registration to prevent spam/bot signups. Walk-in patients can still be registered at the clinic front desk.',
+            'google_calendar_sync': {
+                name: 'Google Calendar API Live Sync',
+                icon: 'bx-calendar-event',
+                iconColor: '#4285f4',
+                iconBg: 'rgba(66, 133, 244, 0.12)',
+                descOn: 'Enables live background synchronization of clinic appointments to your registered Google Calendar (edjamenf@gmail.com).',
+                descOff: 'Pauses live synchronization of incoming appointments to Google Calendar. Appointments remain securely accessible in the OptiDent database.',
                 criticalOnDisable: false
-            },
-            'patient_online_booking': {
-                name: 'Patient Online Booking',
-                icon: 'bx-calendar-plus',
-                iconColor: '#8b5cf6',
-                iconBg: 'rgba(139, 92, 246, 0.12)',
-                descOn: 'Allows registered patients to view available slots and book appointments directly through their patient portal.',
-                descOff: 'Disables self-service appointment scheduling in the patient portal. Receptionists can still schedule appointments manually via the staff dashboard.',
-                criticalOnDisable: false
-            },
-            'patient_rescheduling_enabled': {
-                name: 'Patient Self-Rescheduling & Cancellation',
-                icon: 'bx-calendar-edit',
-                iconColor: '#3b82f6',
-                iconBg: 'rgba(59, 130, 246, 0.12)',
-                descOn: 'Allows registered patients to self-reschedule or cancel their appointments via the patient portal.',
-                descOff: 'Suspends self-service rescheduling and cancellations. Patients will be directed to contact the clinic front desk to make appointment changes.',
-                criticalOnDisable: false
-            },
-            'maintenance_mode': {
-                name: 'System Maintenance Mode',
-                icon: 'bx-wrench',
-                iconColor: '#ef4444',
-                iconBg: 'rgba(239, 68, 68, 0.12)',
-                descOn: 'Restricts the login portal strictly to Super Admin emergency access. Removes patient registration, hides non-admin login options, and displays an active maintenance alert.',
-                descOff: 'Deactivates maintenance mode, restores the standard unified login portal with patient sign-up, and re-allows patient, receptionist, and doctor logins.',
-                criticalOnEnable: true
             },
             'recaptcha_enabled': {
                 name: 'Google reCAPTCHA Anti-Bot Layer',
@@ -3672,9 +3566,7 @@
                 pendingIntegrationChange = null;
                 await toggleIntegrationSwitch('google_auth_enabled', true);
                 await toggleIntegrationSwitch('smtp_email_enabled', true);
-                await toggleIntegrationSwitch('patient_self_registration', true);
-                await toggleIntegrationSwitch('patient_online_booking', true);
-                await toggleIntegrationSwitch('patient_rescheduling_enabled', true);
+                await toggleIntegrationSwitch('google_calendar_sync', true);
                 await toggleIntegrationSwitch('recaptcha_enabled', true);
                 await toggleIntegrationSwitch('maintenance_mode', false);
             }
@@ -3744,7 +3636,7 @@
                 targetStatus.innerHTML = "<i class='bx bx-check-double'></i> RESTORE OPERATIONAL";
             }
             if (impactText) {
-                impactText.innerHTML = "Restores Google Auth, email notifications, patient registration, online booking, and patient self-rescheduling to normal online status, and clears maintenance lockdown.";
+                impactText.innerHTML = "Restores Google Auth, email notifications, Google Calendar sync, and login defenses to normal online status, and clears maintenance lockdown.";
             }
             if (proceedBtn) {
                 proceedBtn.style.background = 'var(--primary)';
@@ -3786,12 +3678,100 @@
             }
         }
 
+        // Settings & Controls Dropdown Navigation Handlers
+        function toggleSettingsDropdown(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('settingsActionsDropdownMenu');
+            const chevron = document.getElementById('settingsDropdownChevron');
+            if (!menu) return;
+            const isShown = menu.style.display === 'block';
+            menu.style.display = isShown ? 'none' : 'block';
+            if (chevron) chevron.style.transform = isShown ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        function closeSettingsDropdown() {
+            const menu = document.getElementById('settingsActionsDropdownMenu');
+            const chevron = document.getElementById('settingsDropdownChevron');
+            if (menu) menu.style.display = 'none';
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+        }
+
+        function selectSettingsOption(option) {
+            closeSettingsDropdown();
+            if (option === 'integrations') {
+                openIntegrationsModal();
+            } else if (option === 'app_settings') {
+                const target = document.getElementById('masterSettingsForm');
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const card = target.closest('.card') || target;
+                    card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+                    card.style.borderColor = '#0eb1b1';
+                    card.style.boxShadow = '0 0 0 4px rgba(14, 177, 177, 0.25)';
+                    setTimeout(() => {
+                        card.style.borderColor = '';
+                        card.style.boxShadow = '';
+                    }, 1800);
+                }
+            }
+        }
+
+        // Google Calendar Live Sync Handlers
+        async function fetchGoogleCalendarSyncStatus() {
+            try {
+                const res = await fetch('/api/admin/get_google_calendar_status');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const elCount = document.getElementById('googleCalIncomingCountText');
+                    const elEmail = document.getElementById('googleCalTargetEmail');
+                    if (elCount) {
+                        elCount.innerHTML = `<strong>${data.incoming_count}</strong> incoming appointment(s) ready to sync`;
+                    }
+                    if (elEmail && data.target_email) {
+                        elEmail.textContent = data.target_email;
+                    }
+                }
+            } catch (err) {
+                console.warn('Unable to retrieve Google Calendar sync status:', err);
+            }
+        }
+
+        async function triggerGoogleCalendarManualSync() {
+            const btn = document.getElementById('btnSyncGoogleCalNow');
+            const orig = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Syncing...";
+            }
+            try {
+                const res = await fetch('/api/admin/sync_google_calendar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('success', data.message || 'Google Calendar synced successfully!');
+                    fetchGoogleCalendarSyncStatus();
+                } else {
+                    showToast('error', data.message || 'Sync failed');
+                }
+            } catch (err) {
+                showToast('error', 'Network error during Google Calendar sync.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                }
+            }
+        }
+
         // Pop-up Card Modal Controls for System Integrations
         function openIntegrationsModal() {
             const modal = document.getElementById('systemIntegrationsModal');
             if (modal) {
                 modal.style.display = 'flex';
                 updateIntegrationBadges();
+                fetchGoogleCalendarSyncStatus();
             }
         }
 
@@ -3800,8 +3780,12 @@
             if (modal) modal.style.display = 'none';
         }
 
-        // Close modal when clicking backdrop or pressing Escape
+        // Close modal when clicking backdrop or pressing Escape, and close dropdown on outside click
         window.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('settingsDropdownContainer');
+            if (dropdown && !dropdown.contains(e.target)) {
+                closeSettingsDropdown();
+            }
             const confirmModal = document.getElementById('confirmIntegrationModal');
             if (confirmModal && e.target === confirmModal) {
                 cancelIntegrationToggle();

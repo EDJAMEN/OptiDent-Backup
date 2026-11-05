@@ -212,6 +212,7 @@ router.post('/book_appointment', async (req, res) => {
         const timeSlot = (body.time_slot || body.time || '').trim();
         const serviceName = (body.service_name || 'Dental Consultation & Oral Examination').trim();
         const doctorName = (body.doctor_name || 'First Available Doctor').trim();
+        const doctor = doctorName;
         const notes = (body.notes || '').trim();
 
         if (!date || !timeSlot) {
@@ -266,6 +267,7 @@ router.post('/book_appointment', async (req, res) => {
             });
 
             sendAppointmentNotificationEmail(user.email, user.full_name, {
+                id: String(result.insertedId || newAppt._id || ''),
                 date,
                 time: timeSlot,
                 doctor_name: doctor,
@@ -343,6 +345,7 @@ router.post('/reschedule_appointment', async (req, res) => {
             });
 
             sendAppointmentNotificationEmail(appt.patient_email || req.user.email, appt.patient_name || req.user.full_name, {
+                id: String(appt._id),
                 date: newDate,
                 time: newTime,
                 doctor_name: docName || appt.doctor_name,
@@ -406,6 +409,7 @@ router.post('/cancel_appointment', async (req, res) => {
             });
 
             sendAppointmentNotificationEmail(appt.patient_email || req.user.email, appt.patient_name || req.user.full_name, {
+                id: String(appt._id),
                 date: appt.date || appt.appointment_date,
                 time: appt.time || appt.time_slot,
                 doctor_name: appt.doctor_name,

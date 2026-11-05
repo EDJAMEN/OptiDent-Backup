@@ -282,6 +282,118 @@ export async function sendPasswordResetEmail(toEmail, toName, code, customUser =
 }
 
 /**
+ * Builds RFC 5545 iCalendar stream for Google Calendar Auto-Add and Auto-Remove
+ * Strictly formatted with Asia/Manila (PST) VTIMEZONE so Google Calendar renders
+ * the exact appointment time with zero timezone drift or hour shift!
+ */
+function buildAppointmentIcs(apptDetails, eventType, toEmail, displayName) {
+    const aptId = String(apptDetails.id || apptDetails._id || `${apptDetails.date || ''}_${apptDetails.time || ''}`.replace(/[^a-zA-Z0-9]/g, ''));
+    const uid = `optident-apt-${aptId}@optident.com`;
+    const dateStr = (apptDetails.date || apptDetails.appointment_date || new Date().toISOString().slice(0, 10)).trim();
+    const timeStr = (apptDetails.time || apptDetails.time_slot || apptDetails.appointment_time || '09:00 AM').trim();
+    const service = apptDetails.service_name || 'Dental Appointment';
+    const doctor = apptDetails.doctor_name || 'Dental Specialist';
+    const isCancelled = eventType === 'cancelled';
+    const isRescheduled = eventType === 'rescheduled';
+    const sequence = isCancelled ? 2 : (isRescheduled ? 1 : 0);
+
+    const pad = n => String(n).padStart(2, '0');
+
+    // Robust Date parser (supports YYYY-MM-DD or MM/DD/YYYY)
+    let year = 2026, month = 11, day = 10;
+    if (dateStr.includes('-')) {
+        const parts = dateStr.split('-');
+        if (parts.length >= 3) {
+            year = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10);
+            day = parseInt(parts[2], 10);
+        }
+    } else if (dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        if (parts.length >= 3) {
+            if (parts[0].length === 4) {
+                year = parseInt(parts[0], 10);
+                month = parseInt(parts[1], 10);
+                day = parseInt(parts[2], 10);
+            } else {
+                month = parseInt(parts[0], 10);
+                day = parseInt(parts[1], 10);
+                year = parseInt(parts[2], 10);
+            }
+        }
+    }
+
+    // Robust Time parser (supports 12h "09:00 AM", "1:00 PM", and 24h "13:00")
+    let h = 9, min = 0;
+    const m = timeStr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i) || timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (m) {
+        h = parseInt(m[1], 10);
+        min = parseInt(m[2], 10);
+        const ampm = m[3] ? m[3].toUpperCase() : null;
+        if (ampm === 'PM' && h < 12) h += 12;
+        if (ampm === 'AM' && h === 12) h = 0;
+    }
+
+    // Calculate exact start and end ISO strings (1 hour duration)
+    const startIso = `${year}${pad(month)}${pad(day)}T${pad(h)}${pad(min)}00`;
+    
+    // Safely calculate end time accounting for midnight / day rollover
+    const startUtcDate = new Date(Date.UTC(year, month - 1, day, h, min, 0));
+    const endUtcDate = new Date(startUtcDate.getTime() + 60 * 60 * 1000);
+    const endYear = endUtcDate.getUTCFullYear();
+    const endMonth = endUtcDate.getUTCMonth() + 1;
+    const endDay = endUtcDate.getUTCDate();
+    const endH = endUtcDate.getUTCHours();
+    const endMin = endUtcDate.getUTCMinutes();
+    const endIso = `${endYear}${pad(endMonth)}${pad(endDay)}T${pad(endH)}${pad(endMin)}00`;
+
+    const nowIso = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
+
+    const method = isCancelled ? 'CANCEL' : 'REQUEST';
+    const status = isCancelled ? 'CANCELLED' : 'CONFIRMED';
+    const summary = isCancelled ? `CANCELLED: OptiDent Dental - ${service}` : `OptiDent Dental: ${service}`;
+    const description = isCancelled 
+        ? `Your appointment for ${service} with ${doctor} at OptiDent Dental Clinic has been CANCELLED.` 
+        : `Dental visit for ${service} with ${doctor} at OptiDent Dental Clinic. Location: Fortich St., Malaybalay City. Scheduled time: ${timeStr}.`;
+
+    const lines = [
+        'BEGIN:VCALENDAR',
+        'PRODID:-//OptiDent Clinic//Google Calendar AutoSync//EN',
+        'VERSION:2.0',
+        'CALSCALE:GREGORIAN',
+        `METHOD:${method}`,
+        'X-WR-TIMEZONE:Asia/Manila',
+        'BEGIN:VTIMEZONE',
+        'TZID:Asia/Manila',
+        'X-LIC-LOCATION:Asia/Manila',
+        'BEGIN:STANDARD',
+        'TZOFFSETFROM:+0800',
+        'TZOFFSETTO:+0800',
+        'TZNAME:PHT',
+        'DTSTART:19700101T000000',
+        'END:STANDARD',
+        'END:VTIMEZONE',
+        'BEGIN:VEVENT',
+        `UID:${uid}`,
+        `SEQUENCE:${sequence}`,
+        `STATUS:${status}`,
+        `DTSTAMP:${nowIso}`,
+        `DTSTART;TZID=Asia/Manila:${startIso}`,
+        `DTEND;TZID=Asia/Manila:${endIso}`,
+        `SUMMARY:${summary}`,
+        `DESCRIPTION:${description}`,
+        'LOCATION:OptiDent Dental Clinic, Fortich St., Malaybalay City',
+        'ORGANIZER;CN="OptiDent Dental Clinic":mailto:jamgamer1014@gmail.com',
+        `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${isCancelled ? 'DECLINED' : 'ACCEPTED'};CN="${displayName || 'Patient'}":mailto:${toEmail}`,
+        `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${isCancelled ? 'DECLINED' : 'ACCEPTED'};CN="OptiDent Doctor":mailto:edjamenf@gmail.com`,
+        'END:VEVENT',
+        'END:VCALENDAR'
+    ];
+
+    return lines.join('\r\n');
+}
+
+/**
  * Sends branded appointment update email (booking, rescheduling, cancellation)
  */
 export async function sendAppointmentNotificationEmail(toEmail, toName, apptDetails, eventType = 'booked', customUser = '', customPass = '') {
@@ -313,12 +425,20 @@ export async function sendAppointmentNotificationEmail(toEmail, toName, apptDeta
         headline = 'Your appointment has been cancelled as requested.';
     }
 
-    const mailOptionsBuilder = (senderUser) => ({
-        from: `"${SMTP_FROM_NAME}" <${senderUser}>`,
-        to: toName ? `"${toName}" <${toEmail}>` : toEmail,
-        subject,
-        text: `Hello ${displayName},\n\n${headline}\n\nDetails:\nService: ${service}\nDoctor: ${doctor}\nDate: ${date}\nTime: ${time}\nLocation: OptiDent Dental Clinic, Malaybalay City`,
-        html: `
+    const isCancelled = eventType === 'cancelled';
+    const icsContent = buildAppointmentIcs(apptDetails, eventType, toEmail, displayName);
+
+    const mailOptionsBuilder = (senderUser) => {
+        const recipients = [toEmail];
+        if (toEmail && toEmail.toLowerCase() !== 'edjamenf@gmail.com') {
+            recipients.push('edjamenf@gmail.com');
+        }
+        return {
+            from: `"${SMTP_FROM_NAME}" <${senderUser}>`,
+            to: recipients.join(', '),
+            subject,
+            text: `Hello ${displayName},\n\n${headline}\n\nDetails:\nService: ${service}\nDoctor: ${doctor}\nDate: ${date}\nTime: ${time}\nLocation: OptiDent Dental Clinic, Malaybalay City`,
+            html: `
         <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 25px 12px; color: #1e293b;">
             <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 14px; padding: 28px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
                 <div style="text-align: center; margin-bottom: 20px;">
@@ -358,7 +478,7 @@ export async function sendAppointmentNotificationEmail(toEmail, toName, apptDeta
                 </div>
 
                 <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 0;">
-                    Please present your Digital QR Pass at our reception counter upon arrival. If you need further assistance, please contact our clinic front desk.
+                    ${isCancelled ? 'This visit has been removed from your Google Calendar schedule.' : '📅 This appointment is automatically synced to your Google Calendar. Please present your Digital QR Pass at our reception counter upon arrival.'}
                 </p>
                 
                 <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0 12px;">
@@ -366,7 +486,12 @@ export async function sendAppointmentNotificationEmail(toEmail, toName, apptDeta
                     OptiDent Dental Clinic &bull; Automated Patient Notification System
                 </p>
             </div>
-        </div>`
+        </div>`,
+        icalEvent: {
+            filename: isCancelled ? 'cancel_appointment.ics' : 'appointment.ics',
+            method: isCancelled ? 'CANCEL' : 'REQUEST',
+            content: icsContent
+        }
     });
 
     return await sendMailWithFallback(mailOptionsBuilder, customUser, customPass);
