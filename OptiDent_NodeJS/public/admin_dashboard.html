@@ -271,6 +271,282 @@
         .master-toggle input:checked + .master-toggle-slider:before {
             transform: translateX(22px);
         }
+        /* Clinic Master Availability & Duty Calendar (Identical Design to Doctor Duty) */
+        .clinic-preset-btn {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 3px 9px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .clinic-preset-btn:hover {
+            background: rgba(14, 177, 177, 0.08);
+            color: #0EB1B1;
+            border-color: #0EB1B1;
+        }
+
+        .clinic-day-tiles-grid {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            gap: 6px !important;
+        }
+
+        .clinic-day-tile {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 8px 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box;
+        }
+        .clinic-day-tile:hover {
+            border-color: #0EB1B1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .clinic-day-tile.active {
+            background: linear-gradient(135deg, #0EB1B1 0%, #088b8b 100%) !important;
+            border-color: #088b8b !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(14, 177, 177, 0.35);
+        }
+        .clinic-day-tile.active .clinic-day-tile-code,
+        .clinic-day-tile.active .clinic-day-tile-name,
+        .clinic-day-tile.active i {
+            color: #ffffff !important;
+        }
+        .clinic-day-tile-code {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #1e293b;
+            margin-bottom: 2px;
+            line-height: 1;
+        }
+        .clinic-day-tile-name {
+            font-size: 10px;
+            color: #64748b;
+            display: block;
+            margin-bottom: 2px;
+            line-height: 1;
+        }
+
+        .clinic-calendar-container {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        .clinic-cal-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 10px !important;
+        }
+        .clinic-cal-nav-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer;
+            font-size: 14px;
+            color: #475569;
+            transition: all 0.15s ease;
+        }
+        .clinic-cal-nav-btn:hover {
+            background: #f1f5f9;
+            color: #0EB1B1;
+            border-color: #0EB1B1;
+        }
+        .clinic-cal-weekdays {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            text-align: center;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .clinic-cal-grid {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            gap: 5px !important;
+        }
+        .clinic-cal-cell {
+            padding: 8px 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.15s ease;
+            position: relative;
+            user-select: none;
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+            min-height: 42px;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box;
+        }
+        .clinic-cal-cell:hover {
+            transform: scale(1.05);
+            z-index: 2;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+        }
+        .clinic-cal-cell.is-duty {
+            background: rgba(14, 177, 177, 0.12) !important;
+            border: 1.5px solid #0EB1B1 !important;
+            color: #0a8f8f !important;
+            font-weight: 700 !important;
+        }
+        .clinic-cal-cell.is-off {
+            color: #94a3b8;
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+        }
+        .clinic-cal-cell.is-other-month {
+            opacity: 0.25;
+            pointer-events: none;
+        }
+        .clinic-cal-cell.is-today {
+            box-shadow: inset 0 0 0 1.5px #3b82f6;
+        }
+        .clinic-cal-cell .duty-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #0EB1B1;
+            margin-top: 2px;
+        }
+        .clinic-cal-cell.is-specific-off {
+            background: #fff1f2 !important;
+            border: 1.5px dashed #f43f5e !important;
+            color: #e11d48 !important;
+            font-weight: 700 !important;
+        }
+        .clinic-cal-cell.is-extra-duty {
+            background: rgba(99, 102, 241, 0.15) !important;
+            border: 1.5px solid #6366f1 !important;
+            color: #4f46e5 !important;
+            font-weight: 700 !important;
+        }
+        .clinic-cal-cell.is-half-day {
+            background: #fffbeb !important;
+            border: 1.5px solid #f59e0b !important;
+            color: #b45309 !important;
+            font-weight: 700 !important;
+        }
+        .clinic-cal-cell.is-half-day .duty-dot {
+            background: #f59e0b !important;
+        }
+        .clinic-cal-cell.is-custom-shift {
+            background: #eef2ff !important;
+            border: 1.5px solid #6366f1 !important;
+            color: #4f46e5 !important;
+            font-weight: 700 !important;
+        }
+        .clinic-cal-cell.is-custom-shift .duty-dot {
+            background: #6366f1 !important;
+        }
+
+        .clinic-off-count-badge {
+            font-size: 10px;
+            font-weight: 700;
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+        .clinic-specific-off-wrap {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .clinic-exception-chips-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .clinic-exception-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .clinic-exception-chip.is-holiday {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+        .clinic-exception-chip.is-custom {
+            background: #e0e7ff;
+            border-color: #c7d2fe;
+            color: #3730a3;
+        }
+        .clinic-exception-chip.is-extra {
+            background: #dbeafe;
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+        .clinic-exception-chip-close {
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.7;
+            transition: opacity 0.15s ease;
+        }
+        .clinic-exception-chip-close:hover {
+            opacity: 1;
+        }
+        .shift-option-card {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: #ffffff;
+        }
+        .shift-option-card:hover {
+            border-color: #0EB1B1;
+            transform: translateX(3px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .shift-icon-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 
@@ -921,34 +1197,118 @@
                                     <label class="text-xs font-bold text-dim uppercase">Clinic Address</label>
                                     <input type="text" id="settingAddress" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px;">
                                 </div>
-                                <div class="p-3 border rounded-lg mb-3" style="border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.015);">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="text-xs font-bold uppercase text-dim flex items-center gap-1">
-                                            <i class='bx bx-time-five' style="color: var(--primary-color); font-size: 15px;"></i> Clinic Operating Hours & Master Availability
-                                        </span>
-                                        <span id="previewOperatingSummary" class="badge" style="font-size: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(14, 177, 177, 0.12); color: #0eb1b1; font-weight: 700;">
-                                            Mon - Sat: 08:00 AM - 05:00 PM
+                                <!-- Master Clinic Operating Hours & Duty Availability (Identical Design to Doctor Duty) -->
+                                <div class="clinic-schedule-card p-3 border rounded-xl mb-3" style="border-radius: 12px; border: 1.5px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.02);">
+                                    <div class="flex items-center justify-between border-bottom pb-2 mb-2">
+                                        <h4 class="font-bold text-sm mb-0 flex items-center gap-2" style="color: #0f172a; margin: 0;">
+                                            <i class='bx bx-time' style="color: #0EB1B1; font-size: 18px;"></i> Clinic Working Hours &amp; Duty Availability
+                                        </h4>
+                                        <span class="badge" style="font-size: 11px; padding: 3px 9px; border-radius: 999px; background: rgba(16, 185, 129, 0.12); color: #059669; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                            <i class='bx bxs-circle' style="font-size: 7px;"></i> CLINIC HOURS ENFORCED
                                         </span>
                                     </div>
-                                    
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" class="mb-2">
-                                        <div class="form-group mb-0">
-                                            <label class="text-xs font-bold text-dim uppercase">Operating Days</label>
-                                            <select id="settingOperatingDays" class="form-control" onchange="renderMasterHoursPreview()" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; font-size: 12px;">
-                                                <option value="Mon - Sat">Monday – Saturday (6 Days, Sun Closed)</option>
-                                                <option value="Mon - Sun">Monday – Sunday (Full Week / 7 Days)</option>
-                                                <option value="Mon - Fri">Monday – Friday (Weekdays / 5 Days)</option>
-                                                <option value="Mon - Thu">Monday – Thursday (4 Days)</option>
-                                            </select>
+                                    <p class="text-xs text-dim mb-3" style="margin: 0 0 10px 0; font-size: 11.5px; line-height: 1.45;">
+                                        Set clinic-wide operating shift parameters and calendar availability below. When saved, patients, receptionists, and doctors will only be able to book during these open clinic hours.
+                                    </p>
+
+                                    <!-- Weekly Duty Days & Calendar Availability -->
+                                    <div class="mb-3">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                            <label class="text-xs font-bold text-dim uppercase" style="margin: 0; font-size: 11px;">WEEKLY DUTY DAYS &amp; CALENDAR AVAILABILITY</label>
+                                            <div style="display: flex; gap: 6px;">
+                                                <button type="button" class="clinic-preset-btn" onclick="setClinicDaysPreset('weekdays')">Mon - Fri</button>
+                                                <button type="button" class="clinic-preset-btn" onclick="setClinicDaysPreset('sixdays')">Mon - Sat</button>
+                                                <button type="button" class="clinic-preset-btn" onclick="setClinicDaysPreset('all')">All Week</button>
+                                            </div>
                                         </div>
+
+                                        <!-- Hidden input for operating days -->
+                                        <input type="hidden" id="settingOperatingDays" value="Mon - Sat">
+
+                                        <!-- Weekday Selector Tiles -->
+                                        <div id="clinicWeekdayTilesGrid" class="clinic-day-tiles-grid" style="margin-bottom: 10px;">
+                                            <!-- Rendered dynamically via renderClinicDayTiles() -->
+                                        </div>
+
+                                        <!-- Interactive Monthly Clinic Calendar -->
+                                        <div class="clinic-calendar-container">
+                                            <!-- Calendar Header -->
+                                            <div class="clinic-cal-header">
+                                                <div style="display: flex; align-items: center; gap: 6px;">
+                                                    <i class='bx bx-calendar text-primary' style="font-size: 16px; color: #0EB1B1;"></i>
+                                                    <span id="clinicCalMonthYear" style="font-weight: 700; font-size: 13px; color: #0f172a;">Month Year</span>
+                                                    <span id="clinicDateExceptionsSummaryBadge" class="clinic-off-count-badge" style="display: none;">0 Exceptions</span>
+                                                </div>
+                                                <div style="display: flex; align-items: center; gap: 4px;">
+                                                    <button type="button" class="clinic-cal-nav-btn" onclick="navigateClinicCalendar(-1)" title="Previous Month">
+                                                        <i class='bx bx-chevron-left'></i>
+                                                    </button>
+                                                    <button type="button" class="clinic-cal-nav-btn" onclick="resetClinicCalendarToToday()" title="Current Month" style="font-size: 11px; padding: 0 8px; width: auto;">
+                                                        Today
+                                                    </button>
+                                                    <button type="button" class="clinic-cal-nav-btn" onclick="navigateClinicCalendar(1)" title="Next Month">
+                                                        <i class='bx bx-chevron-right'></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Weekday Headers -->
+                                            <div class="clinic-cal-weekdays">
+                                                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                                            </div>
+
+                                            <!-- Dates Grid -->
+                                            <div id="clinicCalDatesGrid" class="clinic-cal-grid">
+                                                <!-- Rendered dynamically via renderClinicMiniCalendar() -->
+                                            </div>
+
+                                            <!-- Calendar Legend -->
+                                            <div class="clinic-cal-legend" style="border-top: 1px dashed #e2e8f0; padding-top: 8px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 10.5px; color: #64748b;">
+                                                <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Full Day
+                                                </span>
+                                                <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                                    <span style="width: 8px; height: 8px; border-radius: 2px; background: #f59e0b; display: inline-block;"></span> Half Day
+                                                </span>
+                                                <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                                    <span style="width: 8px; height: 8px; border-radius: 2px; background: #6366f1; display: inline-block;"></span> Custom Shift
+                                                </span>
+                                                <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                                    <span style="width: 8px; height: 8px; border-radius: 2px; background: #f43f5e; display: inline-block;"></span> Off-Duty / Closed
+                                                </span>
+                                                <span style="margin-left: auto; font-style: italic; font-size: 10px; color: #64748b;">Click any date to customize shift or mark off-duty</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Specific Date Exceptions & Custom Shifts Summary Box -->
+                                        <div id="clinicSpecificExceptionsWrap" class="clinic-specific-off-wrap" style="display: none; margin-top: 8px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                                <span style="font-size: 11px; font-weight: 700; color: #b45309;">
+                                                    <i class='bx bx-calendar-star'></i> Specific Date Shifts &amp; Exceptions (<span id="clinicSpecificOffCount">0</span>):
+                                                </span>
+                                                <button type="button" onclick="clearAllSpecificClinicExceptions()" style="background: none; border: none; font-size: 10.5px; color: #dc2626; font-weight: 600; cursor: pointer; text-decoration: underline;">
+                                                    Clear All Exceptions
+                                                </button>
+                                            </div>
+                                            <div id="clinicSpecificOffChips" class="clinic-exception-chips-list"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Timezone and Daily Hours Inputs -->
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" class="mb-2">
                                         <div class="form-group mb-0">
                                             <label class="text-xs font-bold text-dim uppercase">Timezone</label>
                                             <select id="settingTimezone" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; font-size: 12px;">
-                                                <option value="Asia/Manila">Asia/Manila (GMT+8)</option>
+                                                <option value="Asia/Manila" selected>Asia/Manila (GMT+8)</option>
                                                 <option value="UTC">UTC (GMT+0)</option>
                                                 <option value="America/New_York">America/New_York (EST)</option>
                                                 <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
                                             </select>
+                                        </div>
+                                        <div class="form-group mb-0" style="display: flex; align-items: flex-end; padding-bottom: 4px;">
+                                            <span style="font-size: 11px; color: #64748b; line-height: 1.4;">
+                                                <i class='bx bx-info-circle text-primary'></i> Standard clinic duty slots apply to all active duty days.
+                                            </span>
                                         </div>
                                     </div>
 
@@ -979,20 +1339,20 @@
                                         </div>
                                     </div>
 
-                                    <div class="mt-2 pt-2 border-top" style="border-top: 1px dashed var(--border-color);">
+                                    <div class="mt-2 pt-2 border-top" style="border-top: 1px dashed #e2e8f0;">
                                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; font-weight: 600; color: var(--text-color);">
-                                            <input type="checkbox" id="settingLunchBreak" checked onchange="renderMasterHoursPreview()" style="accent-color: var(--primary-color); width: 15px; height: 15px;">
+                                            <input type="checkbox" id="settingLunchBreak" checked onchange="renderMasterHoursPreview()" style="accent-color: #0EB1B1; width: 15px; height: 15px;">
                                             <span>Exclude 12:00 PM – 01:00 PM Lunch Break from appointment schedules</span>
                                         </label>
                                     </div>
 
                                     <!-- Live Preview of Computed System-Wide Appointment Slots -->
-                                    <div style="margin-top: 10px; padding: 10px; background: rgba(14, 177, 177, 0.05); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 6px;">
+                                    <div style="margin-top: 10px; padding: 10px; background: rgba(14, 177, 177, 0.05); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 8px;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                                             <span style="font-size: 11px; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">
                                                 <i class='bx bx-calendar-event'></i> Active System Time Slots (<span id="previewSlotCount">8</span> slots)
                                             </span>
-                                            <span style="font-size: 10px; color: var(--text-dim); font-weight: 600;">Governs Walk-ins & Client Bookings</span>
+                                            <span style="font-size: 10px; color: var(--text-dim); font-weight: 600;">Governs Walk-ins &amp; Client Bookings</span>
                                         </div>
                                         <div id="masterTimeSlotsPills" style="display: flex; flex-wrap: wrap; gap: 6px;">
                                             <!-- Rendered dynamically by renderMasterHoursPreview() -->
@@ -3801,6 +4161,10 @@
             if (modal && e.target === modal) {
                 closeIntegrationsModal();
             }
+            const clinicModal = document.getElementById('clinicDateShiftModal');
+            if (clinicModal && e.target === clinicModal) {
+                closeClinicDateShiftModal();
+            }
         });
 
         window.addEventListener('keydown', function(e) {
@@ -3814,8 +4178,483 @@
                 if (modal && modal.style.display === 'flex') {
                     closeIntegrationsModal();
                 }
+                const clinicModal = document.getElementById('clinicDateShiftModal');
+                if (clinicModal && clinicModal.style.display === 'flex') {
+                    closeClinicDateShiftModal();
+                }
             }
         });
+
+        // ── CLINIC MASTER SCHEDULE & CALENDAR MANAGEMENT ─────────────
+        const CLINIC_WEEKDAYS = [
+            { code: 'Sun', name: 'Sunday', index: 0 },
+            { code: 'Mon', name: 'Monday', index: 1 },
+            { code: 'Tue', name: 'Tuesday', index: 2 },
+            { code: 'Wed', name: 'Wednesday', index: 3 },
+            { code: 'Thu', name: 'Thursday', index: 4 },
+            { code: 'Fri', name: 'Friday', index: 5 },
+            { code: 'Sat', name: 'Saturday', index: 6 }
+        ];
+
+        let clinicActiveDays = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+        let clinicOffDutyDates = new Set();    // 'YYYY-MM-DD' specific clinic closed / holiday dates
+        let clinicExtraDutyDates = new Set();  // 'YYYY-MM-DD' special dates clinic is open
+        let clinicCustomDateHours = {};        // 'YYYY-MM-DD' => { start, end, type, label }
+        let clinicCalCurrentDate = new Date();
+        let selectedClinicModalDateKey = null;
+        let selectedClinicModalIsDefaultDuty = false;
+
+        function parseClinicDaysStringToSet(daysStr) {
+            if (!daysStr) return new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            const lower = daysStr.toLowerCase().trim();
+
+            if (lower.includes('daily') || lower.includes('mon - sun') || lower.includes('mon-sun') || lower.includes('all')) {
+                return new Set(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            }
+            if (lower.includes('mon - sat') || lower.includes('mon-sat')) {
+                return new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            }
+            if (lower.includes('mon - fri') || lower.includes('mon-fri') || lower.includes('weekdays')) {
+                return new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+            }
+            if (lower.includes('mon - thu') || lower.includes('mon-thu')) {
+                return new Set(['Mon', 'Tue', 'Wed', 'Thu']);
+            }
+            if (lower.includes('tue - sat') || lower.includes('tue-sat')) {
+                return new Set(['Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            }
+
+            const s = new Set();
+            CLINIC_WEEKDAYS.forEach(w => {
+                if (daysStr.includes(w.code) || lower.includes(w.name.toLowerCase())) {
+                    s.add(w.code);
+                }
+            });
+            return s.size > 0 ? s : new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+        }
+
+        function formatClinicDaysSetToString(daysSet) {
+            if (daysSet.size === 7) return 'Mon - Sun';
+            const standardWeekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+            const sixDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const isStandard = standardWeekdays.every(d => daysSet.has(d)) && daysSet.size === 5;
+            if (isStandard) return 'Mon - Fri';
+            const isSix = sixDays.every(d => daysSet.has(d)) && daysSet.size === 6;
+            if (isSix) return 'Mon - Sat';
+
+            const ordered = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].filter(d => daysSet.has(d));
+            return ordered.length > 0 ? ordered.join(', ') : 'Closed';
+        }
+
+        function renderClinicDayTiles() {
+            const container = document.getElementById('clinicWeekdayTilesGrid');
+            if (!container) return;
+
+            let html = '';
+            CLINIC_WEEKDAYS.forEach(day => {
+                const isActive = clinicActiveDays.has(day.code);
+                html += `
+                    <div class="clinic-day-tile ${isActive ? 'active' : ''}" 
+                         onclick="toggleClinicDay('${day.code}')"
+                         title="Click to toggle clinic operation on ${day.name}">
+                        <div class="clinic-day-tile-code">${day.code}</div>
+                        <div class="clinic-day-tile-name">${day.name.slice(0, 3)}</div>
+                        <i class='bx ${isActive ? 'bx-check-circle' : 'bx-circle'}' style="font-size: 14px; margin-top: 2px;"></i>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderClinicMiniCalendar() {
+            const monthYearEl = document.getElementById('clinicCalMonthYear');
+            const datesGrid = document.getElementById('clinicCalDatesGrid');
+            if (!datesGrid) return;
+
+            const year = clinicCalCurrentDate.getFullYear();
+            const month = clinicCalCurrentDate.getMonth();
+
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            if (monthYearEl) {
+                monthYearEl.textContent = `${monthNames[month]} ${year}`;
+            }
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            const today = new Date();
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+            const todayDate = today.getDate();
+
+            let cellsHtml = '';
+
+            // Previous month trailing days
+            for (let i = firstDayIndex - 1; i >= 0; i--) {
+                const prevD = daysInPrevMonth - i;
+                cellsHtml += `<div class="clinic-cal-cell is-other-month"><span>${prevD}</span></div>`;
+            }
+
+            // Current month days
+            const pad = n => String(n).padStart(2, '0');
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateObj = new Date(year, month, d);
+                const dayOfWeekIndex = dateObj.getDay();
+                const dayCode = CLINIC_WEEKDAYS[dayOfWeekIndex].code;
+                const isDefaultDuty = clinicActiveDays.has(dayCode);
+
+                const dateKey = `${year}-${pad(month + 1)}-${pad(d)}`;
+                const isSpecificOff = clinicOffDutyDates.has(dateKey);
+                const isSpecificExtra = clinicExtraDutyDates.has(dateKey);
+                const customShift = clinicCustomDateHours[dateKey];
+                const isHalfDay = !!(customShift && (customShift.type === 'half_day_am' || customShift.type === 'half_day_pm'));
+                const isCustomShift = !!(customShift && customShift.type === 'custom');
+                const isDuty = ((isDefaultDuty && !isSpecificOff) || isSpecificExtra) && !isSpecificOff;
+                const isToday = isCurrentMonth && d === todayDate;
+
+                let cellClass = 'clinic-cal-cell';
+                let indicatorHtml = '';
+                let titleText = '';
+
+                if (isSpecificOff) {
+                    cellClass += ' is-specific-off';
+                    indicatorHtml = '<span style="font-size: 8px; line-height: 1; color: #e11d48; font-weight: 800; margin-top: 1px;">OFF</span>';
+                    titleText = `${dateKey}: Marked Off-Duty / Clinic Closed (Click to configure)`;
+                } else if (isHalfDay) {
+                    cellClass += ' is-half-day';
+                    const badgeText = customShift.type === 'half_day_am' ? 'HALF AM' : 'HALF PM';
+                    indicatorHtml = `<span style="font-size: 7.5px; line-height: 1; color: #b45309; font-weight: 800; margin-top: 1px;">${badgeText}</span>`;
+                    titleText = `${dateKey}: ${customShift.label || 'Half-Day Shift'} (${customShift.start} - ${customShift.end}) (Click to change)`;
+                } else if (isCustomShift) {
+                    cellClass += ' is-custom-shift';
+                    indicatorHtml = '<span style="font-size: 7.5px; line-height: 1; color: #4338ca; font-weight: 800; margin-top: 1px;">CUSTOM</span>';
+                    titleText = `${dateKey}: Custom Hours (${customShift.start} - ${customShift.end}) (Click to change)`;
+                } else if (isSpecificExtra) {
+                    cellClass += ' is-extra-duty';
+                    indicatorHtml = '<span style="font-size: 8px; line-height: 1; color: #088b8b; font-weight: 800; margin-top: 1px;">OPEN</span>';
+                    titleText = `${dateKey}: Special Extra Open Date (Click to configure)`;
+                } else if (isDuty) {
+                    cellClass += ' is-duty';
+                    indicatorHtml = '<span class="duty-dot"></span>';
+                    titleText = `${dateKey}: Regular Clinic Open (Click to customize shift or close clinic)`;
+                } else {
+                    cellClass += ' is-off';
+                    titleText = `${dateKey}: Regular Closed Day (Click to add special open hours)`;
+                }
+
+                if (isToday) cellClass += ' is-today';
+
+                cellsHtml += `
+                    <div class="${cellClass}" 
+                         data-date="${dateKey}"
+                         onclick="openClinicDateShiftModal('${dateKey}', ${isDefaultDuty})"
+                         title="${titleText}">
+                        <span style="line-height: 1;">${d}</span>
+                        ${indicatorHtml}
+                    </div>
+                `;
+            }
+
+            // Next month leading days
+            const totalRendered = firstDayIndex + daysInMonth;
+            const remaining = (7 - (totalRendered % 7)) % 7;
+            for (let j = 1; j <= remaining; j++) {
+                cellsHtml += `<div class="clinic-cal-cell is-other-month"><span>${j}</span></div>`;
+            }
+
+            datesGrid.innerHTML = cellsHtml;
+        }
+
+        function toggleClinicDay(dayCode) {
+            if (clinicActiveDays.has(dayCode)) {
+                clinicActiveDays.delete(dayCode);
+            } else {
+                clinicActiveDays.add(dayCode);
+            }
+            syncClinicWorkingDaysUI();
+        }
+
+        function setClinicDaysPreset(preset) {
+            if (preset === 'weekdays') {
+                clinicActiveDays = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+            } else if (preset === 'sixdays') {
+                clinicActiveDays = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            } else if (preset === 'all') {
+                clinicActiveDays = new Set(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            }
+            syncClinicWorkingDaysUI();
+        }
+
+        function navigateClinicCalendar(dir) {
+            clinicCalCurrentDate.setMonth(clinicCalCurrentDate.getMonth() + dir);
+            renderClinicMiniCalendar();
+        }
+
+        function resetClinicCalendarToToday() {
+            clinicCalCurrentDate = new Date();
+            renderClinicMiniCalendar();
+        }
+
+        function openClinicDateShiftModal(dateKey, isDefaultDuty) {
+            selectedClinicModalDateKey = dateKey;
+            selectedClinicModalIsDefaultDuty = isDefaultDuty;
+
+            const modal = document.getElementById('clinicDateShiftModal');
+            if (!modal) return;
+
+            const parts = dateKey.split('-');
+            const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            const dayName = CLINIC_WEEKDAYS[d.getDay()].name;
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const formattedDate = `${dayName}, ${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+
+            const subTitleEl = document.getElementById('clinicDateShiftModalSubtitle');
+            if (subTitleEl) subTitleEl.textContent = formattedDate;
+
+            // Determine status
+            const isSpecificOff = clinicOffDutyDates.has(dateKey);
+            const custom = clinicCustomDateHours[dateKey];
+            const isSpecificExtra = clinicExtraDutyDates.has(dateKey);
+            const statusBadge = document.getElementById('clinicDateShiftCurrentStatusBadge');
+
+            if (statusBadge) {
+                if (isSpecificOff) {
+                    statusBadge.textContent = 'Clinic Closed / Holiday';
+                    statusBadge.style.background = '#ffe4e6';
+                    statusBadge.style.color = '#e11d48';
+                } else if (custom) {
+                    statusBadge.textContent = custom.label || `${custom.start} - ${custom.end}`;
+                    statusBadge.style.background = custom.type.startsWith('half') ? '#fef3c7' : '#e0e7ff';
+                    statusBadge.style.color = custom.type.startsWith('half') ? '#b45309' : '#4338ca';
+                } else if (isSpecificExtra) {
+                    statusBadge.textContent = 'Extra Open Day';
+                    statusBadge.style.background = '#e0f2fe';
+                    statusBadge.style.color = '#0284c7';
+                } else if (isDefaultDuty) {
+                    statusBadge.textContent = 'Regular Full Day Open';
+                    statusBadge.style.background = '#e0f2fe';
+                    statusBadge.style.color = '#0284c7';
+                } else {
+                    statusBadge.textContent = 'Regular Closed Day';
+                    statusBadge.style.background = '#f1f5f9';
+                    statusBadge.style.color = '#64748b';
+                }
+            }
+
+            // Close custom panel by default
+            const customPanel = document.getElementById('clinicCustomShiftPanel');
+            if (customPanel) customPanel.style.display = 'none';
+            const chev = document.getElementById('clinicCustomShiftChevron');
+            if (chev) chev.className = 'bx bx-chevron-down';
+
+            modal.style.display = 'flex';
+        }
+
+        function closeClinicDateShiftModal() {
+            const modal = document.getElementById('clinicDateShiftModal');
+            if (modal) modal.style.display = 'none';
+            selectedClinicModalDateKey = null;
+        }
+
+        function toggleClinicCustomShiftPanel() {
+            const panel = document.getElementById('clinicCustomShiftPanel');
+            const chev = document.getElementById('clinicCustomShiftChevron');
+            if (!panel) return;
+            const isOpen = panel.style.display === 'block';
+            panel.style.display = isOpen ? 'none' : 'block';
+            if (chev) chev.className = isOpen ? 'bx bx-chevron-down' : 'bx bx-chevron-up';
+        }
+
+        function applyClinicDateShift(type) {
+            if (!selectedClinicModalDateKey) return;
+            const dateKey = selectedClinicModalDateKey;
+
+            if (type === 'off') {
+                clinicOffDutyDates.add(dateKey);
+                clinicExtraDutyDates.delete(dateKey);
+                delete clinicCustomDateHours[dateKey];
+                showToast('info', `Marked ${dateKey}: Clinic Closed / Public Holiday.`);
+            } else if (type === 'full') {
+                clinicOffDutyDates.delete(dateKey);
+                delete clinicCustomDateHours[dateKey];
+                if (!selectedClinicModalIsDefaultDuty) {
+                    clinicExtraDutyDates.add(dateKey);
+                    showToast('success', `Added ${dateKey} as special open date (Full Day).`);
+                } else {
+                    showToast('success', `Set ${dateKey} to normal Full Day Open.`);
+                }
+            } else if (type === 'half_day_am') {
+                clinicOffDutyDates.delete(dateKey);
+                if (!selectedClinicModalIsDefaultDuty) clinicExtraDutyDates.add(dateKey);
+                clinicCustomDateHours[dateKey] = {
+                    start: '08:00 AM',
+                    end: '12:00 PM',
+                    type: 'half_day_am',
+                    label: 'Half Day Morning (08:00 AM - 12:00 PM)'
+                };
+                showToast('success', `Set ${dateKey} to Half Day — Morning (08:00 AM - 12:00 PM).`);
+            } else if (type === 'half_day_pm') {
+                clinicOffDutyDates.delete(dateKey);
+                if (!selectedClinicModalIsDefaultDuty) clinicExtraDutyDates.add(dateKey);
+                clinicCustomDateHours[dateKey] = {
+                    start: '01:00 PM',
+                    end: '05:00 PM',
+                    type: 'half_day_pm',
+                    label: 'Half Day Afternoon (01:00 PM - 05:00 PM)'
+                };
+                showToast('success', `Set ${dateKey} to Half Day — Afternoon (01:00 PM - 05:00 PM).`);
+            }
+
+            closeClinicDateShiftModal();
+            syncClinicWorkingDaysUI();
+        }
+
+        function applyClinicCustomShiftHours() {
+            if (!selectedClinicModalDateKey) return;
+            const dateKey = selectedClinicModalDateKey;
+            const startTime = document.getElementById('clinicModalCustomStartTime')?.value || '08:00 AM';
+            const endTime = document.getElementById('clinicModalCustomEndTime')?.value || '05:00 PM';
+
+            if (startTime === endTime) {
+                showToast('warning', 'Start time and End time cannot be the same.');
+                return;
+            }
+
+            clinicOffDutyDates.delete(dateKey);
+            if (!selectedClinicModalIsDefaultDuty) clinicExtraDutyDates.add(dateKey);
+
+            clinicCustomDateHours[dateKey] = {
+                start: startTime,
+                end: endTime,
+                type: 'custom',
+                label: `Custom Shift (${startTime} - ${endTime})`
+            };
+
+            showToast('success', `Set ${dateKey} custom clinic hours: ${startTime} - ${endTime}.`);
+            closeClinicDateShiftModal();
+            syncClinicWorkingDaysUI();
+        }
+
+        function removeSpecificClinicDate(dateKey) {
+            clinicOffDutyDates.delete(dateKey);
+            clinicExtraDutyDates.delete(dateKey);
+            delete clinicCustomDateHours[dateKey];
+            showToast('info', `Cleared date exception for ${dateKey}.`);
+            syncClinicWorkingDaysUI();
+        }
+
+        function clearAllSpecificClinicExceptions() {
+            clinicOffDutyDates.clear();
+            clinicExtraDutyDates.clear();
+            clinicCustomDateHours = {};
+            showToast('info', 'All specific date shifts & clinic exceptions cleared.');
+            syncClinicWorkingDaysUI();
+        }
+
+        function renderSpecificClinicDatePills() {
+            const wrap = document.getElementById('clinicSpecificExceptionsWrap');
+            const chips = document.getElementById('clinicSpecificOffChips');
+            const countEl = document.getElementById('clinicSpecificOffCount');
+            const summaryBadge = document.getElementById('clinicDateExceptionsSummaryBadge');
+
+            const customKeys = Object.keys(clinicCustomDateHours);
+            const totalExceptions = clinicOffDutyDates.size + clinicExtraDutyDates.size + customKeys.length;
+
+            if (totalExceptions === 0) {
+                if (wrap) wrap.style.display = 'none';
+                if (summaryBadge) summaryBadge.style.display = 'none';
+                return;
+            }
+
+            if (wrap) wrap.style.display = 'block';
+            if (countEl) countEl.textContent = totalExceptions;
+            if (summaryBadge) {
+                summaryBadge.style.display = 'inline-block';
+                summaryBadge.textContent = `${totalExceptions} Custom Shift / Off-Day(s)`;
+            }
+
+            if (chips) {
+                let html = '';
+                // Off-duty / Closed dates
+                clinicOffDutyDates.forEach(dateKey => {
+                    const parts = dateKey.split('-');
+                    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    const dayCode = CLINIC_WEEKDAYS[d.getDay()].code;
+                    html += `
+                        <span class="clinic-exception-chip">
+                            <i class='bx bx-calendar-x'></i> ${dateKey} (${dayCode}) • Clinic Closed
+                            <button type="button" class="btn-remove-chip" onclick="removeSpecificClinicDate('${dateKey}')" title="Restore this day to normal">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </span>
+                    `;
+                });
+
+                // Custom / Half-day shifts
+                customKeys.forEach(dateKey => {
+                    const parts = dateKey.split('-');
+                    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    const dayCode = CLINIC_WEEKDAYS[d.getDay()].code;
+                    const shift = clinicCustomDateHours[dateKey];
+                    const isHalf = shift.type.startsWith('half');
+                    const bgStyle = isHalf 
+                        ? 'background: #fffbeb; color: #b45309; border: 1px solid #fde68a;' 
+                        : 'background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe;';
+                    const icon = isHalf ? 'bx-time-five' : 'bx-slider-alt';
+                    html += `
+                        <span class="clinic-exception-chip" style="${bgStyle}">
+                            <i class='bx ${icon}'></i> ${dateKey} (${dayCode}) • ${escapeHtml(shift.label || `${shift.start} - ${shift.end}`)}
+                            <button type="button" class="btn-remove-chip" onclick="removeSpecificClinicDate('${dateKey}')" style="${isHalf ? 'color: #b45309;' : 'color: #4338ca;'}" title="Revert to standard full day">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </span>
+                    `;
+                });
+
+                // Extra duty days
+                clinicExtraDutyDates.forEach(dateKey => {
+                    if (clinicCustomDateHours[dateKey]) return; // already rendered
+                    const parts = dateKey.split('-');
+                    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    const dayCode = CLINIC_WEEKDAYS[d.getDay()].code;
+                    html += `
+                        <span class="clinic-exception-chip" style="background: rgba(14, 177, 177, 0.15); color: #088b8b; border-color: #99f6e4;">
+                            <i class='bx bx-calendar-plus'></i> ${dateKey} (${dayCode}) • Special Open Day
+                            <button type="button" class="btn-remove-chip" onclick="removeSpecificClinicDate('${dateKey}')" style="color: #088b8b;" title="Revert to closed">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </span>
+                    `;
+                });
+                chips.innerHTML = html;
+            }
+        }
+
+        function syncClinicWorkingDaysUI() {
+            const formatted = formatClinicDaysSetToString(clinicActiveDays);
+            const hiddenInp = document.getElementById('settingOperatingDays');
+            if (hiddenInp) hiddenInp.value = formatted;
+
+            renderClinicDayTiles();
+            renderClinicMiniCalendar();
+            renderSpecificClinicDatePills();
+            renderMasterHoursPreview();
+        }
+
+        function setClinicWorkingDaysFromValue(val, offDates = [], extraDates = [], customHours = {}) {
+            clinicActiveDays = parseClinicDaysStringToSet(val);
+            clinicOffDutyDates = new Set(Array.isArray(offDates) ? offDates : []);
+            clinicExtraDutyDates = new Set(Array.isArray(extraDates) ? extraDates : []);
+            clinicCustomDateHours = (customHours && typeof customHours === 'object' && !Array.isArray(customHours)) ? { ...customHours } : {};
+            syncClinicWorkingDaysUI();
+        }
+
+        // Initialize clinic schedule UI immediately
+        syncClinicWorkingDaysUI();
 
         // 1. Load System Configuration
         async function loadSystemSettings() {
@@ -3849,6 +4688,14 @@
                     }
                     updateIntegrationBadges(activeSystemIntegrations, s.maintenance_mode);
 
+                    // Initialize Master Clinic Working Schedule & Calendar
+                    setClinicWorkingDaysFromValue(
+                        s.operating_days || 'Mon - Sat',
+                        s.specific_off_dates || [],
+                        s.specific_extra_dates || [],
+                        s.custom_date_hours || {}
+                    );
+
                     renderMasterHoursPreview();
                 }
             } catch (err) {
@@ -3870,7 +4717,7 @@
                 return;
             }
 
-            const operatingDays = document.getElementById('settingOperatingDays') ? document.getElementById('settingOperatingDays').value : 'Mon - Sat';
+            const operatingDays = document.getElementById('settingOperatingDays') ? document.getElementById('settingOperatingDays').value : formatClinicDaysSetToString(clinicActiveDays);
             const openingTime = document.getElementById('settingOpeningTime') ? document.getElementById('settingOpeningTime').value : '08:00 AM';
             const closingTime = document.getElementById('settingClosingTime') ? document.getElementById('settingClosingTime').value : '05:00 PM';
             const lunchBreak = document.getElementById('settingLunchBreak') ? document.getElementById('settingLunchBreak').checked : true;
@@ -3897,7 +4744,10 @@
                 session_timeout_minutes: sessionTimeout,
                 max_login_attempts: maxAttempts,
                 maintenance_mode: maintenance,
-                integrations: activeSystemIntegrations
+                integrations: activeSystemIntegrations,
+                specific_off_dates: Array.from(clinicOffDutyDates),
+                specific_extra_dates: Array.from(clinicExtraDutyDates),
+                custom_date_hours: clinicCustomDateHours
             };
 
             // Populate Confirmation Modal Details
@@ -5591,6 +6441,132 @@
                     <i class='bx bx-undo mr-1'></i> Restore to Active
                 </button>
                 <button type="button" class="btn-outline text-xs" onclick="closeArchiveDetailModal()" style="padding: 6px 14px;">Close</button>
+            </div>
+        </div>
+    </div>
+    <!-- ── SUPER ADMIN CLINIC DATE SHIFT & HOLIDAY CUSTOMIZER MODAL ── -->
+    <div id="clinicDateShiftModal" class="doc-modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1250;">
+        <div class="doc-modal-content" style="max-width: 480px; width: 92%; background: #ffffff; padding: 1.5rem; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.22); border: 1.5px solid #e2e8f0;">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center border-bottom pb-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 177, 177, 0.12); color: #088b8b; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        <i class='bx bx-calendar-edit'></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base" style="margin: 0; color: #0f172a;">Configure Clinic Date &amp; Shift</h3>
+                        <p id="clinicDateShiftModalSubtitle" class="text-dim text-xs" style="margin: 0; font-weight: 600; color: #088b8b;">Wednesday, Nov 12, 2026</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-icon" onclick="closeClinicDateShiftModal()" style="background: none; border: none; cursor: pointer; font-size: 24px; color: #64748b;"><i class='bx bx-x'></i></button>
+            </div>
+
+            <!-- Current Status Box -->
+            <div id="clinicDateShiftCurrentStatusBox" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; color: #64748b; font-weight: 600;">Current Status:</span>
+                <span id="clinicDateShiftCurrentStatusBadge" style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #e0f2fe; color: #0284c7;">Regular Full Day</span>
+            </div>
+
+            <!-- Shift Selection Options -->
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+                <!-- Full Day Open -->
+                <div class="shift-option-card" onclick="applyClinicDateShift('full')" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="shift-icon-wrap" style="background: rgba(14, 177, 177, 0.12); color: #0d9488;">
+                        <i class='bx bx-sun'></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12.5px; font-weight: 700; color: #0f172a;">Full Day Duty</div>
+                        <div style="font-size: 11px; color: #64748b;">Standard clinic hours (08:00 AM - 05:00 PM)</div>
+                    </div>
+                    <i class='bx bx-chevron-right' style="color: #94a3b8; font-size: 18px;"></i>
+                </div>
+
+                <!-- Half Day Morning -->
+                <div class="shift-option-card" onclick="applyClinicDateShift('half_day_am')" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="shift-icon-wrap" style="background: #fef3c7; color: #d97706;">
+                        <i class='bx bx-time'></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12.5px; font-weight: 700; color: #0f172a;">Half Day — Morning Shift</div>
+                        <div style="font-size: 11px; color: #b45309; font-weight: 600;">08:00 AM – 12:00 PM (Afternoon Closed)</div>
+                    </div>
+                    <i class='bx bx-chevron-right' style="color: #94a3b8; font-size: 18px;"></i>
+                </div>
+
+                <!-- Half Day Afternoon -->
+                <div class="shift-option-card" onclick="applyClinicDateShift('half_day_pm')" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="shift-icon-wrap" style="background: #ffedd5; color: #ea580c;">
+                        <i class='bx bx-moon'></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12.5px; font-weight: 700; color: #0f172a;">Half Day — Afternoon Shift</div>
+                        <div style="font-size: 11px; color: #c2410c; font-weight: 600;">01:00 PM – 05:00 PM (Morning Closed)</div>
+                    </div>
+                    <i class='bx bx-chevron-right' style="color: #94a3b8; font-size: 18px;"></i>
+                </div>
+
+                <!-- Custom Hours Toggle Card -->
+                <div class="shift-option-card" onclick="toggleClinicCustomShiftPanel()" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="shift-icon-wrap" style="background: #eef2ff; color: #4f46e5;">
+                        <i class='bx bx-slider-alt'></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12.5px; font-weight: 700; color: #0f172a;">Custom Working Hours</div>
+                        <div style="font-size: 11px; color: #64748b;">Set custom start &amp; end time for this date</div>
+                    </div>
+                    <i id="clinicCustomShiftChevron" class='bx bx-chevron-down' style="color: #6366f1; font-size: 18px;"></i>
+                </div>
+
+                <!-- Custom Hours Sub-Panel (Collapsible) -->
+                <div id="clinicCustomShiftPanel" style="display: none; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 10px; padding: 12px; margin-top: -2px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div>
+                            <label style="display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 4px;">Start Duty</label>
+                            <select id="clinicModalCustomStartTime" class="form-control" style="width: 100%; height: 34px; font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                <option value="08:00 AM" selected>08:00 AM</option>
+                                <option value="09:00 AM">09:00 AM</option>
+                                <option value="10:00 AM">10:00 AM</option>
+                                <option value="11:00 AM">11:00 AM</option>
+                                <option value="12:00 PM">12:00 PM</option>
+                                <option value="01:00 PM">01:00 PM</option>
+                                <option value="02:00 PM">02:00 PM</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 4px;">End Duty</label>
+                            <select id="clinicModalCustomEndTime" class="form-control" style="width: 100%; height: 34px; font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                <option value="11:00 AM">11:00 AM</option>
+                                <option value="12:00 PM">12:00 PM</option>
+                                <option value="01:00 PM">01:00 PM</option>
+                                <option value="02:00 PM">02:00 PM</option>
+                                <option value="03:00 PM">03:00 PM</option>
+                                <option value="04:00 PM">04:00 PM</option>
+                                <option value="05:00 PM" selected>05:00 PM</option>
+                                <option value="06:00 PM">06:00 PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="button" onclick="applyClinicCustomShiftHours()" class="btn-primary" style="width: 100%; height: 34px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class='bx bx-check'></i> Apply Custom Shift Hours
+                    </button>
+                </div>
+
+                <!-- Mark Off-Duty / Clinic Closed -->
+                <div class="shift-option-card" onclick="applyClinicDateShift('off')" style="display: flex; align-items: center; gap: 12px; border-color: #fecdd3; background: #fff1f2;">
+                    <div class="shift-icon-wrap" style="background: #ffe4e6; color: #e11d48;">
+                        <i class='bx bx-calendar-x'></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12.5px; font-weight: 700; color: #e11d48;">Mark Off-Duty / Closed</div>
+                        <div style="font-size: 11px; color: #9f1239;">Declare clinic closed / public holiday for this date</div>
+                    </div>
+                    <i class='bx bx-chevron-right' style="color: #f43f5e; font-size: 18px;"></i>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="btn-outline" onclick="closeClinicDateShiftModal()" style="font-size: 12px; padding: 6px 14px;">Cancel</button>
             </div>
         </div>
     </div>
