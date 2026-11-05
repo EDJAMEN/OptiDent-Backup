@@ -492,7 +492,8 @@ export async function sendAppointmentNotificationEmail(toEmail, toName, apptDeta
             method: isCancelled ? 'CANCEL' : 'REQUEST',
             content: icsContent
         }
-    });
+    };
+};
 
     return await sendMailWithFallback(mailOptionsBuilder, customUser, customPass);
 }
