@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import dbClient from '../config/db.js';
 import requireAuth from '../middleware/authGuard.js';
 import logAudit from '../config/auditLogger.js';
-import { sendStaffInvitationEmail } from '../config/mailer.js';
+import { sendStaffInvitationEmail, sendAppointmentNotificationEmail } from '../config/mailer.js';
 import { getServicePrice, formatPhp } from '../config/servicePricing.js';
 
 const router = express.Router();
@@ -207,28 +207,67 @@ router.post('/toggle_user_status', async (req, res) => {
  */
 router.get('/get_rbac_matrix', async (req, res) => {
     try {
+        const allUsers = await dbClient.find('users', {});
+        const roleCounts = {
+            super_admin: allUsers.filter(u => ['super_admin', 'admin'].includes((u.role || '').toLowerCase()) && !u.is_deleted).length,
+            doctor: allUsers.filter(u => ['doctor', 'dentist'].includes((u.role || '').toLowerCase()) && !u.is_deleted).length,
+            receptionist: allUsers.filter(u => ['receptionist', 'staff'].includes((u.role || '').toLowerCase()) && !u.is_deleted).length,
+            patient: allUsers.filter(u => ['patient', 'client'].includes((u.role || '').toLowerCase()) && !u.is_deleted).length
+        };
+
         const rolesList = [
-            { id: "super_admin", name: "Super Admin", icon: "bx bx-shield-quarter", description: "Executive clinic administrator." },
-            { id: "doctor", name: "Doctor (Dentist)", icon: "bx bxs-first-aid", description: "Licensed dental practitioner." },
-            { id: "receptionist", name: "Receptionist (Staff)", icon: "bx bx-user", description: "Front-desk queue coordinator." },
-            { id: "patient", name: "Client / Patient", icon: "bx bx-smile", description: "Registered dental patient." }
+            { id: "super_admin", name: "Super Admin", icon: "bx bx-shield-quarter", description: "Executive clinic administrator with full master permissions.", user_count: roleCounts.super_admin },
+            { id: "doctor", name: "Doctor (Dentist)", icon: "bx bxs-first-aid", description: "Licensed dental practitioner charting & treatment.", user_count: roleCounts.doctor },
+            { id: "receptionist", name: "Receptionist (Staff)", icon: "bx bx-user", description: "Front-desk queue, walk-ins, and appointments.", user_count: roleCounts.receptionist },
+            { id: "patient", name: "Client / Patient", icon: "bx bx-smile", description: "Registered dental patient with self-service booking.", user_count: roleCounts.patient }
+        ];
+
+        const defaultPermissions = [
+            // User Management
+            { module: "User Management", key: "users_view", permission_key: "users_view", name: "View Users Directory", label: "View Users Directory", description: "Access staff directory, roles, and patient records.", roles: ["super_admin"] },
+            { module: "User Management", key: "users_create", permission_key: "users_create", name: "Create & Invite Users", label: "Create & Invite Users", description: "Add new staff accounts and generate registration invites.", roles: ["super_admin"] },
+            { module: "User Management", key: "users_edit", permission_key: "users_edit", name: "Edit User Details & Roles", label: "Edit User Details & Roles", description: "Reassign roles, edit contact details, and reset passwords.", roles: ["super_admin"] },
+            { module: "User Management", key: "users_delete", permission_key: "users_delete", name: "Suspend & Delete Accounts", label: "Suspend & Delete Accounts", description: "Deactivate, suspend, or archive user accounts.", roles: ["super_admin"] },
+
+            // Appointments & Queue
+            { module: "Appointments & Queue", key: "appts_view_all", permission_key: "appts_view_all", name: "View Clinic Calendar", label: "View Clinic Calendar", description: "Access the full master appointment schedule and clinic calendar.", roles: ["super_admin", "doctor", "receptionist"] },
+            { module: "Appointments & Queue", key: "appts_manage", permission_key: "appts_manage", name: "Manage Appointments & Queue", label: "Manage Appointments & Queue", description: "Call queue numbers, book walk-ins, reschedule, and cancel visits.", roles: ["super_admin", "receptionist"] },
+            { module: "Appointments & Queue", key: "appts_checkin", permission_key: "appts_checkin", name: "Fast-Pass QR Check-in", label: "Fast-Pass QR Check-in", description: "Scan and validate patient arrival QR passes at reception.", roles: ["super_admin", "receptionist"] },
+
+            // Clinical & Medical Charting
+            { module: "Clinical & Odontogram", key: "clinical_view", permission_key: "clinical_view", name: "View Medical & Dental Records", label: "View Medical & Dental Records", description: "Review patient dental history, past procedures, and clinical notes.", roles: ["super_admin", "doctor"] },
+            { module: "Clinical & Odontogram", key: "clinical_write", permission_key: "clinical_write", name: "Interactive Odontogram Charting", label: "Interactive Odontogram Charting", description: "Chart teeth conditions, record diagnoses, and prescribe treatments.", roles: ["super_admin", "doctor"] },
+            { module: "Clinical & Odontogram", key: "clinical_rx", permission_key: "clinical_rx", name: "Issue Prescriptions & Care Plans", label: "Issue Prescriptions & Care Plans", description: "Generate digital medicine prescriptions and post-procedure care.", roles: ["super_admin", "doctor"] },
+
+            // Patient Self-Service
+            { module: "Patient Self-Service", key: "patient_portal", permission_key: "patient_portal", name: "Book & Reschedule Visits", label: "Book & Reschedule Visits", description: "Self-service online appointment booking, dentists, and time slots.", roles: ["super_admin", "patient"] },
+            { module: "Patient Self-Service", key: "patient_records", permission_key: "patient_records", name: "View Personal Health History", label: "View Personal Health History", description: "Access personal upcoming appointments, QR passes, and clinical summaries.", roles: ["super_admin", "patient"] },
+
+            // Clinic Pricing & Settings
+            { module: "Clinic Administration", key: "pricing_manage", permission_key: "pricing_manage", name: "Manage Procedure Pricing", label: "Manage Procedure Pricing", description: "Edit dental service fees, pricing guides, and discounts.", roles: ["super_admin"] },
+            { module: "Clinic Administration", key: "integrations_manage", permission_key: "integrations_manage", name: "Manage System Integrations", label: "Manage System Integrations", description: "Configure Google Calendar API, Google Auth, and SMTP notifications.", roles: ["super_admin"] },
+            { module: "Clinic Administration", key: "audit_logs_view", permission_key: "audit_logs_view", name: "Inspect Security & Audit Trail", label: "Inspect Security & Audit Trail", description: "View authentication logs, IP addresses, and user activity history.", roles: ["super_admin"] }
         ];
 
         let perms = await dbClient.find('roles_permissions', {});
         if (perms.length === 0) {
-            // Seed default RBAC permissions if empty
-            perms = [
-                { module: "User Management", permission_key: "users_view", label: "View Users", roles: ["super_admin"] },
-                { module: "User Management", permission_key: "users_create", label: "Create & Invite Users", roles: ["super_admin"] },
-                { module: "User Management", permission_key: "users_edit", label: "Edit User Details & Roles", roles: ["super_admin"] },
-                { module: "Appointments & Queue", permission_key: "appts_view_all", label: "View Clinic Calendar", roles: ["super_admin", "receptionist", "doctor"] },
-                { module: "Appointments & Queue", permission_key: "appts_manage", label: "Manage Appointments & Queue", roles: ["super_admin", "receptionist"] },
-                { module: "Clinical & Odontogram", permission_key: "clinical_write", label: "Chart Teeth & Prescribe Care", roles: ["super_admin", "doctor"] },
-                { module: "Patient Self-Service", permission_key: "patient_portal", label: "Book & Reschedule Visits", roles: ["super_admin", "patient"] }
-            ];
-            for (const p of perms) {
+            for (const p of defaultPermissions) {
                 await dbClient.insertOne('roles_permissions', p);
             }
+            perms = defaultPermissions;
+        } else {
+            perms = perms.map(p => {
+                const def = defaultPermissions.find(d => d.key === (p.key || p.permission_key)) || {};
+                return {
+                    ...def,
+                    ...p,
+                    key: p.key || p.permission_key || def.key,
+                    permission_key: p.permission_key || p.key || def.permission_key,
+                    name: p.name || p.label || def.name,
+                    label: p.label || p.name || def.label,
+                    description: p.description || def.description || 'System permission rule'
+                };
+            });
         }
 
         const modules = {};
@@ -255,28 +294,62 @@ router.get('/get_rbac_matrix', async (req, res) => {
  */
 router.post('/update_role_permissions', async (req, res) => {
     try {
-        const { permission_key, role, enabled } = req.body;
-        if (!permission_key || !role) {
+        const permKey = req.body.permission_key || req.body.key;
+        const role = (req.body.role || '').toLowerCase();
+        const enabled = !!req.body.enabled;
+
+        if (!permKey || !role) {
             return res.status(400).json({ status: 'error', message: 'Permission key and role are required.' });
         }
 
-        const perm = await dbClient.findOne('roles_permissions', { permission_key });
+        let perm = await dbClient.findOne('roles_permissions', {
+            $or: [{ permission_key: permKey }, { key: permKey }]
+        });
+
         if (!perm) {
-            return res.status(404).json({ status: 'error', message: 'Permission not found.' });
+            perm = {
+                key: permKey,
+                permission_key: permKey,
+                roles: ['super_admin']
+            };
+            await dbClient.insertOne('roles_permissions', perm);
         }
 
         const rolesSet = new Set((perm.roles || []).map(r => r.toLowerCase()));
+        rolesSet.add('super_admin'); // super_admin is always preserved
+
         if (enabled) {
-            rolesSet.add(role.toLowerCase());
+            rolesSet.add(role);
         } else {
-            rolesSet.delete(role.toLowerCase());
+            if (role !== 'super_admin') {
+                rolesSet.delete(role);
+            }
         }
 
-        await dbClient.updateOne('roles_permissions', { permission_key }, {
-            $set: { roles: Array.from(rolesSet), updated_at: new Date().toISOString() }
+        const updatedRoles = Array.from(rolesSet);
+        await dbClient.updateOne('roles_permissions', {
+            $or: [{ permission_key: permKey }, { key: permKey }]
+        }, {
+            $set: {
+                key: permKey,
+                permission_key: permKey,
+                roles: updatedRoles,
+                updated_at: new Date().toISOString()
+            }
         });
 
-        return res.status(200).json({ status: 'success', message: 'Permission updated successfully.' });
+        await logAudit(req, 'UPDATE_RBAC_PERMISSION', 'ADMIN', {
+            permission_key: permKey,
+            role,
+            enabled,
+            roles: updatedRoles
+        }, 'success');
+
+        return res.status(200).json({
+            status: 'success',
+            message: `Updated permission '${permKey}' for role '${role}'.`,
+            roles: updatedRoles
+        });
     } catch (err) {
         console.error('Update permission error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to update permissions.' });
@@ -473,7 +546,7 @@ router.get('/get_google_calendar_status', async (req, res) => {
 /**
  * Trigger Live Google Calendar Synchronization
  */
-router.post('/sync_google_calendar', async (req, res) => {
+const handleGoogleCalendarSync = async (req, res) => {
     try {
         const allAppts = await dbClient.find('appointments', {});
         const todayIso = new Date().toISOString().slice(0, 10);
@@ -489,6 +562,23 @@ router.post('/sync_google_calendar', async (req, res) => {
         const now = new Date().toISOString();
         const targetEmail = req.user?.email || 'edjamenf@gmail.com';
 
+        // Actively dispatch invites to targetEmail for upcoming appointments
+        let sentCount = 0;
+        for (const appt of incoming.slice(0, 10)) {
+            try {
+                await sendAppointmentNotificationEmail(targetEmail, appt.patient_name || 'Patient', {
+                    service_name: appt.service_name || 'Dental Consultation',
+                    doctor_name: appt.doctor_name || 'Dr. Maria Santos',
+                    date: appt.appointment_date || appt.date || '',
+                    time: appt.appointment_time || appt.time_slot || appt.time || '09:00 AM',
+                    id: String(appt._id)
+                }, 'booked');
+                sentCount++;
+            } catch (err) {
+                console.warn('[Sync Calendar] Failed dispatching for apt', appt._id, err.message);
+            }
+        }
+
         // Persist sync timestamp in settings
         await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
             $set: {
@@ -501,6 +591,7 @@ router.post('/sync_google_calendar', async (req, res) => {
         await logAudit(req, 'SYNC_GOOGLE_CALENDAR', 'ADMIN', {
             target_email: targetEmail,
             synced_count: incoming.length,
+            sent_count: sentCount,
             timestamp: now
         }, 'success');
 
@@ -516,7 +607,10 @@ router.post('/sync_google_calendar', async (req, res) => {
         console.error('Sync Google calendar error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to execute Google Calendar sync.' });
     }
-});
+};
+
+router.post('/sync_google_calendar', handleGoogleCalendarSync);
+router.post('/sync_google_calendar_now', handleGoogleCalendarSync);
 
 /**
  * Generate iCalendar RFC 5545 feed of all incoming clinic appointments
@@ -540,7 +634,17 @@ router.get('/google_calendar_feed', async (req, res) => {
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
             'X-WR-CALNAME:OptiDent Clinic Appointments',
-            'X-WR-TIMEZONE:Asia/Manila'
+            'X-WR-TIMEZONE:Asia/Manila',
+            'BEGIN:VTIMEZONE',
+            'TZID:Asia/Manila',
+            'X-LIC-LOCATION:Asia/Manila',
+            'BEGIN:STANDARD',
+            'TZOFFSETFROM:+0800',
+            'TZOFFSETTO:+0800',
+            'TZNAME:PST',
+            'DTSTART:19700101T000000',
+            'END:STANDARD',
+            'END:VTIMEZONE'
         ];
 
         for (const apt of incoming) {
@@ -562,8 +666,8 @@ router.get('/google_calendar_feed', async (req, res) => {
             ics.push('BEGIN:VEVENT');
             ics.push(`UID:OPT-GCAL-${String(apt._id)}@optident.clinic`);
             ics.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`);
-            ics.push(`DTSTART:${dtStart}`);
-            ics.push(`DTEND:${dtEnd}`);
+            ics.push(`DTSTART;TZID=Asia/Manila:${dtStart}`);
+            ics.push(`DTEND;TZID=Asia/Manila:${dtEnd}`);
             ics.push(`SUMMARY:Dental: ${apt.service_name || 'Appointment'} - ${apt.patient_name || 'Patient'}`);
             ics.push(`DESCRIPTION:Patient: ${apt.patient_name || 'Patient'}\\nDoctor: ${apt.doctor_name || 'Attending Dentist'}\\nService: ${apt.service_name || 'Dental Service'}\\nOperatory: ${apt.operatory_chair || 'Chair 1'}`);
             ics.push(`LOCATION:OptiDent Dental Care Clinic, Manila`);

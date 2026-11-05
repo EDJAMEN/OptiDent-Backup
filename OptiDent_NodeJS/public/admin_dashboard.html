@@ -2994,10 +2994,11 @@
             for (const [modName, perms] of Object.entries(modules)) {
                 const filteredPerms = perms.filter(p => {
                     if (!search) return true;
-                    return p.name.toLowerCase().includes(search) ||
-                        p.key.toLowerCase().includes(search) ||
-                        modName.toLowerCase().includes(search) ||
-                        p.description.toLowerCase().includes(search);
+                    const name = (p.name || p.label || '').toLowerCase();
+                    const key = (p.key || p.permission_key || '').toLowerCase();
+                    const desc = (p.description || '').toLowerCase();
+                    const mod = (modName || '').toLowerCase();
+                    return name.includes(search) || key.includes(search) || desc.includes(search) || mod.includes(search);
                 });
 
                 if (filteredPerms.length === 0) continue;
@@ -3009,16 +3010,20 @@
                 `;
 
                 filteredPerms.forEach(p => {
-                    const isDoctor = p.roles.includes('doctor');
-                    const isReceptionist = p.roles.includes('receptionist');
-                    const isPatient = p.roles.includes('patient');
+                    const permKey = p.key || p.permission_key || '';
+                    const permName = p.name || p.label || permKey;
+                    const permDesc = p.description || 'System permission rule';
+                    const rolesArr = Array.isArray(p.roles) ? p.roles : [];
+                    const isDoctor = rolesArr.includes('doctor');
+                    const isReceptionist = rolesArr.includes('receptionist');
+                    const isPatient = rolesArr.includes('patient');
 
                     html += `
                         <tr class="border-bottom">
                             <td style="padding: 12px 16px;">
-                                <div class="font-bold text-sm">${escapeHtml(p.name)}</div>
-                                <div class="text-xs text-dim" style="font-size: 11px;">${escapeHtml(p.description)}</div>
-                                <code class="text-dim" style="font-size: 10px; background: var(--muted); padding: 1px 4px; border-radius: 4px;">${escapeHtml(p.key)}</code>
+                                <div class="font-bold text-sm">${escapeHtml(permName)}</div>
+                                <div class="text-xs text-dim" style="font-size: 11px;">${escapeHtml(permDesc)}</div>
+                                <code class="text-dim" style="font-size: 10px; background: var(--muted); padding: 1px 4px; border-radius: 4px;">${escapeHtml(permKey)}</code>
                             </td>
                             <!-- Super Admin (Permanent Universal Access) -->
                             <td style="text-align: center;">
@@ -3030,21 +3035,21 @@
                             <!-- Doctor -->
                             <td style="text-align: center;">
                                 <label class="rbac-switch" title="Toggle permission for Doctor role">
-                                    <input type="checkbox" ${isDoctor ? 'checked' : ''} onchange="toggleRolePermission('${p.key}', 'doctor', this.checked)">
+                                    <input type="checkbox" ${isDoctor ? 'checked' : ''} onchange="toggleRolePermission('${permKey}', 'doctor', this.checked)">
                                     <span class="rbac-slider"></span>
                                 </label>
                             </td>
                             <!-- Receptionist -->
                             <td style="text-align: center;">
                                 <label class="rbac-switch" title="Toggle permission for Receptionist role">
-                                    <input type="checkbox" ${isReceptionist ? 'checked' : ''} onchange="toggleRolePermission('${p.key}', 'receptionist', this.checked)">
+                                    <input type="checkbox" ${isReceptionist ? 'checked' : ''} onchange="toggleRolePermission('${permKey}', 'receptionist', this.checked)">
                                     <span class="rbac-slider"></span>
                                 </label>
                             </td>
                             <!-- Patient / Client -->
                             <td style="text-align: center;">
                                 <label class="rbac-switch" title="Toggle permission for Client/Patient role">
-                                    <input type="checkbox" ${isPatient ? 'checked' : ''} onchange="toggleRolePermission('${p.key}', 'patient', this.checked)">
+                                    <input type="checkbox" ${isPatient ? 'checked' : ''} onchange="toggleRolePermission('${permKey}', 'patient', this.checked)">
                                     <span class="rbac-slider"></span>
                                 </label>
                             </td>
@@ -3072,18 +3077,19 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         key: key,
+                        permission_key: key,
                         role: role,
                         enabled: isChecked
                     })
                 });
                 const data = await res.json();
                 if (res.ok && data.status === 'success') {
-                    showToast('success', data.message);
+                    showToast('success', data.message || 'Permission updated successfully.');
                     if (rawRbacData && rawRbacData.modules) {
                         for (const perms of Object.values(rawRbacData.modules)) {
-                            const found = perms.find(p => p.key === key);
+                            const found = perms.find(p => (p.key === key || p.permission_key === key));
                             if (found) {
-                                found.roles = data.roles;
+                                found.roles = data.roles || (isChecked ? [...(found.roles || []), role] : (found.roles || []).filter(r => r !== role));
                                 break;
                             }
                         }
