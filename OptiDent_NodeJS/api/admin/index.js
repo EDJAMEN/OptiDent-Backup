@@ -813,7 +813,10 @@ router.get('/get_reports_data', async (req, res) => {
         const filterDoc = req.query.doctor || 'all';
         const filterStat = (req.query.status || 'all').toLowerCase();
 
-        const todayStr = new Date().toISOString().slice(0, 10);
+        const now = new Date();
+        const manilaOffset = 8 * 60; // Manila is UTC+8
+        const localNow = new Date(now.getTime() + (now.getTimezoneOffset() + manilaOffset) * 60000);
+        const todayStr = localNow.toISOString().slice(0, 10);
         let startDate = null;
         let endDate = null;
 
@@ -821,11 +824,23 @@ router.get('/get_reports_data', async (req, res) => {
             startDate = todayStr;
             endDate = todayStr;
         } else if (datePreset === 'yesterday') {
-            const d = new Date(); d.setDate(d.getDate() - 1);
+            const d = new Date(localNow);
+            d.setDate(d.getDate() - 1);
             startDate = d.toISOString().slice(0, 10);
             endDate = startDate;
+        } else if (datePreset === 'this_week') {
+            const d = new Date(localNow);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            d.setDate(diff);
+            startDate = d.toISOString().slice(0, 10);
+            endDate = todayStr;
+        } else if (datePreset === 'this_month') {
+            startDate = todayStr.slice(0, 7) + '-01';
+            endDate = todayStr;
         } else if (datePreset === 'last_30_days') {
-            const d = new Date(); d.setDate(d.getDate() - 30);
+            const d = new Date(localNow);
+            d.setDate(d.getDate() - 30);
             startDate = d.toISOString().slice(0, 10);
             endDate = todayStr;
         } else if (datePreset === 'custom' && customFrom) {
@@ -882,7 +897,19 @@ router.get('/get_reports_data', async (req, res) => {
 
             if (startDate && endDate && (aptDate < startDate || aptDate > endDate)) continue;
             if (filterDoc !== 'all' && docName.toLowerCase() !== filterDoc.toLowerCase()) continue;
-            if (filterStat !== 'all' && status !== filterStat) continue;
+
+            const isStatusMatch = filterStat === 'all' ||
+                (filterStat === 'completed' && status === 'completed') ||
+                (filterStat === 'scheduled' && status === 'scheduled') ||
+                (filterStat === 'in_progress' && ['in_progress', 'in_chair', 'ongoing', 'checked_in'].includes(status)) ||
+                (filterStat === 'cancelled' && ['cancelled', 'no-show', 'noshow'].includes(status)) ||
+                status === filterStat;
+
+            if (category === 'cancellations') {
+                if (!['cancelled', 'no-show', 'noshow'].includes(status)) continue;
+            } else {
+                if (!isStatusMatch) continue;
+            }
 
             const price = apt.price !== undefined && apt.price !== null && !isNaN(Number(apt.price))
                 ? Number(apt.price)
@@ -1239,6 +1266,13 @@ router.get('/export_pdf', async (req, res) => {
         } else if (datePreset === 'yesterday') {
             const d = new Date(); d.setDate(d.getDate() - 1);
             startDate = d.toISOString().slice(0, 10); endDate = startDate;
+        } else if (datePreset === 'this_week') {
+            const d = new Date();
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            d.setDate(diff);
+            startDate = d.toISOString().slice(0, 10);
+            endDate = todayStr;
         } else if (datePreset === 'this_month') {
             startDate = todayStr.slice(0, 7) + '-01'; endDate = todayStr;
         } else if (datePreset === 'last_30_days') {
@@ -1263,7 +1297,19 @@ router.get('/export_pdf', async (req, res) => {
 
             if (startDate && endDate && (aptDate < startDate || aptDate > endDate)) continue;
             if (filterDoc !== 'all' && docName.toLowerCase() !== filterDoc.toLowerCase()) continue;
-            if (filterStat !== 'all' && status !== filterStat) continue;
+
+            const isStatusMatch = filterStat === 'all' ||
+                (filterStat === 'completed' && status === 'completed') ||
+                (filterStat === 'scheduled' && status === 'scheduled') ||
+                (filterStat === 'in_progress' && ['in_progress', 'in_chair', 'ongoing', 'checked_in'].includes(status)) ||
+                (filterStat === 'cancelled' && ['cancelled', 'no-show', 'noshow'].includes(status)) ||
+                status === filterStat;
+
+            if (category === 'cancellations') {
+                if (!['cancelled', 'no-show', 'noshow'].includes(status)) continue;
+            } else {
+                if (!isStatusMatch) continue;
+            }
 
             const price = a.price !== undefined && a.price !== null && !isNaN(Number(a.price))
                 ? Number(a.price)

@@ -1916,7 +1916,7 @@
 
                             <!-- Actions: Generate Report & Reset -->
                             <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 1px;">
-                                <button type="button" class="btn-primary" onclick="loadReportsWorkspace()" style="height: 40px; padding: 0 18px; border-radius: 8px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
+                                <button type="button" id="generateReportBtn" class="btn-primary" onclick="loadReportsWorkspace()" style="height: 40px; padding: 0 18px; border-radius: 8px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
                                     <i class='bx bx-filter-alt' style="font-size: 16px;"></i> Generate Report
                                 </button>
                                 <button type="button" class="btn-outline" onclick="resetReportsFilters()" style="height: 40px; padding: 0 14px; border-radius: 8px; font-weight: 600; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;" title="Reset Filters">
@@ -5573,7 +5573,7 @@
         }
 
         const reportsState = {
-            category: 'appointments',
+            category: 'earnings',
             datePreset: 'all_time',
             dateFrom: '',
             dateTo: '',
@@ -5585,23 +5585,66 @@
 
         let doctorsOptionsPopulated = false;
 
+        function formatReportsPresetLabel(preset) {
+            const map = {
+                'all_time': 'All Time Records',
+                'today': 'Today',
+                'yesterday': 'Yesterday',
+                'this_week': 'This Week',
+                'this_month': 'This Month',
+                'last_30_days': 'Last 30 Days',
+                'custom': 'Custom Date Range'
+            };
+            return map[preset] || preset;
+        }
+
+        function formatReportsCategoryLabel(cat) {
+            const map = {
+                'earnings': 'Financial Earnings & Revenue',
+                'appointments': 'Appointments & Procedures',
+                'patients': 'Patient Registry & Demographics',
+                'queues': 'Live Patient Flow Queue',
+                'cancellations': 'Cancellations & Attrition',
+                'audit_logs': 'System Security & Audit Trail'
+            };
+            return map[cat] || cat;
+        }
+
         async function loadReportsWorkspace() {
             const tableBody = document.getElementById('reportsTableBody');
+            const genBtn = document.getElementById('generateReportBtn') || document.querySelector('button[onclick="loadReportsWorkspace()"]');
+            const origBtnHtml = genBtn ? genBtn.innerHTML : '';
+
+            if (genBtn) {
+                genBtn.disabled = true;
+                genBtn.innerHTML = "<i class='bx bx-loader-alt bx-spin' style='font-size: 16px;'></i> Generating...";
+            }
+
             if (tableBody) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center py-4 text-dim">
-                            <i class='bx bx-loader-alt bx-spin mr-1'></i> Generating operations intelligence data...
+                        <td colspan="7" class="text-center py-4 text-dim">
+                            <i class='bx bx-loader-alt bx-spin mr-1'></i> Querying operations intelligence data...
                         </td>
                     </tr>
                 `;
             }
 
             try {
+                // Synchronize state directly from DOM controls to prevent any filter disconnect
                 const catSelect = document.getElementById('reportsCategorySelect');
-                if (catSelect) {
-                    reportsState.category = catSelect.value || 'earnings';
-                }
+                const datePresetEl = document.getElementById('reportsDatePreset');
+                const doctorEl = document.getElementById('reportsDoctorFilter');
+                const statusEl = document.getElementById('reportsStatusFilter');
+                const dateFromEl = document.getElementById('reportsDateFrom');
+                const dateToEl = document.getElementById('reportsDateTo');
+
+                if (catSelect) reportsState.category = catSelect.value || 'earnings';
+                if (datePresetEl) reportsState.datePreset = datePresetEl.value || 'all_time';
+                if (doctorEl) reportsState.doctor = doctorEl.value || 'all';
+                if (statusEl) reportsState.status = statusEl.value || 'all';
+                if (dateFromEl) reportsState.dateFrom = dateFromEl.value || '';
+                if (dateToEl) reportsState.dateTo = dateToEl.value || '';
 
                 const params = new URLSearchParams({
                     category: reportsState.category,
@@ -5617,6 +5660,9 @@
 
                 if (!res.ok || json.status !== 'success') {
                     showToast('error', json.message || 'Failed to load report analytics.');
+                    if (tableBody) {
+                        tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger"><i class='bx bx-error-circle mr-1'></i> ${escapeHtml(json.message || 'Failed to load report analytics.')}</td></tr>`;
+                    }
                     return;
                 }
 
@@ -5643,16 +5689,33 @@
                 renderReportsActiveSummary();
                 renderReportsTable();
 
+                const curCat = reportsState.category;
+                const rows = json.data ? (json.data[curCat] || json.data.earnings || json.data.appointments || []) : [];
+                if (rows.length > 0) {
+                    showToast('success', `Report generated: ${rows.length} ${curCat} record(s) loaded (${formatReportsPresetLabel(reportsState.datePreset)}).`);
+                } else {
+                    showToast('info', `Report generated: 0 records match ${formatReportsPresetLabel(reportsState.datePreset)} & status filters.`);
+                }
+
             } catch (err) {
                 console.error("Reports API error:", err);
                 showToast('error', 'Network error connecting to reports engine.');
+                if (tableBody) {
+                    tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger"><i class='bx bx-wifi-off mr-1'></i> Network error connecting to reports engine.</td></tr>`;
+                }
+            } finally {
+                if (genBtn) {
+                    genBtn.disabled = false;
+                    genBtn.innerHTML = origBtnHtml || "<i class='bx bx-filter-alt' style='font-size: 16px;'></i> Generate Report";
+                }
             }
         }
 
         function onReportsCategorySelectChange(cat) {
             reportsState.category = cat;
             renderReportsActiveSummary();
-            renderReportsTable();
+            // Automatically fetch and generate the selected report
+            loadReportsWorkspace();
         }
 
         function onReportsDatePresetChange() {
@@ -5699,12 +5762,29 @@
             loadReportsWorkspace();
         }
 
+        function setReportsPreset(preset) {
+            const el = document.getElementById('reportsDatePreset');
+            if (el) el.value = preset;
+            reportsState.datePreset = preset;
+            const customContainer = document.getElementById('reportsCustomDateContainer');
+            if (customContainer) {
+                customContainer.style.display = preset === 'custom' ? 'flex' : 'none';
+            }
+            // Clear status filter to show all records for this period
+            const statusEl = document.getElementById('reportsStatusFilter');
+            if (statusEl) {
+                statusEl.value = 'all';
+                reportsState.status = 'all';
+            }
+            loadReportsWorkspace();
+        }
+
         function setReportTableCategory(cat) {
             reportsState.category = cat;
             const catSelect = document.getElementById('reportsCategorySelect');
             if (catSelect) catSelect.value = cat;
             renderReportsActiveSummary();
-            renderReportsTable();
+            loadReportsWorkspace();
         }
 
         function renderReportsActiveSummary() {
@@ -5832,6 +5912,34 @@
             renderReportsTable();
         }
 
+        function renderEmptyReportStateRow(cols, catTitle) {
+            const presetLabel = formatReportsPresetLabel(reportsState.datePreset);
+            const statusText = reportsState.status !== 'all' ? reportsState.status.replace('_', ' ') : '';
+            return `
+                <tr>
+                    <td colspan="${cols}" class="text-center py-5">
+                        <div style="max-width: 440px; margin: 0 auto; text-align: center; padding: 12px 10px;">
+                            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(14, 177, 177, 0.1); color: #0eb1b1; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 10px;">
+                                <i class='bx bx-search-alt'></i>
+                            </div>
+                            <h4 style="font-size: 14px; font-weight: 700; color: #1e293b; margin: 0 0 6px 0;">No ${escapeHtml(catTitle)} Found</h4>
+                            <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin: 0 0 16px 0;">
+                                No records match the date period <strong>"${escapeHtml(presetLabel)}"</strong>${statusText ? ` with status <strong>"${escapeHtml(statusText)}"` : ''}.
+                            </p>
+                            <div style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                                <button type="button" class="btn-primary" onclick="setReportsPreset('all_time')" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer;">
+                                    <i class='bx bx-calendar mr-1'></i> View All Time Records
+                                </button>
+                                <button type="button" class="btn-outline" onclick="resetReportsFilters()" style="font-size: 11px; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                                    <i class='bx bx-reset mr-1'></i> Reset Filters
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
         function renderReportsTable() {
             const thead = document.getElementById('reportsTableHead');
             const tbody = document.getElementById('reportsTableBody');
@@ -5868,7 +5976,7 @@
                 }
 
                 if (rows.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-dim">No earnings records found matching criteria.</td></tr>`;
+                    tbody.innerHTML = renderEmptyReportStateRow(7, 'Financial Earnings Records');
                     return;
                 }
 
@@ -5959,7 +6067,7 @@
                 }
 
                 if (rows.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-dim">No matching appointments found.</td></tr>`;
+                    tbody.innerHTML = renderEmptyReportStateRow(7, 'Appointments');
                     return;
                 }
 
@@ -6025,7 +6133,7 @@
                 }
 
                 if (rows.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-dim">No matching patients found in this period.</td></tr>`;
+                    tbody.innerHTML = renderEmptyReportStateRow(6, 'Patient Records');
                     return;
                 }
 
@@ -6085,7 +6193,7 @@
                 }
 
                 if (rows.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-dim">No patients currently in active flow.</td></tr>`;
+                    tbody.innerHTML = renderEmptyReportStateRow(6, 'Active Queue Patients');
                     return;
                 }
 
@@ -6138,7 +6246,7 @@
                 }
 
                 if (rows.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-dim">No cancellations recorded in this period.</td></tr>`;
+                    tbody.innerHTML = renderEmptyReportStateRow(6, 'Cancellations');
                     return;
                 }
 
@@ -6189,7 +6297,7 @@
                 }
 
                 if (rows.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-dim">No system audit events recorded.</td></tr>`;
+                    tbody.innerHTML = renderEmptyReportStateRow(5, 'Audit Trail Events');
                     return;
                 }
 
