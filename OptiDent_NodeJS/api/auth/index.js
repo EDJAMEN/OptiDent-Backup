@@ -438,10 +438,22 @@ router.get('/my_permissions', async (req, res) => {
         const permRoles = (perm.roles || []).map(r => r.toLowerCase());
         const isGranted = isMaster || permRoles.includes(role);
 
-        if (isGranted) {
+        if (isGranted && key) {
             const mod = perm.module || 'General';
             grantedKeys.push(key);
-            const item = { key, name: perm.name || perm.label || key, module: mod };
+            // Support both dotted and underscore variants (e.g. users_create and users.create)
+            if (key.includes('_')) {
+                grantedKeys.push(key.replace('_', '.'));
+            } else if (key.includes('.')) {
+                grantedKeys.push(key.replace('.', '_'));
+            }
+
+            const item = {
+                key,
+                name: perm.name || perm.label || key,
+                module: mod,
+                description: perm.description || ''
+            };
             grantedPermissions.push(item);
             if (!modules[mod]) modules[mod] = [];
             modules[mod].push(item);
@@ -458,18 +470,18 @@ router.get('/my_permissions', async (req, res) => {
             role_title: roleTitles[role] || ucfirst(role),
             role_description: roleDescriptions[role] || ''
         },
-        permission_keys: grantedKeys,
+        permission_keys: Array.from(new Set(grantedKeys)),
         permissions: grantedPermissions,
         modules,
         capabilities: {
-            can_manage_roles: isMaster,
-            can_manage_users: isMaster,
-            can_view_queue: isMaster || ['receptionist', 'staff', 'doctor'].includes(role),
-            can_manage_queue: isMaster || ['receptionist', 'staff'].includes(role),
-            can_view_appointments: true,
-            can_create_appointments: isMaster || ['receptionist', 'staff'].includes(role),
-            can_view_clinical: isMaster || role === 'doctor',
-            can_edit_clinical: isMaster || role === 'doctor'
+            can_manage_roles: isMaster || grantedKeys.includes('rbac.manage') || grantedKeys.includes('rbac_manage'),
+            can_manage_users: isMaster || grantedKeys.includes('users.create') || grantedKeys.includes('users_create'),
+            can_view_queue: isMaster || grantedKeys.includes('queue.view') || grantedKeys.includes('queue_view') || grantedKeys.includes('appts_view_all'),
+            can_manage_queue: isMaster || grantedKeys.includes('queue.manage') || grantedKeys.includes('queue_manage') || grantedKeys.includes('appts_manage'),
+            can_view_appointments: isMaster || grantedKeys.includes('appointments.view_all') || grantedKeys.includes('appts_view_all'),
+            can_create_appointments: isMaster || grantedKeys.includes('appointments.create') || grantedKeys.includes('appts_manage') || grantedKeys.includes('patient_portal'),
+            can_view_clinical: isMaster || grantedKeys.includes('clinical.view_chart') || grantedKeys.includes('clinical_view'),
+            can_edit_clinical: isMaster || grantedKeys.includes('clinical.edit_treatment') || grantedKeys.includes('clinical_write')
         }
     });
 });

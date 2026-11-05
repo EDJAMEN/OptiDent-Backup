@@ -120,27 +120,47 @@ router.post('/create_user', async (req, res) => {
 /**
  * Update User
  */
+/**
+ * Helper to resolve user lookup query by ID or Email
+ */
+async function resolveUserQuery(body) {
+    if (body.email) {
+        return { email: body.email.trim().toLowerCase() };
+    }
+    const id = body.id || body.user_id || body._id;
+    if (id) {
+        return { _id: id };
+    }
+    return null;
+}
+
+/**
+ * Update User Details
+ */
 router.post('/update_user', async (req, res) => {
     try {
         const body = req.body;
-        const userId = body.id || body.user_id || body._id;
-        if (!userId) return res.status(400).json({ status: 'error', message: 'User ID is required.' });
+        const query = await resolveUserQuery(body);
+        if (!query) return res.status(400).json({ status: 'error', message: 'User ID or Email is required.' });
+
+        const existingUser = await dbClient.findOne('users', query);
+        if (!existingUser) return res.status(404).json({ status: 'error', message: 'User not found.' });
 
         const updateData = {
             updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19)
         };
         if (body.full_name) updateData.full_name = body.full_name.trim();
-        if (body.phone) updateData.phone = body.phone.trim();
+        if (body.phone !== undefined) updateData.phone = body.phone.trim();
         if (body.role) updateData.role = body.role.toLowerCase().trim();
         if (body.status) updateData.status = body.status.toLowerCase().trim();
-        if (body.position) updateData.position = body.position.trim();
-        if (body.specialization) updateData.specialization = body.specialization.trim();
+        if (body.position !== undefined) updateData.position = body.position.trim();
+        if (body.specialization !== undefined) updateData.specialization = body.specialization.trim();
         if (body.password) {
             updateData.password_hash = bcrypt.hashSync(body.password.trim(), 10);
         }
 
-        await dbClient.updateOne('users', { _id: userId }, { $set: updateData });
-        await logAudit(req, 'UPDATE_USER', 'ADMIN', { user_id: userId, update: updateData }, 'success');
+        await dbClient.updateOne('users', query, { $set: updateData });
+        await logAudit(req, 'UPDATE_USER', 'ADMIN', { email: existingUser.email, update: updateData }, 'success');
 
         return res.status(200).json({ status: 'success', message: 'User updated successfully.' });
     } catch (err) {
@@ -154,25 +174,28 @@ router.post('/update_user', async (req, res) => {
  */
 router.post('/delete_user', async (req, res) => {
     try {
-        const userId = req.body.id || req.body.user_id || req.body._id;
-        if (!userId) return res.status(400).json({ status: 'error', message: 'User ID is required.' });
+        const query = await resolveUserQuery(req.body);
+        if (!query) return res.status(400).json({ status: 'error', message: 'User ID or Email is required.' });
 
-        const user = await dbClient.findOne('users', { _id: userId });
-        if (user && user.is_master) {
+        const user = await dbClient.findOne('users', query);
+        if (!user) return res.status(404).json({ status: 'error', message: 'User not found.' });
+        if (user.is_master) {
             return res.status(403).json({ status: 'error', message: 'Master Administrator account cannot be deleted.' });
         }
 
-        await dbClient.updateOne('users', { _id: userId }, {
+        const reason = (req.body.reason || 'Deactivated by Super Admin').trim();
+        await dbClient.updateOne('users', query, {
             $set: {
                 is_deleted: true,
                 status: 'deleted',
                 deleted_at: new Date().toISOString().replace('T', ' ').slice(0, 19),
-                deleted_by: req.user.email
+                deleted_by: req.user.email,
+                delete_reason: reason
             }
         });
 
-        await logAudit(req, 'DELETE_USER', 'ADMIN', { user_id: userId }, 'success');
-        return res.status(200).json({ status: 'success', message: 'User moved to deleted records.' });
+        await logAudit(req, 'DELETE_USER', 'ADMIN', { email: user.email, reason }, 'success');
+        return res.status(200).json({ status: 'success', message: `User ${user.email} moved to deleted records vault.` });
     } catch (err) {
         console.error('Delete user error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to delete user.' });
@@ -184,17 +207,18 @@ router.post('/delete_user', async (req, res) => {
  */
 router.post('/toggle_user_status', async (req, res) => {
     try {
-        const userId = req.body.id || req.body.user_id || req.body._id;
-        if (!userId) return res.status(400).json({ status: 'error', message: 'User ID is required.' });
+        const query = await resolveUserQuery(req.body);
+        if (!query) return res.status(400).json({ status: 'error', message: 'User ID or Email is required.' });
 
-        const user = await dbClient.findOne('users', { _id: userId });
+        const user = await dbClient.findOne('users', query);
         if (!user) return res.status(404).json({ status: 'error', message: 'User not found.' });
 
         const newStatus = (user.status || 'active').toLowerCase() === 'active' ? 'inactive' : 'active';
-        await dbClient.updateOne('users', { _id: userId }, {
+        await dbClient.updateOne('users', query, {
             $set: { status: newStatus, updated_at: new Date().toISOString() }
         });
 
+        await logAudit(req, 'TOGGLE_USER_STATUS', 'ADMIN', { email: user.email, new_status: newStatus }, 'success');
         return res.status(200).json({ status: 'success', message: `User status changed to ${newStatus}.`, new_status: newStatus });
     } catch (err) {
         console.error('Toggle status error:', err);
@@ -1633,12 +1657,31 @@ router.get('/get_system_data_stats', async (req, res) => {
  */
 router.post('/assign_user_role', async (req, res) => {
     try {
-        const { user_id, role } = req.body;
-        if (!user_id || !role) return res.status(400).json({ status: 'error', message: 'User ID and role are required.' });
+        const role = (req.body.role || '').toLowerCase();
+        if (!role) return res.status(400).json({ status: 'error', message: 'Role is required.' });
 
-        await dbClient.updateOne('users', { _id: user_id }, { $set: { role: role.toLowerCase(), updated_at: new Date().toISOString() } });
-        return res.status(200).json({ status: 'success', message: 'Role assigned successfully.' });
+        const query = await resolveUserQuery(req.body);
+        if (!query) return res.status(400).json({ status: 'error', message: 'User ID or Email is required.' });
+
+        const targetUser = await dbClient.findOne('users', query);
+        if (!targetUser) return res.status(404).json({ status: 'error', message: 'User not found.' });
+
+        await dbClient.updateOne('users', query, {
+            $set: { role, updated_at: new Date().toISOString() }
+        });
+
+        await logAudit(req, 'ASSIGN_USER_ROLE', 'ADMIN', {
+            email: targetUser.email,
+            old_role: targetUser.role,
+            new_role: role
+        }, 'success');
+
+        return res.status(200).json({
+            status: 'success',
+            message: `Successfully assigned role '${role}' to ${targetUser.email}.`
+        });
     } catch (err) {
+        console.error('Assign user role error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to assign role.' });
     }
 });
