@@ -270,7 +270,11 @@ router.get('/get_rbac_matrix', async (req, res) => {
             // Clinic Pricing & Settings
             { module: "Clinic Administration", key: "pricing_manage", permission_key: "pricing_manage", name: "Manage Procedure Pricing", label: "Manage Procedure Pricing", description: "Edit dental service fees, pricing guides, and discounts.", roles: ["super_admin"] },
             { module: "Clinic Administration", key: "integrations_manage", permission_key: "integrations_manage", name: "Manage System Integrations", label: "Manage System Integrations", description: "Configure Google Calendar API, Google Auth, and SMTP notifications.", roles: ["super_admin"] },
-            { module: "Clinic Administration", key: "audit_logs_view", permission_key: "audit_logs_view", name: "Inspect Security & Audit Trail", label: "Inspect Security & Audit Trail", description: "View authentication logs, IP addresses, and user activity history.", roles: ["super_admin"] }
+            { module: "Clinic Administration", key: "audit_logs_view", permission_key: "audit_logs_view", name: "Inspect Security & Audit Trail", label: "Inspect Security & Audit Trail", description: "View authentication logs, IP addresses, and user activity history.", roles: ["super_admin"] },
+
+            // Operations & Reporting
+            { module: "Operations & Reporting", key: "reports_operational", permission_key: "reports_operational", name: "Front-Desk Operational Reports", label: "Front-Desk Operational Reports", description: "Generate daily queue summary, attending doctor rosters, visit attendance, and service tallies.", roles: ["super_admin", "receptionist"] },
+            { module: "Operations & Reporting", key: "reports_executive", permission_key: "reports_executive", name: "Executive Financial & Audit Reports", label: "Executive Financial & Audit Reports", description: "Access clinic profit margins, full financial collections, and system security audit trails.", roles: ["super_admin"] }
         ];
 
         let perms = await dbClient.find('roles_permissions', {});
@@ -280,6 +284,13 @@ router.get('/get_rbac_matrix', async (req, res) => {
             }
             perms = defaultPermissions;
         } else {
+            for (const def of defaultPermissions) {
+                const exists = perms.some(p => (p.key || p.permission_key) === def.key);
+                if (!exists) {
+                    await dbClient.insertOne('roles_permissions', def);
+                    perms.push(def);
+                }
+            }
             perms = perms.map(p => {
                 const def = defaultPermissions.find(d => d.key === (p.key || p.permission_key)) || {};
                 return {
