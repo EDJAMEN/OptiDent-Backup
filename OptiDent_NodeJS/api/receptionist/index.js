@@ -1004,25 +1004,55 @@ router.post('/update_appointment', async (req, res) => {
         const apptId = body.appointment_id || body.id;
         if (!apptId) return res.status(400).json({ status: 'error', message: 'Appointment ID is required.' });
 
+        const appt = await dbClient.findOne('appointments', { _id: apptId });
+        if (!appt) {
+            return res.status(404).json({ status: 'error', message: 'Appointment record not found.' });
+        }
+
         const updateData = {
             updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19),
             updated_by: req.user.email
         };
+
         if (body.doctor_name) {
             updateData.doctor_name = body.doctor_name.trim();
             updateData.attending_doctor = body.doctor_name.trim();
         }
         if (body.service_name) updateData.service_name = body.service_name.trim();
         if (body.operatory_chair) updateData.operatory_chair = body.operatory_chair.trim();
+        if (body.appointment_date || body.date) {
+            const newDate = (body.appointment_date || body.date).trim();
+            updateData.appointment_date = newDate;
+            updateData.date = newDate;
+        }
         if (body.time_slot || body.appointment_time) {
-            const time = body.time_slot || body.appointment_time;
+            const time = (body.time_slot || body.appointment_time).trim();
             updateData.time_slot = time;
             updateData.appointment_time = time;
         }
-        if (body.notes) updateData.notes = body.notes.trim();
+        if (body.status) {
+            const newStatus = body.status.toLowerCase().trim();
+            updateData.status = newStatus;
+            if (newStatus === 'checked_in') updateData.checked_in_at = updateData.updated_at;
+            if (newStatus === 'completed') updateData.completed_at = updateData.updated_at;
+            if (newStatus === 'cancelled' && body.cancellation_reason) {
+                updateData.cancellation_reason = body.cancellation_reason.trim();
+            }
+        }
+        if (body.price !== undefined && body.price !== null && !isNaN(Number(body.price))) {
+            updateData.price = Number(body.price);
+        }
+        if (body.patient_phone) {
+            updateData.patient_phone = body.patient_phone.trim();
+        }
+        if (body.notes !== undefined) {
+            updateData.notes = (body.notes || '').trim();
+        }
 
         await dbClient.updateOne('appointments', { _id: apptId }, { $set: updateData });
-        return res.status(200).json({ status: 'success', message: 'Appointment details updated.' });
+        await logAudit(req, 'UPDATE_APPOINTMENT_DETAILS', 'RECEPTIONIST', { appointment_id: apptId, ...updateData }, 'success');
+
+        return res.status(200).json({ status: 'success', message: 'Appointment details updated successfully.' });
     } catch (err) {
         console.error('Update appointment error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to update appointment.' });

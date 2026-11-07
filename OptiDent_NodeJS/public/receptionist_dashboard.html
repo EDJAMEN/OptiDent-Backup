@@ -1071,6 +1071,131 @@
                 </div>
             </section>
 
+            <!-- ── TAB: R-007.3 APPOINTMENT MANAGEMENT (VIEW & UPDATE DETAILS) ── -->
+            <section id="tab-appointment-management" class="tab-section">
+                <div class="content-card">
+                    <div class="card-header-bar" style="margin-bottom: 0.75rem; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 11px; font-weight: 800; background: rgba(14, 177, 177, 0.15); color: var(--rec-primary); padding: 2px 8px; border-radius: 4px;">R-007.3 SPECIFICATION</span>
+                                <h3 style="margin: 0; font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    <i class='bx bx-calendar-edit text-primary' style="font-size: 22px;"></i> Appointment Management
+                                </h3>
+                            </div>
+                            <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">
+                                <strong>User Story:</strong> As a Receptionist, I want to view and update appointment details so that patient schedules remain accurate.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" onclick="openModal('bookAppointmentModal')">
+                                <i class='bx bx-calendar-plus'></i> Book New Appointment
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="loadDashboardData()" title="Reload all appointments">
+                                <i class='bx bx-refresh'></i> Refresh Records
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4 Summary Stat Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 1.25rem;">
+                        <div style="background: var(--rec-card-bg, #ffffff); border: 1px solid var(--rec-border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="width: 42px; height: 42px; border-radius: 8px; background: rgba(14, 177, 177, 0.12); color: var(--rec-primary); display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                                <i class='bx bx-calendar-check'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; color: var(--rec-text-muted); text-transform: uppercase;">Total Governed</div>
+                                <div style="font-size: 20px; font-weight: 800; color: var(--rec-text);" id="mgmtStatTotal">0</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--rec-card-bg, #ffffff); border: 1px solid var(--rec-border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="width: 42px; height: 42px; border-radius: 8px; background: rgba(16, 185, 129, 0.12); color: #059669; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                                <i class='bx bx-sun'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; color: var(--rec-text-muted); text-transform: uppercase;">Today's Consultations</div>
+                                <div style="font-size: 20px; font-weight: 800; color: #059669;" id="mgmtStatToday">0</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--rec-card-bg, #ffffff); border: 1px solid var(--rec-border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="width: 42px; height: 42px; border-radius: 8px; background: rgba(79, 70, 229, 0.12); color: #4F46E5; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                                <i class='bx bx-time-five'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; color: var(--rec-text-muted); text-transform: uppercase;">Upcoming Scheduled</div>
+                                <div style="font-size: 20px; font-weight: 800; color: #4F46E5;" id="mgmtStatUpcoming">0</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--rec-card-bg, #ffffff); border: 1px solid var(--rec-border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="width: 42px; height: 42px; border-radius: 8px; background: rgba(100, 116, 139, 0.12); color: #475569; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                                <i class='bx bx-check-double'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; color: var(--rec-text-muted); text-transform: uppercase;">Completed Visits</div>
+                                <div style="font-size: 20px; font-weight: 800; color: var(--rec-text);" id="mgmtStatCompleted">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter Controls -->
+                    <div style="background: var(--rec-table-zebra, #f8fafc); border: 1px solid var(--rec-border); border-radius: 8px; padding: 12px 14px; margin-bottom: 1rem; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 220px; position: relative;">
+                            <i class='bx bx-search' style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--rec-text-muted); font-size: 16px;"></i>
+                            <input type="text" id="mgmtSearchInput" class="form-control" style="padding-left: 32px;" placeholder="Search patient name, phone, doctor, or procedure..." oninput="filterApptMgmtTable()">
+                        </div>
+                        <div style="min-width: 140px;">
+                            <select id="mgmtDateFilter" class="form-control" onchange="filterApptMgmtTable()">
+                                <option value="all">All Dates</option>
+                                <option value="today">Today's Schedule</option>
+                                <option value="upcoming">Upcoming & Future</option>
+                                <option value="past">Past / History</option>
+                            </select>
+                        </div>
+                        <div style="min-width: 140px;">
+                            <select id="mgmtStatusFilter" class="form-control" onchange="filterApptMgmtTable()">
+                                <option value="all">All Statuses</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="pending">Pending Approval</option>
+                                <option value="checked_in">Checked In / Waiting</option>
+                                <option value="in_progress">In Treatment</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div style="min-width: 160px;">
+                            <select id="mgmtDoctorFilter" class="form-control" onchange="filterApptMgmtTable()">
+                                <option value="all">All Attending Doctors</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="resetApptMgmtFilters()" title="Reset all filters">
+                            <i class='bx bx-reset'></i> Reset
+                        </button>
+                    </div>
+
+                    <!-- Clean Appointments Table -->
+                    <div class="table-container">
+                        <table class="rec-table">
+                            <thead>
+                                <tr>
+                                    <th>Schedule (Date & Time)</th>
+                                    <th>Patient Information</th>
+                                    <th>Dental Procedure & Fee</th>
+                                    <th>Attending Doctor</th>
+                                    <th>Operatory Station</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right; min-width: 180px;">R-007.3 Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="apptMgmtTableBody">
+                                <tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);">Loading appointment management records...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <!-- ── TAB 3: ALL APPOINTMENTS & SCHEDULING (R-007) ────── -->
             <section id="tab-appointments" class="tab-section">
                 <div class="content-card">
@@ -2370,6 +2495,141 @@
         </div>
     </div>
 
+    <!-- ── MODAL: R-007.3 VIEW & UPDATE APPOINTMENT DETAILS ───────────── -->
+    <div id="viewUpdateApptModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 640px; border-radius: 12px; overflow: hidden; padding: 0;">
+            <!-- Modal Header -->
+            <div style="background: linear-gradient(135deg, #0EB1B1 0%, #088383 100%); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                        <i class='bx bx-calendar-edit'></i>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: white;">View & Update Appointment Details</h3>
+                            <span style="background: rgba(255,255,255,0.25); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">R-007.3</span>
+                        </div>
+                        <p style="margin: 2px 0 0 0; font-size: 11.5px; opacity: 0.9;">Update procedure, schedule, attending doctor, station, or status.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('viewUpdateApptModal')" style="background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; line-height: 1;"><i class='bx bx-x'></i></button>
+            </div>
+
+            <form id="form-view-update-appt" onsubmit="submitViewUpdateAppt(event)" style="padding: 1.5rem;">
+                <input type="hidden" id="vuApptId">
+
+                <!-- Patient Summary Card (Read & Context) -->
+                <div style="background: var(--rec-table-zebra, #f8fafc); border: 1px solid var(--rec-border); border-radius: 8px; padding: 12px 14px; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <div style="font-size: 10px; font-weight: 700; color: var(--rec-text-muted); text-transform: uppercase;">Patient Name</div>
+                        <div style="font-size: 15px; font-weight: 800; color: var(--rec-text);" id="vuPatientNameDisplay">--</div>
+                        <div style="font-size: 11px; color: var(--rec-text-muted); margin-top: 2px;" id="vuPatientContactDisplay">Phone: -- &bull; Email: --</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span id="vuStatusBadgeDisplay" class="status-pill scheduled">SCHEDULED</span>
+                        <div style="font-size: 10.5px; color: var(--rec-text-muted); margin-top: 4px;" id="vuBookingRefDisplay">Ref: #--</div>
+                    </div>
+                </div>
+
+                <!-- Section: Schedule Date & Time Slot -->
+                <div style="font-size: 11px; font-weight: 800; color: var(--rec-primary); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-time-five'></i> Schedule Parameters
+                </div>
+                <div class="form-grid-2" style="margin-bottom: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Appointment Date *</label>
+                        <input type="date" id="vuApptDate" class="form-control" required onchange="handleVuDateOrDoctorChange()">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Time Slot *</label>
+                        <select id="vuApptTime" class="form-control" required>
+                            <!-- Time slots -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Section: Doctor, Procedure & Pricing -->
+                <div style="font-size: 11px; font-weight: 800; color: var(--rec-primary); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-shield-plus'></i> Clinical & Service Details
+                </div>
+                <div class="form-grid-2" style="margin-bottom: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Attending Doctor *</label>
+                        <select id="vuApptDoctor" class="form-control" required onchange="handleVuDateOrDoctorChange()">
+                            <!-- Doctors populated -->
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Dental Procedure / Service *</label>
+                        <select id="vuApptService" class="form-control" required onchange="handleVuServiceChange(this.value)">
+                            <option value="Dental Consultation">Dental Consultation & Oral Examination</option>
+                            <option value="Emergency Relief / Toothache">Emergency Relief / Acute Toothache</option>
+                            <option value="Oral Prophylaxis (Cleaning)">Oral Prophylaxis (Cleaning)</option>
+                            <option value="Composite Filling">Tooth Restoration (Composite Filling)</option>
+                            <option value="Tooth Extraction">Simple / Surgical Tooth Extraction</option>
+                            <option value="Root Canal Treatment">Root Canal Therapy</option>
+                            <option value="Dental Crown & Bridge">Dental Crown & Bridge</option>
+                            <option value="Orthodontic Consultation">Orthodontic Consultation / Adjustment</option>
+                            <option value="Teeth Whitening">Teeth Whitening Treatment</option>
+                            <option value="Periodontal Scaling">Periodontal Deep Scaling</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-3" style="margin-bottom: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Operatory Station</label>
+                        <select id="vuApptChair" class="form-control">
+                            <option value="Operatory Chair 1">Operatory Chair 1</option>
+                            <option value="Operatory Chair 2">Operatory Chair 2</option>
+                            <option value="Operatory Chair 3">Operatory Chair 3</option>
+                            <option value="Operatory Chair 4">Operatory Chair 4</option>
+                            <option value="Surgical Suite">Surgical Suite</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Procedure Fee (₱)</label>
+                        <input type="number" id="vuApptPrice" class="form-control" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Appointment Status</label>
+                        <select id="vuApptStatus" class="form-control">
+                            <option value="scheduled">Scheduled</option>
+                            <option value="pending">Pending</option>
+                            <option value="checked_in">Checked In / Waiting</option>
+                            <option value="in_progress">In Treatment</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Patient Contact Phone</label>
+                    <input type="tel" id="vuApptPhone" class="form-control" placeholder="Contact number for SMS & reminders">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label>Receptionist & Scheduling Notes</label>
+                    <textarea id="vuApptNotes" class="form-control" rows="2" placeholder="Clinical notes, patient requests, or scheduling remarks..."></textarea>
+                </div>
+
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 12px; margin-bottom: 1.25rem; font-size: 11px; color: #64748B; display: flex; align-items: center; gap: 8px;">
+                    <i class='bx bx-info-circle text-primary' style="font-size: 16px;"></i>
+                    <span>All changes are tracked and synced with the doctor calendar and patient schedule.</span>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--rec-border); padding-top: 1rem;">
+                    <button type="button" class="btn-rec btn-rec-secondary" onclick="closeModal('viewUpdateApptModal')">Cancel</button>
+                    <button type="submit" id="btnSaveViewUpdateAppt" class="btn-rec btn-rec-primary" style="min-width: 150px;">
+                        <i class='bx bx-check-double'></i> Save & Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- ── MODAL: MANAGE APPOINTMENT DETAILS (R-007) ───────────────── -->
     <div id="manageApptModal" class="rec-modal-overlay">
         <div class="rec-modal-content" style="max-width: 520px;">
@@ -2572,6 +2832,7 @@
                     renderMetrics(data.metrics);
                     renderQueue(data.queue_today);
                     renderAppointments(data.all_appointments || data.upcoming_appointments, data.queue_today);
+                    renderAppointmentManagement(data.all_appointments || data.upcoming_appointments, data.queue_today);
                     renderDoctors(data.doctors);
                     populateBookingDropdowns(data.patients, data.doctors, data.clinic_settings);
                     populateProfileForm(data.receptionist);
@@ -2824,6 +3085,9 @@
                 if (status === 'pending') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" style="font-weight: 700;" title="View & Update Details (R-007.3)" onclick="openViewUpdateApptModal('${apt._id}')">
+                                <i class='bx bx-edit-alt'></i> View & Update
+                            </button>
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
                                 <i class='bx bx-calendar-edit'></i> Reschedule
                             </button>
@@ -3262,7 +3526,9 @@
                 } else if (status === 'in_progress') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" title="Edit Procedure & Details" onclick="openManageApptModal('${apt._id}')">
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" title="View & Update Details (R-007.3)" onclick="openViewUpdateApptModal('${apt._id}')">
+                                <i class='bx bx-edit-alt'></i> View & Update
+                            </button>
                                 <i class='bx bx-edit'></i> Manage
                             </button>
                         </div>
@@ -4394,13 +4660,16 @@
             const headings = {
                 'queue': "Front Desk Reception Workspace",
                 'patients': "Patient Master Directory",
+                'appointment-management': "R-007.3: Appointment Management — View & Update Details",
                 'appointments': "All Booked Appointments",
                 'doctors': "Dentist Schedule Monitoring & Slot Matrix",
                 'profile': "Front Desk Account & Settings"
             };
             document.getElementById('viewHeading').textContent = headings[tabId] || "Receptionist Workspace";
 
-            if (tabId === 'doctors') {
+            if (tabId === 'appointment-management') {
+                loadDashboardData();
+            } else if (tabId === 'doctors') {
                 loadDashboardData();
                 loadDoctorScheduleSlots();
             }
@@ -5519,6 +5788,449 @@
             } catch (err) {
                 console.error("Manage appt error:", err);
                 showToast('error', 'Network error updating appointment.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        // ── R-007.3: APPOINTMENT MANAGEMENT (VIEW & UPDATE DETAILS) ──────────
+        let cachedApptMgmtList = [];
+
+        const standardServicePrices = {
+            'Dental Consultation': 500,
+            'Emergency Relief / Toothache': 800,
+            'Oral Prophylaxis (Cleaning)': 1200,
+            'Composite Filling': 1500,
+            'Tooth Extraction': 1000,
+            'Root Canal Treatment': 6500,
+            'Dental Crown & Bridge': 8000,
+            'Orthodontic Consultation': 1500,
+            'Teeth Whitening': 4500,
+            'Periodontal Scaling': 2500
+        };
+
+        function renderAppointmentManagement(allOrUpcoming, todayQueue) {
+            let all = [];
+            if (Array.isArray(allOrUpcoming) && allOrUpcoming.length > 0) {
+                all = allOrUpcoming;
+            } else if (cachedAllAppointments && cachedAllAppointments.length > 0) {
+                all = cachedAllAppointments;
+            } else {
+                all = [...(todayQueue || []), ...(allOrUpcoming || [])];
+            }
+            cachedApptMgmtList = all;
+
+            // Compute 4 KPI stats
+            const todayIso = new Date().toISOString().split('T')[0];
+            const totalCount = all.length;
+            const todayCount = all.filter(a => {
+                const d = (a.appointment_date || a.date || '').substring(0, 10);
+                return d === todayIso;
+            }).length;
+            const upcomingCount = all.filter(a => {
+                const d = (a.appointment_date || a.date || '').substring(0, 10);
+                const s = (a.status || '').toLowerCase();
+                return d >= todayIso && s === 'scheduled';
+            }).length;
+            const completedCount = all.filter(a => (a.status || '').toLowerCase() === 'completed').length;
+
+            const elTotal = document.getElementById('mgmtStatTotal');
+            if (elTotal) elTotal.textContent = totalCount;
+            const elToday = document.getElementById('mgmtStatToday');
+            if (elToday) elToday.textContent = todayCount;
+            const elUpcoming = document.getElementById('mgmtStatUpcoming');
+            if (elUpcoming) elUpcoming.textContent = upcomingCount;
+            const elCompleted = document.getElementById('mgmtStatCompleted');
+            if (elCompleted) elCompleted.textContent = completedCount;
+
+            // Populate Doctor filter dropdown
+            const docFilter = document.getElementById('mgmtDoctorFilter');
+            if (docFilter && cachedData && cachedData.doctors) {
+                const curVal = docFilter.value;
+                const docNames = Array.from(new Set(cachedData.doctors.map(d => d.full_name))).filter(Boolean);
+                docFilter.innerHTML = '<option value="all">All Attending Doctors</option>' +
+                    docNames.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+                if (curVal && docNames.includes(curVal)) {
+                    docFilter.value = curVal;
+                }
+            }
+
+            filterApptMgmtTable();
+        }
+
+        function filterApptMgmtTable() {
+            const tbody = document.getElementById('apptMgmtTableBody');
+            if (!tbody) return;
+
+            const q = (document.getElementById('mgmtSearchInput')?.value || '').toLowerCase().trim();
+            const dateFilter = document.getElementById('mgmtDateFilter')?.value || 'all';
+            const statusFilter = document.getElementById('mgmtStatusFilter')?.value || 'all';
+            const doctorFilter = document.getElementById('mgmtDoctorFilter')?.value || 'all';
+            const todayIso = new Date().toISOString().split('T')[0];
+
+            const filtered = (cachedApptMgmtList || []).filter(apt => {
+                const name = (apt.patient_name || '').toLowerCase();
+                const phone = (apt.patient_phone || '').toLowerCase();
+                const doc = (apt.doctor_name || apt.attending_doctor || '').toLowerCase();
+                const service = (apt.service_name || '').toLowerCase();
+                const status = (apt.status || 'scheduled').toLowerCase();
+                const date = (apt.appointment_date || apt.date || '').substring(0, 10);
+                const aptId = String(apt._id || '').toLowerCase();
+
+                // 1. Text search
+                const matchesText = !q || name.includes(q) || phone.includes(q) || doc.includes(q) || service.includes(q) || aptId.includes(q);
+
+                // 2. Date filter
+                let matchesDate = true;
+                if (dateFilter === 'today') {
+                    matchesDate = (date === todayIso);
+                } else if (dateFilter === 'upcoming') {
+                    matchesDate = (date >= todayIso);
+                } else if (dateFilter === 'past') {
+                    matchesDate = (date && date < todayIso);
+                }
+
+                // 3. Status filter
+                let matchesStatus = true;
+                if (statusFilter !== 'all') {
+                    if (statusFilter === 'checked_in') {
+                        matchesStatus = (status === 'checked_in' || status === 'waiting');
+                    } else {
+                        matchesStatus = (status === statusFilter);
+                    }
+                }
+
+                // 4. Doctor filter
+                let matchesDoctor = true;
+                if (doctorFilter !== 'all') {
+                    matchesDoctor = (doc === doctorFilter.toLowerCase());
+                }
+
+                return matchesText && matchesDate && matchesStatus && matchesDoctor;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);">
+                            <i class='bx bx-calendar-x' style="font-size: 36px; display: block; margin-bottom: 8px; color: var(--rec-primary);"></i>
+                            <div style="font-weight: 700; font-size: 14px; color: var(--rec-text);">No Appointments Matching Current Filters</div>
+                            <div style="font-size: 12px; margin-top: 4px;">Try clearing search keywords or choosing "All Dates" / "All Statuses".</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(apt => {
+                const date = (apt.appointment_date || apt.date || 'TBD').substring(0, 10);
+                const time = apt.time_slot || apt.appointment_time || '09:00 AM';
+                const status = (apt.status || 'scheduled').toLowerCase();
+                const isToday = (date === todayIso);
+                const priceFormatted = apt.formatted_price || (apt.price ? `₱${Number(apt.price).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '₱500.00');
+                const doctorName = apt.doctor_name || apt.attending_doctor || 'Unassigned Doctor';
+                const cleanId = String(apt._id?.$oid || apt._id || '');
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12.5px;">
+                                <i class='bx bx-calendar' style="color: var(--rec-primary); font-size: 15px;"></i>
+                                <span>${escapeHtml(date)}</span>
+                                ${isToday ? `<span style="background: var(--rec-primary); color: white; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 4px;">TODAY</span>` : ''}
+                            </div>
+                            <div style="font-size: 11px; color: var(--rec-primary); font-weight: 700; margin-top: 2px; display: flex; align-items: center; gap: 4px;">
+                                <i class='bx bx-time'></i> ${escapeHtml(time)}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 700; font-size: 13px; color: var(--rec-text); display: flex; align-items: center; gap: 6px;">
+                                <span>${escapeHtml(apt.patient_name || 'Patient')}</span>
+                                ${apt.medical_alerts && apt.medical_alerts !== 'None' && apt.medical_alerts !== 'None recorded' ? `
+                                    <span style="background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; cursor: pointer;" title="Medical Alert (R-009): ${escapeHtml(apt.medical_alerts)}" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')">
+                                        <i class='bx bxs-error-circle'></i> Alert
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <div style="font-size: 11px; color: var(--rec-text-muted); display: flex; align-items: center; gap: 6px; margin-top: 1px;">
+                                <span><i class='bx bx-phone' style="font-size: 11px;"></i> ${escapeHtml(apt.patient_phone || 'No phone')}</span>
+                                ${apt.patient_id ? `<a href="javascript:void(0)" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id)}', '${escapeHtml(apt.patient_name)}')" style="font-size: 10px; color: var(--rec-primary); text-decoration: none;" title="View medical info"><i class='bx bx-shield-plus'></i> Alerts</a>` : ''}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 12.5px; font-weight: 600; color: var(--rec-text);">${escapeHtml(apt.service_name || 'Dental Consultation')}</div>
+                            <div style="font-size: 11px; color: #059669; font-weight: 700; margin-top: 1px;">${priceFormatted}</div>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 12px; color: var(--rec-text);">
+                                <i class='bx bx-user' style="color: #64748B;"></i>
+                                <span>${escapeHtml(doctorName)}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="font-size: 11px; background: rgba(14, 177, 177, 0.08); padding: 3px 8px; border-radius: 6px; font-weight: 600; color: var(--rec-primary);">
+                                <i class='bx bx-chair'></i> ${escapeHtml(apt.operatory_chair || 'Operatory Chair 1')}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-pill ${status}">
+                                <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
+                            </span>
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                ${isToday && (status === 'scheduled' || status === 'pending') ? `
+                                    <button class="btn-rec btn-rec-primary btn-rec-sm" title="Arrival Check In to Queue" onclick="updateApptStatus('${cleanId}', 'checked_in')">
+                                        <i class='bx bx-check-circle'></i> Check In
+                                    </button>
+                                ` : ''}
+                                <button class="btn-rec btn-rec-primary btn-rec-sm" style="font-weight: 700;" title="View & Update Appointment Details (R-007.3)" onclick="openViewUpdateApptModal('${cleanId}')">
+                                    <i class='bx bx-edit-alt'></i> View & Update
+                                </button>
+                                <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${cleanId}')">
+                                    <i class='bx bx-calendar-edit'></i> Reschedule
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function resetApptMgmtFilters() {
+            const sInput = document.getElementById('mgmtSearchInput');
+            if (sInput) sInput.value = '';
+            const dFilter = document.getElementById('mgmtDateFilter');
+            if (dFilter) dFilter.value = 'all';
+            const stFilter = document.getElementById('mgmtStatusFilter');
+            if (stFilter) stFilter.value = 'all';
+            const docFilter = document.getElementById('mgmtDoctorFilter');
+            if (docFilter) docFilter.value = 'all';
+            filterApptMgmtTable();
+        }
+
+        function handleVuServiceChange(serviceName) {
+            const priceInput = document.getElementById('vuApptPrice');
+            if (!priceInput) return;
+            if (standardServicePrices[serviceName]) {
+                priceInput.value = standardServicePrices[serviceName].toFixed(2);
+            }
+        }
+
+        function handleVuDateOrDoctorChange() {
+            // Optional shift hook
+        }
+
+        function openViewUpdateApptModal(appointmentId) {
+            const all = [
+                ...(cachedData?.all_appointments || []),
+                ...(cachedData?.queue_today || []),
+                ...(cachedData?.upcoming_appointments || []),
+                ...(cachedAllAppointments || []),
+                ...(cachedApptMgmtList || [])
+            ];
+
+            const targetId = String(appointmentId?.$oid || appointmentId || '').trim();
+            const apt = all.find(a => {
+                const aId = String(a._id?.$oid || a._id || '').trim();
+                return aId === targetId;
+            });
+
+            if (!apt) {
+                showToast('error', 'Appointment record not found.');
+                return;
+            }
+
+            const cleanId = String(apt._id?.$oid || apt._id || targetId);
+            document.getElementById('vuApptId').value = cleanId;
+
+            // Overview details
+            const nameEl = document.getElementById('vuPatientNameDisplay');
+            if (nameEl) nameEl.textContent = apt.patient_name || 'Patient';
+            const contactEl = document.getElementById('vuPatientContactDisplay');
+            if (contactEl) contactEl.textContent = `Phone: ${apt.patient_phone || 'None'} • Email: ${apt.patient_email || 'None'}`;
+            const refEl = document.getElementById('vuBookingRefDisplay');
+            if (refEl) refEl.textContent = `Ref: #${cleanId.slice(-6).toUpperCase()}`;
+
+            const status = (apt.status || 'scheduled').toLowerCase();
+            const statusBadge = document.getElementById('vuStatusBadgeDisplay');
+            if (statusBadge) {
+                statusBadge.className = `status-pill ${status}`;
+                statusBadge.textContent = status.replace('_', ' ').toUpperCase();
+            }
+
+            // Date
+            const aptDate = (apt.appointment_date || apt.date || '').substring(0, 10);
+            const dateInput = document.getElementById('vuApptDate');
+            if (dateInput) {
+                dateInput.value = aptDate || new Date().toISOString().split('T')[0];
+            }
+
+            // Populate Time Slots in vuApptTime
+            const masterSlots = (cachedData && cachedData.clinic_settings && cachedData.clinic_settings.time_slots && cachedData.clinic_settings.time_slots.length > 0)
+                ? cachedData.clinic_settings.time_slots
+                : ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'];
+            const timeSel = document.getElementById('vuApptTime');
+            if (timeSel) {
+                const curTime = apt.time_slot || apt.appointment_time || '09:00 AM';
+                timeSel.innerHTML = masterSlots.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+                if (!masterSlots.includes(curTime)) {
+                    timeSel.innerHTML += `<option value="${escapeHtml(curTime)}">${escapeHtml(curTime)}</option>`;
+                }
+                timeSel.value = curTime;
+            }
+
+            // Populate Doctors in vuApptDoctor
+            const docSel = document.getElementById('vuApptDoctor');
+            if (docSel && cachedData && cachedData.doctors) {
+                docSel.innerHTML = '<option value="First Available Doctor">First Available Doctor</option>' +
+                    cachedData.doctors.map(d => `<option value="${escapeHtml(d.full_name)}">${escapeHtml(d.full_name)} (${escapeHtml(d.specialization || 'General Dentistry')})</option>`).join('');
+                const curDoc = apt.doctor_name || apt.attending_doctor || '';
+                if (curDoc) docSel.value = curDoc;
+            }
+
+            // Procedure / Service
+            const serviceSel = document.getElementById('vuApptService');
+            if (serviceSel) {
+                const curService = apt.service_name || 'Dental Consultation';
+                let hasOpt = Array.from(serviceSel.options).some(o => o.value === curService);
+                if (!hasOpt) {
+                    const opt = document.createElement('option');
+                    opt.value = curService;
+                    opt.textContent = curService;
+                    serviceSel.appendChild(opt);
+                }
+                serviceSel.value = curService;
+            }
+
+            // Price
+            const priceInput = document.getElementById('vuApptPrice');
+            if (priceInput) {
+                const rawPrice = apt.price !== undefined && apt.price !== null && !isNaN(Number(apt.price))
+                    ? Number(apt.price)
+                    : (standardServicePrices[apt.service_name] || 500);
+                priceInput.value = rawPrice.toFixed(2);
+            }
+
+            // Operatory Station
+            const chairSel = document.getElementById('vuApptChair');
+            if (chairSel) {
+                chairSel.value = apt.operatory_chair || 'Operatory Chair 1';
+            }
+
+            // Status
+            const stSel = document.getElementById('vuApptStatus');
+            if (stSel) {
+                stSel.value = status;
+            }
+
+            // Phone & Notes
+            const phoneInput = document.getElementById('vuApptPhone');
+            if (phoneInput) {
+                phoneInput.value = apt.patient_phone || '';
+            }
+            const notesInput = document.getElementById('vuApptNotes');
+            if (notesInput) {
+                notesInput.value = apt.notes || '';
+            }
+
+            openModal('viewUpdateApptModal');
+        }
+
+        async function submitViewUpdateAppt(e) {
+            if (e && e.preventDefault) e.preventDefault();
+
+            const apptId = document.getElementById('vuApptId')?.value;
+            if (!apptId) {
+                showToast('error', 'Appointment ID is required.');
+                return;
+            }
+
+            const apptDate = document.getElementById('vuApptDate')?.value;
+            const timeSlot = document.getElementById('vuApptTime')?.value;
+            const doctorName = document.getElementById('vuApptDoctor')?.value;
+            const serviceName = document.getElementById('vuApptService')?.value;
+            const operatoryChair = document.getElementById('vuApptChair')?.value;
+            const price = document.getElementById('vuApptPrice')?.value;
+            const status = document.getElementById('vuApptStatus')?.value;
+            const patientPhone = document.getElementById('vuApptPhone')?.value;
+            const notes = document.getElementById('vuApptNotes')?.value;
+
+            const btn = document.getElementById('btnSaveViewUpdateAppt');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Saving Updates...";
+            }
+
+            try {
+                const res = await fetch('api/receptionist/update_appointment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        appointment_id: apptId,
+                        appointment_date: apptDate,
+                        date: apptDate,
+                        time_slot: timeSlot,
+                        appointment_time: timeSlot,
+                        doctor_name: doctorName,
+                        attending_doctor: doctorName,
+                        service_name: serviceName,
+                        operatory_chair: operatoryChair,
+                        price: price ? parseFloat(price) : undefined,
+                        status: status,
+                        patient_phone: patientPhone,
+                        notes: notes
+                    })
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('success', data.message || 'Appointment details updated successfully!');
+                    closeModal('viewUpdateApptModal');
+
+                    // Update cached appointment in all collections
+                    const updateObj = (a) => {
+                        const aId = String(a._id?.$oid || a._id || '').trim();
+                        if (aId === String(apptId).trim()) {
+                            a.appointment_date = apptDate;
+                            a.date = apptDate;
+                            a.time_slot = timeSlot;
+                            a.appointment_time = timeSlot;
+                            a.doctor_name = doctorName;
+                            a.attending_doctor = doctorName;
+                            a.service_name = serviceName;
+                            a.operatory_chair = operatoryChair;
+                            if (price) {
+                                a.price = parseFloat(price);
+                                a.formatted_price = `₱${parseFloat(price).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+                            }
+                            a.status = status;
+                            if (patientPhone) a.patient_phone = patientPhone;
+                            if (notes !== undefined) a.notes = notes;
+                        }
+                    };
+
+                    (cachedAllAppointments || []).forEach(updateObj);
+                    (cachedApptMgmtList || []).forEach(updateObj);
+                    if (cachedData?.all_appointments) cachedData.all_appointments.forEach(updateObj);
+                    if (cachedData?.upcoming_appointments) cachedData.upcoming_appointments.forEach(updateObj);
+                    if (cachedData?.queue_today) cachedData.queue_today.forEach(updateObj);
+
+                    renderAppointmentManagement(cachedApptMgmtList);
+                    filterAppointmentsTable();
+
+                    // Full refresh from server in background
+                    loadDashboardData();
+                } else {
+                    showToast('error', data.message || 'Failed to update appointment details.');
+                }
+            } catch (err) {
+                console.error("View & Update appointment error:", err);
+                showToast('error', 'Network error while updating appointment details.');
             } finally {
                 if (btn) {
                     btn.disabled = false;
