@@ -1079,7 +1079,8 @@ router.post('/reorder_queue', async (req, res) => {
 });
 
 /**
- * Role-Limited Operational & Front Desk Reports (Receptionist Scope)
+ * Role-Governed Front Desk & Operational Reports
+ * Permissions dynamically enforced via MongoDB `roles_permissions` collection configured by Super Admin.
  */
 router.get('/get_reports_data', async (req, res) => {
     try {
@@ -1090,12 +1091,55 @@ router.get('/get_reports_data', async (req, res) => {
         const filterDoc = req.query.doctor || 'all';
         const filterStat = (req.query.status || 'all').toLowerCase();
 
-        // Security check: restrict categories based on role
-        const allowedCategories = ['queue_summary', 'queues', 'appointments_roster', 'appointments', 'patient_attendance', 'cancellations', 'daily_collections', 'service_inflow'];
-        if (!allowedCategories.includes(category)) {
+        // Map report categories to RBAC Matrix permission keys
+        const categoryConfigMap = {
+            'earnings': { key: 'reports_earnings', title: 'Financial Earnings & Revenue' },
+            'daily_collections': { key: 'reports_earnings', title: 'Financial Earnings & Revenue' },
+            'service_inflow': { key: 'reports_earnings', title: 'Financial Earnings & Revenue' },
+            'appointments': { key: 'reports_appointments', title: 'Appointments & Procedures' },
+            'appointments_roster': { key: 'reports_appointments', title: 'Appointments & Procedures' },
+            'patients': { key: 'reports_patients', title: 'Patient Registry & Demographics' },
+            'patient_attendance': { key: 'reports_patients', title: 'Patient Registry & Demographics' },
+            'queues': { key: 'reports_queues', title: 'Live Patient Flow Queue' },
+            'queue_summary': { key: 'reports_queues', title: 'Live Patient Flow Queue' },
+            'cancellations': { key: 'reports_cancellations', title: 'Cancellations & Attrition' },
+            'audit_logs': { key: 'reports_audit_logs', title: 'System Security & Audit Trail' }
+        };
+
+        const config = categoryConfigMap[category] || { key: `reports_${category}`, title: category.toUpperCase() };
+
+        // Dynamic RBAC Permission Check against MongoDB roles_permissions
+        const userRole = (req.user?.role || req.session?.role || 'receptionist').toLowerCase();
+        let isPermitted = ['super_admin', 'admin'].includes(userRole);
+
+        if (!isPermitted) {
+            const permDoc = await dbClient.findOne('roles_permissions', {
+                $or: [{ key: config.key }, { permission_key: config.key }]
+            });
+
+            if (permDoc && Array.isArray(permDoc.roles)) {
+                const authorizedRoles = permDoc.roles.map(r => String(r).toLowerCase());
+                if (authorizedRoles.includes(userRole) || (userRole === 'staff' && authorizedRoles.includes('receptionist'))) {
+                    isPermitted = true;
+                }
+            } else {
+                // Fallback standard defaults if RBAC matrix has not been seeded yet
+                const defaultRoleRules = {
+                    'reports_appointments': ['receptionist', 'doctor', 'staff'],
+                    'reports_patients': ['receptionist', 'staff'],
+                    'reports_queues': ['receptionist', 'doctor', 'staff'],
+                    'reports_cancellations': ['receptionist', 'staff']
+                };
+                if (defaultRoleRules[config.key]?.includes(userRole)) {
+                    isPermitted = true;
+                }
+            }
+        }
+
+        if (!isPermitted) {
             return res.status(403).json({
                 status: 'error',
-                message: 'Receptionists are restricted to Front-Desk Operational Reports only. System security audit logs and executive balance sheets are restricted to Super Admin.'
+                message: `Access Denied: Your assigned role (${userRole}) has not been granted permission by Super Admin to generate the "${config.title}" report. Please ask a Super Admin to enable this in the Role Permissions (RBAC Matrix).`
             });
         }
 
@@ -1136,8 +1180,11 @@ router.get('/get_reports_data', async (req, res) => {
 
         const allUsers = await dbClient.find('users', { is_deleted: { $ne: true } });
         const allAppts = await dbClient.find('appointments', { is_deleted: { $ne: true } });
+        const rawAuditLogs = (config.key === 'reports_audit_logs') ? await dbClient.find('audit_logs', {}) : [];
 
         const doctorsList = [];
+        const patientsList = [];
+
         for (const u of allUsers) {
             const role = (u.role || '').toLowerCase();
             if (role === 'doctor') {
@@ -1145,6 +1192,22 @@ router.get('/get_reports_data', async (req, res) => {
                     id: String(u._id),
                     name: u.full_name || 'Doctor',
                     specialization: u.specialization || 'General Dentistry'
+                });
+            } else if (['patient', 'client'].includes(role) || !role) {
+                patientsList.push({
+                    _id: String(u._id),
+                    patient_id: String(u._id).slice(-6).toUpperCase(),
+                    patient_name: u.full_name || 'Patient',
+                    full_name: u.full_name || 'Patient',
+                    email: u.email || '',
+                    phone: u.phone || 'N/A',
+                    patient_phone: u.phone || 'N/A',
+                    age: u.age || 'N/A',
+                    gender: u.gender || 'Other',
+                    medical_alerts: u.allergies || u.medical_alerts || 'None recorded',
+                    allergies: u.allergies || u.medical_alerts || 'None recorded',
+                    status: u.status || 'active',
+                    created_at: u.created_at || ''
                 });
             }
         }
@@ -1165,7 +1228,7 @@ router.get('/get_reports_data', async (req, res) => {
                 if (filterStat === 'scheduled' && stat !== 'scheduled') return false;
                 if (filterStat === 'waiting' && !['checked_in', 'waiting'].includes(stat)) return false;
                 if (filterStat === 'in_progress' && stat !== 'in_progress') return false;
-                if (filterStat === 'cancelled' && !['cancelled', 'no_show'].includes(stat)) return false;
+                if (filterStat === 'cancelled' && !['cancelled', 'no_show', 'noshow'].includes(stat)) return false;
             }
 
             return true;
@@ -1193,7 +1256,7 @@ router.get('/get_reports_data', async (req, res) => {
                 totalRevenue += p;
             } else if (s === 'scheduled') {
                 scheduledCount++;
-            } else if (['cancelled', 'no_show'].includes(s)) {
+            } else if (['cancelled', 'no_show', 'noshow'].includes(s)) {
                 cancelledCount++;
             }
         });
@@ -1225,9 +1288,37 @@ router.get('/get_reports_data', async (req, res) => {
             };
         });
 
+        // Specific category datasets
+        const queuesList = enrichedRecords.filter(r => ['checked_in', 'waiting', 'in_progress', 'completed'].includes(r.status));
+        const appointmentsList = enrichedRecords;
+        const cancellationsList = enrichedRecords.filter(r => ['cancelled', 'no_show', 'noshow'].includes(r.status));
+        const earningsList = enrichedRecords.filter(r => ['completed', 'in_progress'].includes(r.status));
+        const auditLogsList = rawAuditLogs.map(a => ({
+            _id: String(a._id),
+            timestamp: (a.timestamp || a.created_at || '').slice(0, 19).replace('T', ' '),
+            actor_name: a.actor_name || a.user_name || 'Staff User',
+            user_email: a.user_email || a.actor_email || a.email || 'System',
+            role: a.role || a.user_role || 'Staff',
+            action: a.action || a.event || 'SYSTEM_EVENT',
+            ip_address: a.ip_address || a.ip || '127.0.0.1',
+            status: a.status || 'success',
+            details: typeof a.details === 'object' ? JSON.stringify(a.details) : (a.details || '')
+        }));
+
+        // Determine active records array
+        let activeRecords = enrichedRecords;
+        if (config.key === 'reports_earnings') activeRecords = earningsList;
+        else if (config.key === 'reports_appointments') activeRecords = appointmentsList;
+        else if (config.key === 'reports_patients') activeRecords = patientsList;
+        else if (config.key === 'reports_queues') activeRecords = queuesList;
+        else if (config.key === 'reports_cancellations') activeRecords = cancellationsList;
+        else if (config.key === 'reports_audit_logs') activeRecords = auditLogsList;
+
         return res.status(200).json({
             status: 'success',
-            role_scope: 'Front Desk Receptionist (Role-Limited Operational Reports)',
+            role_scope: `Front Desk Operational & Governance Reports (${config.title})`,
+            category: category,
+            permission_key: config.key,
             generated_at: new Date().toISOString(),
             date_period: {
                 preset: datePreset,
@@ -1235,7 +1326,7 @@ router.get('/get_reports_data', async (req, res) => {
                 end_date: endDate || 'All Time'
             },
             metrics: {
-                total_records: totalCount,
+                total_records: activeRecords.length,
                 completed_visits: completedCount,
                 waiting_queue: waitingCount,
                 in_operatory: inProgressCount,
@@ -1245,14 +1336,26 @@ router.get('/get_reports_data', async (req, res) => {
                 raw_service_volume: totalRevenue
             },
             doctors: doctorsList,
+            records: activeRecords,
             data: {
-                records: enrichedRecords,
-                queue_summary: enrichedRecords.filter(r => ['checked_in', 'waiting', 'in_progress', 'completed'].includes(r.status)),
-                appointments_roster: enrichedRecords,
-                patient_attendance: enrichedRecords.filter(r => ['completed', 'cancelled', 'no_show'].includes(r.status)),
-                daily_collections: enrichedRecords.filter(r => ['completed', 'in_progress'].includes(r.status))
+                records: activeRecords,
+                earnings: earningsList,
+                appointments: appointmentsList,
+                patients: patientsList,
+                queues: queuesList,
+                cancellations: cancellationsList,
+                audit_logs: auditLogsList,
+                queue_summary: queuesList,
+                appointments_roster: appointmentsList,
+                patient_attendance: patientsList,
+                daily_collections: earningsList
             }
         });
+    } catch (err) {
+        console.error('Receptionist reports error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to generate operational reports.' });
+    }
+});
     } catch (err) {
         console.error('Receptionist reports error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to generate operational reports.' });

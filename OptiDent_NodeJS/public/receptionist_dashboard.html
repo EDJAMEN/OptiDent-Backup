@@ -1414,7 +1414,193 @@
                 </div>
             </section>
 
-            <!-- ── TAB 5: MY ACCOUNT / PROFILE (R-012) ─────────────────────── -->
+                        <!-- ── TAB: OPERATIONAL & GOVERNANCE REPORTS (ROLE-LIMITED) ─────────────────────── -->
+            <section id="tab-reports" class="tab-section">
+                <div class="content-card">
+                    <div class="card-header-bar" style="margin-bottom: 1rem; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 11px; font-weight: 800; background: rgba(79, 70, 229, 0.12); color: #4F46E5; padding: 2px 8px; border-radius: 4px;">OPERATIONAL &amp; GOVERNANCE</span>
+                                <h3 style="margin: 0; font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    <i class='bx bx-bar-chart-alt-2 text-primary' style="font-size: 22px;"></i> Reports &amp; Monitoring
+                                </h3>
+                            </div>
+                            <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">
+                                Multi-parameter reporting and data export. Access to specific reports is dynamically governed by the Super Admin via the Central RBAC Security Matrix.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="exportRecReportCsv()" title="Export current report to CSV">
+                                <i class='bx bx-download'></i> Download CSV
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="printRecReport()" title="Print formal report">
+                                <i class='bx bx-printer'></i> Print Report
+                            </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="loadReceptionistReports()" title="Refresh live report data">
+                                <i class='bx bx-refresh'></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Multi-Parameter Filter Toolbar (matches user specification) -->
+                    <div style="background: #ffffff; border: 1.5px solid var(--rec-border); border-radius: 12px; padding: 18px 20px; margin-bottom: 1.25rem; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
+                        <div style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
+                            <!-- Report Type Dropdown -->
+                            <div style="flex: 1.4; min-width: 220px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                    <i class='bx bx-pie-chart-alt-2 text-primary' style="font-size: 15px;"></i> SELECT REPORT TYPE
+                                </label>
+                                <select id="recReportCategory" class="form-control" onchange="onRecReportCategoryChange(this.value)" style="height: 40px; padding: 0 12px; border-radius: 8px; border: 1.5px solid var(--rec-primary); width: 100%; background: #F0FBFA; color: var(--rec-primary); font-weight: 700; font-size: 13px; cursor: pointer; outline: none;">
+                                    <!-- Populated dynamically based on user role permissions -->
+                                    <option value="appointments">Appointments &amp; Procedures</option>
+                                    <option value="patients">Patient Registry &amp; Demographics</option>
+                                    <option value="queues">Live Patient Flow Queue</option>
+                                    <option value="cancellations">Cancellations &amp; Attrition</option>
+                                </select>
+                            </div>
+
+                            <!-- Date Period Dropdown -->
+                            <div style="flex: 1; min-width: 160px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                    <i class='bx bx-calendar text-primary' style="font-size: 15px;"></i> DATE PERIOD
+                                </label>
+                                <select id="recReportDatePreset" class="form-control" onchange="onRecReportPresetChange(this.value)" style="height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--rec-border); width: 100%; font-size: 13px; background: #ffffff; color: var(--rec-text); outline: none;">
+                                    <option value="today">Today Only</option>
+                                    <option value="yesterday">Yesterday</option>
+                                    <option value="this_week">This Week</option>
+                                    <option value="this_month">This Month</option>
+                                    <option value="last_30_days">Last 30 Days</option>
+                                    <option value="all_time">All Time Records</option>
+                                    <option value="custom">Custom Date Range...</option>
+                                </select>
+                            </div>
+
+                            <!-- Attending Doctor Dropdown -->
+                            <div style="flex: 1.1; min-width: 170px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                    <i class='bx bx-user text-primary' style="font-size: 15px;"></i> ATTENDING DOCTOR
+                                </label>
+                                <select id="recReportDoctorFilter" class="form-control" onchange="loadReceptionistReports()" style="height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--rec-border); width: 100%; font-size: 13px; background: #ffffff; color: var(--rec-text); outline: none;">
+                                    <option value="all">All Attending Doctors</option>
+                                </select>
+                            </div>
+
+                            <!-- Status Filter Dropdown -->
+                            <div style="flex: 1; min-width: 160px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                    <i class='bx bx-check-shield text-primary' style="font-size: 15px;"></i> STATUS FILTER
+                                </label>
+                                <select id="recReportStatusFilter" class="form-control" onchange="loadReceptionistReports()" style="height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--rec-border); width: 100%; font-size: 13px; background: #ffffff; color: var(--rec-text); outline: none;">
+                                    <option value="all">All Visit Statuses</option>
+                                    <option value="completed">Completed Only</option>
+                                    <option value="in_progress">In-Progress / In-Chair</option>
+                                    <option value="scheduled">Scheduled Only</option>
+                                    <option value="waiting">Waiting / Checked-in</option>
+                                    <option value="cancelled">Cancelled / No-show</option>
+                                </select>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <button type="button" id="btnGenRecReport" class="btn-rec btn-rec-primary" onclick="loadReceptionistReports()" style="height: 40px; padding: 0 18px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
+                                    <i class='bx bx-filter-alt'></i> Generate Report
+                                </button>
+                                <button type="button" class="btn-rec btn-rec-secondary" onclick="resetRecReportFilters()" title="Reset Filters" style="height: 40px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class='bx bx-reset'></i> Reset
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Custom Date Range row (hidden unless custom selected) -->
+                        <div id="recReportCustomDateBox" style="display: none; align-items: center; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--rec-border);">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label style="font-size: 12px; font-weight: 700; color: #475569;">From:</label>
+                                <input type="date" id="recReportDateFrom" class="form-control" style="height: 36px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--rec-border);">
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label style="font-size: 12px; font-weight: 700; color: #475569;">To:</label>
+                                <input type="date" id="recReportDateTo" class="form-control" style="height: 36px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--rec-border);">
+                            </div>
+                            <button type="button" class="btn-rec btn-rec-primary btn-rec-sm" onclick="loadReceptionistReports()">Apply Range</button>
+                        </div>
+                    </div>
+
+                    <!-- 4 Summary KPI Metric Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 1.25rem;">
+                        <div style="background: var(--rec-card-bg, #ffffff); border: 1px solid var(--rec-border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="width: 42px; height: 42px; border-radius: 8px; background: rgba(14, 177, 177, 0.12); color: var(--rec-primary); display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                                <i class='bx bx-list-ol'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; color: var(--rec-text-muted); text-transform: uppercase;">Total Records</div>
+                                <div style="font-size: 20px; font-weight: 800; color: var(--rec-text);" id="recReportStatTotal">0</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--rec-card-bg, #ffffff); border: 1px solid var(--rec-border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="width: 42px; height: 42px; border-radius: 8px; background: rgba(16, 185, 129, 0.12); color: #059669; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                                <i class='bx bx-check-circle'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; color: var(--rec-text-muted); text-transform: uppercase;">Completed Visits</div>
+                                <div style="font-size: 20px; font-weight: 800; color: #059669;" id="recReportStatCompleted">0</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--rec-card-bg, #ffffff); border: 1px solid var(--rec-border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="width: 42px; height: 42px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                                <i class='bx bx-time-five'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; color: var(--rec-text-muted); text-transform: uppercase;">Active / In-Chair</div>
+                                <div style="font-size: 20px; font-weight: 800; color: #d97706;" id="recReportStatWaiting">0</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--rec-card-bg, #ffffff); border: 1px solid var(--rec-border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="width: 42px; height: 42px; border-radius: 8px; background: rgba(79, 70, 229, 0.12); color: #4F46E5; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                                <i class='bx bx-credit-card'></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; color: var(--rec-text-muted); text-transform: uppercase;">Report Volume / Revenue</div>
+                                <div style="font-size: 19px; font-weight: 800; color: #4F46E5;" id="recReportStatVolume">₱0.00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Table Container -->
+                    <div style="background: #ffffff; border: 1px solid var(--rec-border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.02);">
+                        <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                            <table class="rec-table">
+                                <thead id="recReportTableHead">
+                                    <!-- Rendered dynamically -->
+                                </thead>
+                                <tbody id="recReportTableBody">
+                                    <tr>
+                                        <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);">
+                                            <i class='bx bx-loader-alt bx-spin' style="font-size: 26px; display: block; margin-bottom: 6px; color: var(--rec-primary);"></i>
+                                            Loading report workspace...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Role Permissions Governance Notice -->
+                    <div style="margin-top: 14px; padding: 10px 14px; background: #F8FAFC; border: 1px dashed var(--rec-border); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <div style="font-size: 11.5px; color: var(--rec-text-muted); display: flex; align-items: center; gap: 6px;">
+                            <i class='bx bx-shield-quarter text-primary' style="font-size: 16px;"></i>
+                            <span>Visible report types are dynamically synchronized from the <strong>Super Admin RBAC Security Matrix</strong>.</span>
+                        </div>
+                        <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openRolePermissionsModal()" style="font-size: 11px;">
+                            <i class='bx bx-key'></i> View My Role Permissions
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+<!-- ── TAB 5: MY ACCOUNT / PROFILE (R-012) ─────────────────────── -->
             <section id="tab-profile" class="tab-section">
                 <div style="max-width: 780px;">
                     <!-- Minimal Profile Header Card with Live Avatar Preview -->
@@ -2936,6 +3122,9 @@
 
             const usersNav = document.getElementById('navItemUsers');
             if (usersNav) usersNav.style.display = (keys.includes('users.create') || keys.includes('users.edit')) ? 'flex' : 'none';
+
+            // Dynamically synchronize available report categories based on Super Admin RBAC permissions
+            updateReceptionistReportCategories(keys);
         }
 
         function openRolePermissionsModal() {
@@ -6863,8 +7052,52 @@
             if (ok) loadDashboardData();
         })();
     
-// ── RECEPTIONIST OPERATIONAL REPORTS (ROLE-LIMITED) ───────────────────
+// ── RECEPTIONIST OPERATIONAL & GOVERNANCE REPORTS ───────────────────
         let cachedRecReportData = null;
+
+        function updateReceptionistReportCategories(permissionKeys) {
+            const select = document.getElementById('recReportCategory');
+            if (!select) return;
+
+            const curVal = select.value;
+            const pKeys = Array.isArray(permissionKeys) ? permissionKeys : [];
+            const userRole = (userPermissionsData?.user?.role || '').toLowerCase();
+            const isMaster = ['super_admin', 'admin'].includes(userRole);
+
+            const allCatalog = [
+                { key: 'reports_earnings', value: 'earnings', label: 'Financial Earnings & Revenue' },
+                { key: 'reports_appointments', value: 'appointments', label: 'Appointments & Procedures' },
+                { key: 'reports_patients', value: 'patients', label: 'Patient Registry & Demographics' },
+                { key: 'reports_queues', value: 'queues', label: 'Live Patient Flow Queue' },
+                { key: 'reports_cancellations', value: 'cancellations', label: 'Cancellations & Attrition' },
+                { key: 'reports_audit_logs', value: 'audit_logs', label: 'System Security & Audit Trail' }
+            ];
+
+            const allowed = allCatalog.filter(item => {
+                if (isMaster) return true;
+                return pKeys.includes(item.key) || pKeys.includes(item.key.replace('_', '.'));
+            });
+
+            select.innerHTML = '';
+            if (allowed.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'No Report Permissions Granted (Contact Super Admin)';
+                opt.disabled = true;
+                select.appendChild(opt);
+            } else {
+                allowed.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.value;
+                    opt.textContent = item.label;
+                    select.appendChild(opt);
+                });
+                const stillValid = allowed.some(a => a.value === curVal);
+                select.value = stillValid ? curVal : allowed[0].value;
+            }
+
+            renderRecReportTableHead(select.value);
+        }
 
         function onRecReportCategoryChange(category) {
             renderRecReportTableHead(category);
@@ -6881,7 +7114,7 @@
 
         function resetRecReportFilters() {
             const cat = document.getElementById('recReportCategory');
-            if (cat) cat.value = 'queue_summary';
+            if (cat && cat.options.length > 0) cat.selectedIndex = 0;
             const preset = document.getElementById('recReportDatePreset');
             if (preset) preset.value = 'today';
             const doc = document.getElementById('recReportDoctorFilter');
@@ -6895,7 +7128,8 @@
             const dt = document.getElementById('recReportDateTo');
             if (dt) dt.value = '';
 
-            renderRecReportTableHead('queue_summary');
+            const selectedCat = cat?.value || 'appointments';
+            renderRecReportTableHead(selectedCat);
             loadReceptionistReports();
         }
 
@@ -6903,7 +7137,43 @@
             const thead = document.getElementById('recReportTableHead');
             if (!thead) return;
 
-            if (cat === 'queue_summary') {
+            if (cat === 'earnings' || cat === 'daily_collections') {
+                thead.innerHTML = `
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>Patient Name &amp; Phone</th>
+                        <th>Attending Doctor</th>
+                        <th>Procedure Completed</th>
+                        <th>Payment / Fee (₱)</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                `;
+            } else if (cat === 'appointments' || cat === 'appointments_roster') {
+                thead.innerHTML = `
+                    <tr>
+                        <th>Schedule (Date &amp; Time)</th>
+                        <th>Patient Name &amp; Phone</th>
+                        <th>Attending Doctor</th>
+                        <th>Dental Procedure</th>
+                        <th>Operatory Station</th>
+                        <th>Visit Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                `;
+            } else if (cat === 'patients' || cat === 'patient_attendance') {
+                thead.innerHTML = `
+                    <tr>
+                        <th style="width: 100px;">Patient ID</th>
+                        <th>Patient Name</th>
+                        <th>Contact Phone</th>
+                        <th>Email Address</th>
+                        <th>Age / Gender</th>
+                        <th>Medical Alerts</th>
+                        <th style="text-align: right;">Status</th>
+                    </tr>
+                `;
+            } else if (cat === 'queues' || cat === 'queue_summary') {
                 thead.innerHTML = `
                     <tr>
                         <th style="width: 80px;">Queue #</th>
@@ -6915,40 +7185,28 @@
                         <th style="text-align: right;">Action</th>
                     </tr>
                 `;
-            } else if (cat === 'appointments_roster') {
+            } else if (cat === 'cancellations') {
                 thead.innerHTML = `
                     <tr>
-                        <th>Schedule (Date &amp; Time)</th>
-                        <th>Patient Name &amp; Phone</th>
-                        <th>Attending Doctor</th>
-                        <th>Dental Procedure</th>
-                        <th>Station</th>
-                        <th>Status</th>
-                        <th style="text-align: right;">Action</th>
-                    </tr>
-                `;
-            } else if (cat === 'patient_attendance') {
-                thead.innerHTML = `
-                    <tr>
-                        <th>Date &amp; Time</th>
+                        <th>Appointment Date</th>
                         <th>Patient Information</th>
                         <th>Attending Doctor</th>
                         <th>Procedure</th>
-                        <th>Attendance Outcome</th>
-                        <th>Cancellation / Remarks</th>
+                        <th>Cancellation Reason</th>
+                        <th>Status</th>
                         <th style="text-align: right;">Action</th>
                     </tr>
                 `;
-            } else if (cat === 'daily_collections') {
+            } else if (cat === 'audit_logs') {
                 thead.innerHTML = `
                     <tr>
-                        <th>Date &amp; Time</th>
-                        <th>Patient Name</th>
-                        <th>Attending Doctor</th>
-                        <th>Procedure Performed</th>
-                        <th>Standard Fee (₱)</th>
-                        <th>Status</th>
-                        <th style="text-align: right;">Action</th>
+                        <th>Timestamp (UTC+8)</th>
+                        <th>User / Actor</th>
+                        <th>Role</th>
+                        <th>Event Action</th>
+                        <th>IP Address</th>
+                        <th>Audit Details</th>
+                        <th style="text-align: right;">Status</th>
                     </tr>
                 `;
             }
@@ -6965,16 +7223,18 @@
             }
 
             if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);"><i class='bx bx-loader-alt bx-spin' style="font-size: 26px; display: block; margin-bottom: 6px; color: var(--rec-primary);"></i>Querying role-limited operational reports...</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);"><i class='bx bx-loader-alt bx-spin' style="font-size: 26px; display: block; margin-bottom: 6px; color: var(--rec-primary);"></i>Querying report data...</td></tr>`;
             }
 
             try {
-                const category = document.getElementById('recReportCategory')?.value || 'queue_summary';
+                const category = document.getElementById('recReportCategory')?.value || 'appointments';
                 const datePreset = document.getElementById('recReportDatePreset')?.value || 'today';
                 const doctor = document.getElementById('recReportDoctorFilter')?.value || 'all';
                 const status = document.getElementById('recReportStatusFilter')?.value || 'all';
                 const dateFrom = document.getElementById('recReportDateFrom')?.value || '';
                 const dateTo = document.getElementById('recReportDateTo')?.value || '';
+
+                renderRecReportTableHead(category);
 
                 const params = new URLSearchParams({
                     category: category,
@@ -6989,7 +7249,7 @@
                 const data = await res.json();
 
                 if (!res.ok || data.status !== 'success') {
-                    showToast('error', data.message || 'Unable to generate operational report.');
+                    showToast('error', data.message || 'Unable to generate report.');
                     if (tbody) {
                         tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: #DC2626;"><i class='bx bx-error-circle' style="font-size: 28px; display: block; margin-bottom: 6px;"></i>${escapeHtml(data.message || 'Error querying report.')}</td></tr>`;
                     }
@@ -6998,7 +7258,7 @@
 
                 cachedRecReportData = data;
 
-                // Update Doctors dropdown if needed
+                // Update Doctors dropdown if not yet populated
                 const docSel = document.getElementById('recReportDoctorFilter');
                 if (docSel && data.doctors && docSel.options.length <= 1) {
                     const curVal = docSel.value;
@@ -7011,10 +7271,10 @@
                     docSel.value = curVal;
                 }
 
-                // Update Metrics
+                // Update Summary Metric Cards
                 const m = data.metrics || {};
                 const elTot = document.getElementById('recReportStatTotal');
-                if (elTot) elTot.textContent = m.total_records || 0;
+                if (elTot) elTot.textContent = m.total_records || (data.records ? data.records.length : 0);
                 const elComp = document.getElementById('recReportStatCompleted');
                 if (elComp) elComp.textContent = m.completed_visits || 0;
                 const elWait = document.getElementById('recReportStatWaiting');
@@ -7022,7 +7282,7 @@
                 const elVol = document.getElementById('recReportStatVolume');
                 if (elVol) elVol.textContent = m.total_service_volume || '₱0.00';
 
-                renderRecReportRows(category, data.data || {});
+                renderRecReportRows(category, data.records || (data.data && data.data[category]) || []);
             } catch (err) {
                 console.error("Receptionist report query error:", err);
                 showToast('error', 'Network error querying report.');
@@ -7034,24 +7294,13 @@
             }
         }
 
-        function renderRecReportRows(category, dataObj) {
+        function renderRecReportRows(category, rows) {
             const tbody = document.getElementById('recReportTableBody');
             if (!tbody) return;
 
-            let rows = [];
-            if (category === 'queue_summary') {
-                rows = dataObj.queue_summary || dataObj.records || [];
-            } else if (category === 'appointments_roster') {
-                rows = dataObj.appointments_roster || dataObj.records || [];
-            } else if (category === 'patient_attendance') {
-                rows = dataObj.patient_attendance || dataObj.records || [];
-            } else if (category === 'daily_collections') {
-                rows = dataObj.daily_collections || dataObj.records || [];
-            } else {
-                rows = dataObj.records || [];
-            }
+            const list = Array.isArray(rows) ? rows : [];
 
-            if (rows.length === 0) {
+            if (list.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: var(--rec-text-muted);">
@@ -7064,8 +7313,116 @@
                 return;
             }
 
-            if (category === 'queue_summary') {
-                tbody.innerHTML = rows.map((r, i) => {
+            if (category === 'earnings' || category === 'daily_collections') {
+                tbody.innerHTML = list.map(r => {
+                    const status = (r.status || 'completed').toLowerCase();
+                    return `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; font-size: 12.5px;">${escapeHtml(r.appointment_date || r.date || 'N/A')}</div>
+                                <div style="font-size: 11px; color: var(--rec-primary); font-weight: 600;">${escapeHtml(r.time_slot || r.appointment_time || '')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; font-size: 13px; color: var(--rec-text);">${escapeHtml(r.patient_name || 'Patient')}</div>
+                                <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(r.patient_phone || 'No phone')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; font-size: 12px;"><i class='bx bx-user mr-1'></i>${escapeHtml(r.doctor_name || 'Assigned Doctor')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; font-size: 12.5px;">${escapeHtml(r.service_name || 'Dental Service')}</div>
+                            </td>
+                            <td>
+                                <span style="font-size: 13px; font-weight: 800; color: #059669;">${r.formatted_price || '₱' + (r.price || 0)}</span>
+                            </td>
+                            <td>
+                                <span class="status-pill ${status}">
+                                    <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
+                                </span>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openViewUpdateApptModal('${r._id}')">
+                                    <i class='bx bx-file'></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else if (category === 'appointments' || category === 'appointments_roster') {
+                tbody.innerHTML = list.map(r => {
+                    const status = (r.status || 'scheduled').toLowerCase();
+                    return `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; font-size: 12.5px;"><i class='bx bx-calendar text-primary mr-1'></i>${escapeHtml(r.appointment_date || r.date || 'TBD')}</div>
+                                <div style="font-size: 11px; color: var(--rec-primary); font-weight: 700;"><i class='bx bx-time mr-1'></i>${escapeHtml(r.time_slot || '09:00 AM')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; font-size: 13px; color: var(--rec-text);">${escapeHtml(r.patient_name || 'Patient')}</div>
+                                <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(r.patient_phone || 'No phone')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; font-size: 12px;"><i class='bx bx-user mr-1'></i>${escapeHtml(r.doctor_name || 'Attending Doctor')}</div>
+                            </td>
+                            <td>
+                                <div style="font-size: 12.5px; font-weight: 600;">${escapeHtml(r.service_name || 'Consultation')}</div>
+                                <div style="font-size: 11px; color: #059669; font-weight: 700;">${r.formatted_price || '₱500.00'}</div>
+                            </td>
+                            <td>
+                                <span style="font-size: 11px; background: rgba(14, 177, 177, 0.08); padding: 3px 8px; border-radius: 6px; font-weight: 600; color: var(--rec-primary);">
+                                    ${escapeHtml(r.operatory_chair || 'Chair 1')}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-pill ${status}">
+                                    <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
+                                </span>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openViewUpdateApptModal('${r._id}')">
+                                    <i class='bx bx-edit-alt'></i> View &amp; Update
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else if (category === 'patients' || category === 'patient_attendance') {
+                tbody.innerHTML = list.map(r => {
+                    return `
+                        <tr>
+                            <td>
+                                <span style="font-family: monospace; font-size: 11px; background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-weight: 700; color: var(--rec-primary);">
+                                    #${escapeHtml(r.patient_id || (r._id ? r._id.slice(-6).toUpperCase() : 'PAT'))}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; font-size: 13px; color: var(--rec-text);">${escapeHtml(r.patient_name || r.full_name || 'Patient')}</div>
+                                <div style="font-size: 10px; color: var(--rec-text-muted);">Registered: ${escapeHtml((r.created_at || '').slice(0, 10) || 'Active')}</div>
+                            </td>
+                            <td>
+                                <div style="font-size: 12px; font-weight: 600;"><i class='bx bx-phone mr-1 text-dim'></i>${escapeHtml(r.patient_phone || r.phone || 'N/A')}</div>
+                            </td>
+                            <td>
+                                <div style="font-size: 12px; color: var(--rec-text-muted);"><i class='bx bx-envelope mr-1 text-dim'></i>${escapeHtml(r.email || 'N/A')}</div>
+                            </td>
+                            <td>
+                                <span style="font-size: 11px; background: #EEF2FF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                                    ${escapeHtml(r.age || 'N/A')} yrs &bull; ${escapeHtml(r.gender || 'Other')}
+                                </span>
+                            </td>
+                            <td>
+                                <span style="font-size: 11px; color: ${(r.medical_alerts && r.medical_alerts !== 'None recorded') ? '#DC2626' : 'var(--rec-text-muted)'}; font-weight: 600;">
+                                    ${escapeHtml(r.medical_alerts || r.allergies || 'None recorded')}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 4px;">ACTIVE</span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else if (category === 'queues' || category === 'queue_summary') {
+                tbody.innerHTML = list.map((r, i) => {
                     const status = (r.status || 'waiting').toLowerCase();
                     const qNum = r.queue_number || (i + 1);
                     return `
@@ -7103,53 +7460,14 @@
                         </tr>
                     `;
                 }).join('');
-            } else if (category === 'appointments_roster') {
-                tbody.innerHTML = rows.map(r => {
-                    const status = (r.status || 'scheduled').toLowerCase();
+            } else if (category === 'cancellations') {
+                tbody.innerHTML = list.map(r => {
+                    const status = (r.status || 'cancelled').toLowerCase();
                     return `
                         <tr>
                             <td>
-                                <div style="font-weight: 700; font-size: 12.5px;"><i class='bx bx-calendar text-primary mr-1'></i>${escapeHtml(r.appointment_date || 'TBD')}</div>
-                                <div style="font-size: 11px; color: var(--rec-primary); font-weight: 700;"><i class='bx bx-time mr-1'></i>${escapeHtml(r.time_slot || '09:00 AM')}</div>
-                            </td>
-                            <td>
-                                <div style="font-weight: 700; font-size: 13px; color: var(--rec-text);">${escapeHtml(r.patient_name || 'Patient')}</div>
-                                <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(r.patient_phone || 'No phone')}</div>
-                            </td>
-                            <td>
-                                <div style="font-weight: 600; font-size: 12px;"><i class='bx bx-user mr-1'></i>${escapeHtml(r.doctor_name || 'Attending Doctor')}</div>
-                            </td>
-                            <td>
-                                <div style="font-size: 12.5px; font-weight: 600;">${escapeHtml(r.service_name || 'Consultation')}</div>
-                                <div style="font-size: 11px; color: #059669; font-weight: 700;">${r.formatted_price || '₱500.00'}</div>
-                            </td>
-                            <td>
-                                <span style="font-size: 11px; background: rgba(14, 177, 177, 0.08); padding: 3px 8px; border-radius: 6px; font-weight: 600; color: var(--rec-primary);">
-                                    ${escapeHtml(r.operatory_chair || 'Operatory Chair 1')}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="status-pill ${status}">
-                                    <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
-                                </span>
-                            </td>
-                            <td style="text-align: right; white-space: nowrap;">
-                                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openViewUpdateApptModal('${r._id}')">
-                                    <i class='bx bx-edit-alt'></i> View &amp; Update
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            } else if (category === 'patient_attendance') {
-                tbody.innerHTML = rows.map(r => {
-                    const status = (r.status || 'completed').toLowerCase();
-                    const isCancelled = ['cancelled', 'no_show'].includes(status);
-                    return `
-                        <tr>
-                            <td>
-                                <div style="font-weight: 700; font-size: 12.5px;">${escapeHtml(r.appointment_date || 'TBD')}</div>
-                                <div style="font-size: 11px; color: var(--rec-primary);">${escapeHtml(r.time_slot || '09:00 AM')}</div>
+                                <div style="font-weight: 700; font-size: 12.5px;">${escapeHtml(r.appointment_date || 'N/A')}</div>
+                                <div style="font-size: 11px; color: var(--rec-primary);">${escapeHtml(r.time_slot || '')}</div>
                             </td>
                             <td>
                                 <div style="font-weight: 700; font-size: 13px;">${escapeHtml(r.patient_name || 'Patient')}</div>
@@ -7162,14 +7480,14 @@
                                 <div style="font-size: 12px;">${escapeHtml(r.service_name || 'Consultation')}</div>
                             </td>
                             <td>
+                                <div style="font-size: 11.5px; color: #DC2626; font-weight: 600;">
+                                    ${escapeHtml(r.cancellation_reason || r.notes || 'Patient cancellation / No-show')}
+                                </div>
+                            </td>
+                            <td>
                                 <span class="status-pill ${status}">
                                     <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
                                 </span>
-                            </td>
-                            <td>
-                                <div style="font-size: 11px; color: ${isCancelled ? '#DC2626' : 'var(--rec-text-muted)'}; font-weight: ${isCancelled ? '600' : '400'};">
-                                    ${escapeHtml(r.cancellation_reason || r.notes || (isCancelled ? 'Patient cancelled / No-show' : 'Visit completed successfully'))}
-                                </div>
                             </td>
                             <td style="text-align: right; white-space: nowrap;">
                                 <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openViewUpdateApptModal('${r._id}')">
@@ -7179,37 +7497,37 @@
                         </tr>
                     `;
                 }).join('');
-            } else if (category === 'daily_collections') {
-                tbody.innerHTML = rows.map(r => {
-                    const status = (r.status || 'completed').toLowerCase();
+            } else if (category === 'audit_logs') {
+                tbody.innerHTML = list.map(r => {
                     return `
                         <tr>
                             <td>
-                                <div style="font-weight: 700; font-size: 12.5px;">${escapeHtml(r.appointment_date || 'TBD')}</div>
-                                <div style="font-size: 11px; color: var(--rec-primary);">${escapeHtml(r.time_slot || '09:00 AM')}</div>
+                                <div style="font-family: monospace; font-size: 11px; color: var(--rec-text);">${escapeHtml(r.timestamp || 'N/A')}</div>
                             </td>
                             <td>
-                                <div style="font-weight: 700; font-size: 13px;">${escapeHtml(r.patient_name || 'Patient')}</div>
-                                <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(r.patient_phone || 'No phone')}</div>
+                                <div style="font-weight: 700; font-size: 12.5px;">${escapeHtml(r.actor_name || r.user_email || 'Staff')}</div>
+                                <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(r.user_email || '')}</div>
                             </td>
                             <td>
-                                <div style="font-weight: 600; font-size: 12px;">${escapeHtml(r.doctor_name || 'Doctor')}</div>
-                            </td>
-                            <td>
-                                <div style="font-weight: 600; font-size: 12.5px;">${escapeHtml(r.service_name || 'Treatment')}</div>
-                            </td>
-                            <td>
-                                <span style="font-size: 13px; font-weight: 800; color: #059669;">${r.formatted_price || '₱500.00'}</span>
-                            </td>
-                            <td>
-                                <span class="status-pill ${status}">
-                                    <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
+                                <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(14, 177, 177, 0.15); color: var(--rec-primary);">
+                                    ${escapeHtml((r.role || 'STAFF').toUpperCase())}
                                 </span>
                             </td>
-                            <td style="text-align: right; white-space: nowrap;">
-                                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openViewUpdateApptModal('${r._id}')">
-                                    <i class='bx bx-edit-alt'></i> View
-                                </button>
+                            <td>
+                                <span style="font-size: 11px; font-family: monospace; background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+                                    ${escapeHtml(r.action || 'EVENT')}
+                                </span>
+                            </td>
+                            <td>
+                                <code style="font-size: 11px;">${escapeHtml(r.ip_address || '127.0.0.1')}</code>
+                            </td>
+                            <td>
+                                <div style="font-size: 11px; color: var(--rec-text-muted); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(r.details || '')}">
+                                    ${escapeHtml(r.details || 'System audit entry')}
+                                </div>
+                            </td>
+                            <td style="text-align: right;">
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">VERIFIED</span>
                             </td>
                         </tr>
                     `;
@@ -7218,49 +7536,102 @@
         }
 
         function exportRecReportCsv() {
-            if (!cachedRecReportData || !cachedRecReportData.data) {
+            if (!cachedRecReportData || (!cachedRecReportData.records && !cachedRecReportData.data)) {
                 showToast('info', 'Please generate a report first to export.');
                 return;
             }
-            const cat = document.getElementById('recReportCategory')?.value || 'queue_summary';
-            const rows = cachedRecReportData.data[cat] || cachedRecReportData.data.records || [];
+            const cat = document.getElementById('recReportCategory')?.value || 'appointments';
+            const rows = cachedRecReportData.records || (cachedRecReportData.data && (cachedRecReportData.data[cat] || cachedRecReportData.data.records)) || [];
             if (rows.length === 0) {
                 showToast('info', 'No records to export in the current report.');
                 return;
             }
 
-            const headers = ['Date', 'Time Slot', 'Patient Name', 'Phone', 'Attending Doctor', 'Procedure', 'Station', 'Fee', 'Status', 'Notes'];
-            const csvRows = [headers.join(',')];
+            let headers = [];
+            let csvRows = [];
 
-            rows.forEach(r => {
-                const values = [
-                    `"${(r.appointment_date || '').replace(/"/g, '""')}"`,
-                    `"${(r.time_slot || '').replace(/"/g, '""')}"`,
-                    `"${(r.patient_name || '').replace(/"/g, '""')}"`,
-                    `"${(r.patient_phone || '').replace(/"/g, '""')}"`,
-                    `"${(r.doctor_name || '').replace(/"/g, '""')}"`,
-                    `"${(r.service_name || '').replace(/"/g, '""')}"`,
-                    `"${(r.operatory_chair || '').replace(/"/g, '""')}"`,
-                    `"${(r.price || 0)}"`,
-                    `"${(r.status || '').replace(/"/g, '""')}"`,
-                    `"${(r.notes || r.cancellation_reason || '').replace(/"/g, '""')}"`
-                ];
-                csvRows.push(values.join(','));
-            });
+            if (cat === 'earnings' || cat === 'daily_collections') {
+                headers = ['Date', 'Time', 'Patient Name', 'Phone', 'Attending Doctor', 'Procedure', 'Amount (PHP)', 'Status'];
+                csvRows = [headers.join(',')];
+                rows.forEach(r => {
+                    csvRows.push([
+                        `"${(r.appointment_date || r.date || '').replace(/"/g, '""')}"`,
+                        `"${(r.time_slot || '').replace(/"/g, '""')}"`,
+                        `"${(r.patient_name || '').replace(/"/g, '""')}"`,
+                        `"${(r.patient_phone || '').replace(/"/g, '""')}"`,
+                        `"${(r.doctor_name || '').replace(/"/g, '""')}"`,
+                        `"${(r.service_name || '').replace(/"/g, '""')}"`,
+                        `"${r.price || 0}"`,
+                        `"${(r.status || '').replace(/"/g, '""')}"`
+                    ].join(','));
+                });
+            } else if (cat === 'patients' || cat === 'patient_attendance') {
+                headers = ['Patient ID', 'Full Name', 'Phone', 'Email', 'Age', 'Gender', 'Medical Alerts', 'Registration Date'];
+                csvRows = [headers.join(',')];
+                rows.forEach(r => {
+                    csvRows.push([
+                        `"${(r.patient_id || '').replace(/"/g, '""')}"`,
+                        `"${(r.patient_name || r.full_name || '').replace(/"/g, '""')}"`,
+                        `"${(r.patient_phone || r.phone || '').replace(/"/g, '""')}"`,
+                        `"${(r.email || '').replace(/"/g, '""')}"`,
+                        `"${r.age || ''}"`,
+                        `"${r.gender || ''}"`,
+                        `"${(r.medical_alerts || r.allergies || '').replace(/"/g, '""')}"`,
+                        `"${(r.created_at || '').slice(0, 10)}"`
+                    ].join(','));
+                });
+            } else if (cat === 'audit_logs') {
+                headers = ['Timestamp', 'Actor Name', 'Email', 'Role', 'Action', 'IP Address', 'Details'];
+                csvRows = [headers.join(',')];
+                rows.forEach(r => {
+                    csvRows.push([
+                        `"${(r.timestamp || '').replace(/"/g, '""')}"`,
+                        `"${(r.actor_name || '').replace(/"/g, '""')}"`,
+                        `"${(r.user_email || '').replace(/"/g, '""')}"`,
+                        `"${(r.role || '').replace(/"/g, '""')}"`,
+                        `"${(r.action || '').replace(/"/g, '""')}"`,
+                        `"${(r.ip_address || '').replace(/"/g, '""')}"`,
+                        `"${(r.details || '').replace(/"/g, '""')}"`
+                    ].join(','));
+                });
+            } else {
+                headers = ['Date', 'Time Slot', 'Patient Name', 'Phone', 'Attending Doctor', 'Procedure', 'Station', 'Fee', 'Status', 'Notes'];
+                csvRows = [headers.join(',')];
+                rows.forEach(r => {
+                    csvRows.push([
+                        `"${(r.appointment_date || '').replace(/"/g, '""')}"`,
+                        `"${(r.time_slot || '').replace(/"/g, '""')}"`,
+                        `"${(r.patient_name || '').replace(/"/g, '""')}"`,
+                        `"${(r.patient_phone || '').replace(/"/g, '""')}"`,
+                        `"${(r.doctor_name || '').replace(/"/g, '""')}"`,
+                        `"${(r.service_name || '').replace(/"/g, '""')}"`,
+                        `"${(r.operatory_chair || '').replace(/"/g, '""')}"`,
+                        `"${r.price || 0}"`,
+                        `"${(r.status || '').replace(/"/g, '""')}"`,
+                        `"${(r.notes || r.cancellation_reason || '').replace(/"/g, '""')}"`
+                    ].join(','));
+                });
+            }
 
             const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `OptiDent_FrontDesk_Report_${cat}_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.download = `OptiDent_Report_${cat}_${new Date().toISOString().slice(0, 10)}.csv`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            showToast('success', 'Operational report CSV exported successfully.');
+            showToast('success', `${cat.toUpperCase()} report exported to CSV successfully.`);
         }
 
-        
+        function printRecReport() {
+            if (!cachedRecReportData || (!cachedRecReportData.records && !cachedRecReportData.data)) {
+                showToast('info', 'Please generate a report first to print.');
+                return;
+            }
+            window.print();
+        }
 </script>
 </body>
 
