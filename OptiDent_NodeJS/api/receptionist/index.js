@@ -1078,6 +1078,187 @@ router.post('/reorder_queue', async (req, res) => {
     }
 });
 
+/**
+ * Role-Limited Operational & Front Desk Reports (Receptionist Scope)
+ */
+router.get('/get_reports_data', async (req, res) => {
+    try {
+        const category = (req.query.category || 'queue_summary').toLowerCase();
+        const datePreset = (req.query.date_preset || 'today').toLowerCase();
+        const customFrom = req.query.date_from || '';
+        const customTo = req.query.date_to || '';
+        const filterDoc = req.query.doctor || 'all';
+        const filterStat = (req.query.status || 'all').toLowerCase();
+
+        // Security check: restrict categories based on role
+        const allowedCategories = ['queue_summary', 'queues', 'appointments_roster', 'appointments', 'patient_attendance', 'cancellations', 'daily_collections', 'service_inflow'];
+        if (!allowedCategories.includes(category)) {
+            return res.status(403).json({
+                status: 'error',
+                message: 'Receptionists are restricted to Front-Desk Operational Reports only. System security audit logs and executive balance sheets are restricted to Super Admin.'
+            });
+        }
+
+        const now = new Date();
+        const manilaOffset = 8 * 60; // UTC+8
+        const localNow = new Date(now.getTime() + (now.getTimezoneOffset() + manilaOffset) * 60000);
+        const todayStr = localNow.toISOString().slice(0, 10);
+        let startDate = null;
+        let endDate = null;
+
+        if (datePreset === 'today') {
+            startDate = todayStr;
+            endDate = todayStr;
+        } else if (datePreset === 'yesterday') {
+            const d = new Date(localNow);
+            d.setDate(d.getDate() - 1);
+            startDate = d.toISOString().slice(0, 10);
+            endDate = startDate;
+        } else if (datePreset === 'this_week') {
+            const d = new Date(localNow);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            d.setDate(diff);
+            startDate = d.toISOString().slice(0, 10);
+            endDate = todayStr;
+        } else if (datePreset === 'this_month') {
+            startDate = todayStr.slice(0, 7) + '-01';
+            endDate = todayStr;
+        } else if (datePreset === 'last_30_days') {
+            const d = new Date(localNow);
+            d.setDate(d.getDate() - 30);
+            startDate = d.toISOString().slice(0, 10);
+            endDate = todayStr;
+        } else if (datePreset === 'custom' && customFrom) {
+            startDate = customFrom;
+            endDate = customTo || todayStr;
+        }
+
+        const allUsers = await dbClient.find('users', { is_deleted: { $ne: true } });
+        const allAppts = await dbClient.find('appointments', { is_deleted: { $ne: true } });
+
+        const doctorsList = [];
+        for (const u of allUsers) {
+            const role = (u.role || '').toLowerCase();
+            if (role === 'doctor') {
+                doctorsList.push({
+                    id: String(u._id),
+                    name: u.full_name || 'Doctor',
+                    specialization: u.specialization || 'General Dentistry'
+                });
+            }
+        }
+
+        const filteredAppts = allAppts.filter(a => {
+            const aDate = (a.appointment_date || a.date || '').slice(0, 10);
+            if (startDate && aDate < startDate) return false;
+            if (endDate && aDate > endDate) return false;
+
+            if (filterDoc !== 'all') {
+                const docName = (a.doctor_name || a.attending_doctor || '').toLowerCase();
+                if (docName !== filterDoc.toLowerCase()) return false;
+            }
+
+            if (filterStat !== 'all') {
+                const stat = (a.status || 'scheduled').toLowerCase();
+                if (filterStat === 'completed' && stat !== 'completed') return false;
+                if (filterStat === 'scheduled' && stat !== 'scheduled') return false;
+                if (filterStat === 'waiting' && !['checked_in', 'waiting'].includes(stat)) return false;
+                if (filterStat === 'in_progress' && stat !== 'in_progress') return false;
+                if (filterStat === 'cancelled' && !['cancelled', 'no_show'].includes(stat)) return false;
+            }
+
+            return true;
+        });
+
+        // Metrics computation
+        let totalCount = filteredAppts.length;
+        let completedCount = 0;
+        let waitingCount = 0;
+        let inProgressCount = 0;
+        let scheduledCount = 0;
+        let cancelledCount = 0;
+        let totalRevenue = 0;
+
+        filteredAppts.forEach(a => {
+            const s = (a.status || 'scheduled').toLowerCase();
+            const p = a.price !== undefined && a.price !== null && !isNaN(Number(a.price)) ? Number(a.price) : getServicePrice(a.service_name);
+            if (s === 'completed') {
+                completedCount++;
+                totalRevenue += p;
+            } else if (['checked_in', 'waiting'].includes(s)) {
+                waitingCount++;
+            } else if (s === 'in_progress') {
+                inProgressCount++;
+                totalRevenue += p;
+            } else if (s === 'scheduled') {
+                scheduledCount++;
+            } else if (['cancelled', 'no_show'].includes(s)) {
+                cancelledCount++;
+            }
+        });
+
+        const enrichedRecords = filteredAppts.map(a => {
+            const aDate = (a.appointment_date || a.date || '').slice(0, 10);
+            const aTime = a.time_slot || a.appointment_time || '09:00 AM';
+            const price = a.price !== undefined && a.price !== null && !isNaN(Number(a.price)) ? Number(a.price) : getServicePrice(a.service_name);
+
+            return {
+                _id: String(a._id),
+                appointment_date: aDate,
+                date: aDate,
+                time_slot: aTime,
+                appointment_time: aTime,
+                patient_name: a.patient_name || 'Patient',
+                patient_phone: a.patient_phone || '',
+                doctor_name: a.doctor_name || a.attending_doctor || 'Assigned Doctor',
+                attending_doctor: a.doctor_name || a.attending_doctor || 'Assigned Doctor',
+                service_name: a.service_name || 'Dental Consultation',
+                operatory_chair: a.operatory_chair || 'Operatory Chair 1',
+                status: (a.status || 'scheduled').toLowerCase(),
+                price: price,
+                formatted_price: formatPhp(price),
+                cancellation_reason: a.cancellation_reason || 'N/A',
+                queue_number: a.queue_number || null,
+                notes: a.notes || '',
+                created_at: a.created_at || ''
+            };
+        });
+
+        return res.status(200).json({
+            status: 'success',
+            role_scope: 'Front Desk Receptionist (Role-Limited Operational Reports)',
+            generated_at: new Date().toISOString(),
+            date_period: {
+                preset: datePreset,
+                start_date: startDate || 'All Time',
+                end_date: endDate || 'All Time'
+            },
+            metrics: {
+                total_records: totalCount,
+                completed_visits: completedCount,
+                waiting_queue: waitingCount,
+                in_operatory: inProgressCount,
+                scheduled_consultations: scheduledCount,
+                cancelled_visits: cancelledCount,
+                total_service_volume: formatPhp(totalRevenue),
+                raw_service_volume: totalRevenue
+            },
+            doctors: doctorsList,
+            data: {
+                records: enrichedRecords,
+                queue_summary: enrichedRecords.filter(r => ['checked_in', 'waiting', 'in_progress', 'completed'].includes(r.status)),
+                appointments_roster: enrichedRecords,
+                patient_attendance: enrichedRecords.filter(r => ['completed', 'cancelled', 'no_show'].includes(r.status)),
+                daily_collections: enrichedRecords.filter(r => ['completed', 'in_progress'].includes(r.status))
+            }
+        });
+    } catch (err) {
+        console.error('Receptionist reports error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to generate operational reports.' });
+    }
+});
+
 export default router;
 
 

@@ -823,41 +823,51 @@
 
             <!-- Nav Items (Governed by Super Admin Role Permissions) -->
             <nav class="nav-menu" id="sidebarNavMenu">
-                <a href="#queue" class="nav-item active" data-perm="queue.view" onclick="switchTab('queue', this)">
+                <a href="javascript:void(0)" class="nav-item active" data-tab="queue" data-perm="queue.view" onclick="switchTab('queue', this); return false;">
                     <i class='bx bx-list-check'></i>
                     <span>Today's Queue</span>
                 </a>
-                <a href="#patients" class="nav-item" data-perm="users.view" onclick="switchTab('patients', this)">
+                <a href="javascript:void(0)" class="nav-item" data-tab="patients" data-perm="users.view" onclick="switchTab('patients', this); return false;">
                     <i class='bx bx-user-pin'></i>
                     <span>Patient Directory</span>
                 </a>
-                <a href="#appointments" class="nav-item" data-perm="appointments.view_all" onclick="switchTab('appointments', this)">
+                <a href="javascript:void(0)" class="nav-item" data-tab="appointment-management" id="navItemApptManagement" data-perm="appointments.view_all" onclick="switchTab('appointment-management', this); return false;">
+                    <i class='bx bx-calendar-edit'></i>
+                    <span>Appointment Management</span>
+                    <span style="margin-left: auto; font-size: 9px; background: rgba(14, 177, 177, 0.15); color: var(--rec-primary); padding: 2px 6px; border-radius: 4px; font-weight: 700;">R-007.3</span>
+                </a>
+                <a href="javascript:void(0)" class="nav-item" data-tab="appointments" data-perm="appointments.view_all" onclick="switchTab('appointments', this); return false;">
                     <i class='bx bx-calendar-event'></i>
                     <span>All Appointments</span>
                 </a>
-                <a href="#doctors" class="nav-item" data-perm="services.view" onclick="switchTab('doctors', this)">
+                <a href="javascript:void(0)" class="nav-item" data-tab="doctors" data-perm="services.view" onclick="switchTab('doctors', this); return false;">
                     <i class='bx bx-shield-plus'></i>
                     <span>Doctor Availability</span>
                 </a>
+                <a href="javascript:void(0)" class="nav-item" data-tab="reports" id="navItemReports" onclick="switchTab('reports', this); return false;">
+                    <i class='bx bx-bar-chart-alt-2'></i>
+                    <span>Front Desk Reports</span>
+                    <span style="margin-left: auto; font-size: 9px; background: #EEF2FF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Operational</span>
+                </a>
 
                 <!-- Dynamically Added Modules when granted by Super Admin -->
-                <a href="#billing" class="nav-item" id="navItemBilling" data-perm="billing.view" style="display: none;" onclick="switchTab('billing', this)">
+                <a href="javascript:void(0)" class="nav-item" id="navItemBilling" data-tab="billing" data-perm="billing.view" style="display: none;" onclick="switchTab('billing', this); return false;">
                     <i class='bx bx-receipt'></i>
                     <span>Billing & Invoices</span>
                     <span style="margin-left: auto; font-size: 9px; background: #EEF2FF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Granted</span>
                 </a>
-                <a href="#services" class="nav-item" id="navItemServices" data-perm="services.manage" style="display: none;" onclick="switchTab('services', this)">
+                <a href="javascript:void(0)" class="nav-item" id="navItemServices" data-tab="services" data-perm="services.manage" style="display: none;" onclick="switchTab('services', this); return false;">
                     <i class='bx bx-folder-plus'></i>
                     <span>Service Catalog</span>
                     <span style="margin-left: auto; font-size: 9px; background: #EEF2FF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Granted</span>
                 </a>
-                <a href="#delegatedUsers" class="nav-item" id="navItemUsers" data-perm="users.create" style="display: none;" onclick="switchTab('delegatedUsers', this)">
+                <a href="javascript:void(0)" class="nav-item" id="navItemUsers" data-tab="delegatedUsers" data-perm="users.create" style="display: none;" onclick="switchTab('delegatedUsers', this); return false;">
                     <i class='bx bx-user-check'></i>
                     <span>Staff Directory</span>
                     <span style="margin-left: auto; font-size: 9px; background: #EEF2FF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Delegated</span>
                 </a>
 
-                <a href="#profile" class="nav-item" onclick="switchTab('profile', this)">
+                <a href="javascript:void(0)" class="nav-item" data-tab="profile" onclick="switchTab('profile', this); return false;">
                     <i class='bx bx-cog'></i>
                     <span>Account & Station</span>
                 </a>
@@ -4650,12 +4660,21 @@
 
         // Tab Switching
         function switchTab(tabId, el) {
+            if (window.event && window.event.preventDefault) {
+                window.event.preventDefault();
+            }
             document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
             const targetSection = document.getElementById(`tab-${tabId}`);
             if (targetSection) targetSection.classList.add('active');
-            if (el) el.classList.add('active');
+
+            let navEl = el;
+            if (!navEl || !navEl.classList || !navEl.classList.contains('nav-item')) {
+                navEl = document.querySelector(`.nav-item[data-tab="${tabId}"]`) ||
+                        document.querySelector(`.nav-item[onclick*="'${tabId}'"]`);
+            }
+            if (navEl) navEl.classList.add('active');
 
             const headings = {
                 'queue': "Front Desk Reception Workspace",
@@ -4663,15 +4682,24 @@
                 'appointment-management': "R-007.3: Appointment Management — View & Update Details",
                 'appointments': "All Booked Appointments",
                 'doctors': "Dentist Schedule Monitoring & Slot Matrix",
-                'profile': "Front Desk Account & Settings"
+                'reports': "Front-Desk & Operational Reports (Role-Limited)",
+                'profile': "Front Desk Account & Settings",
+                'billing': "Billing & Invoices (Delegated)",
+                'services': "Service Catalog (Delegated)",
+                'delegatedUsers': "Staff Directory (Delegated)"
             };
-            document.getElementById('viewHeading').textContent = headings[tabId] || "Receptionist Workspace";
+            const headingEl = document.getElementById('viewHeading');
+            if (headingEl) {
+                headingEl.textContent = headings[tabId] || "Receptionist Workspace";
+            }
 
             if (tabId === 'appointment-management') {
                 loadDashboardData();
             } else if (tabId === 'doctors') {
                 loadDashboardData();
                 loadDoctorScheduleSlots();
+            } else if (tabId === 'reports') {
+                loadReceptionistReports();
             }
         }
 
@@ -6794,7 +6822,7 @@
         }
 
         // ── Session Role Guard ─────────────────────────────────────────
-        const ALLOWED_ROLES_THIS_DASHBOARD = ['receptionist', 'staff'];
+        const ALLOWED_ROLES_THIS_DASHBOARD = ['receptionist', 'staff', 'super_admin', 'admin'];
 
         async function verifySessionRole() {
             try {
@@ -6834,7 +6862,406 @@
             const ok = await verifySessionRole();
             if (ok) loadDashboardData();
         })();
-    </script>
+    
+// ── RECEPTIONIST OPERATIONAL REPORTS (ROLE-LIMITED) ───────────────────
+        let cachedRecReportData = null;
+
+        function onRecReportCategoryChange(category) {
+            renderRecReportTableHead(category);
+            loadReceptionistReports();
+        }
+
+        function onRecReportPresetChange(preset) {
+            const customBox = document.getElementById('recReportCustomDateBox');
+            if (customBox) {
+                customBox.style.display = preset === 'custom' ? 'flex' : 'none';
+            }
+            loadReceptionistReports();
+        }
+
+        function resetRecReportFilters() {
+            const cat = document.getElementById('recReportCategory');
+            if (cat) cat.value = 'queue_summary';
+            const preset = document.getElementById('recReportDatePreset');
+            if (preset) preset.value = 'today';
+            const doc = document.getElementById('recReportDoctorFilter');
+            if (doc) doc.value = 'all';
+            const st = document.getElementById('recReportStatusFilter');
+            if (st) st.value = 'all';
+            const customBox = document.getElementById('recReportCustomDateBox');
+            if (customBox) customBox.style.display = 'none';
+            const df = document.getElementById('recReportDateFrom');
+            if (df) df.value = '';
+            const dt = document.getElementById('recReportDateTo');
+            if (dt) dt.value = '';
+
+            renderRecReportTableHead('queue_summary');
+            loadReceptionistReports();
+        }
+
+        function renderRecReportTableHead(cat) {
+            const thead = document.getElementById('recReportTableHead');
+            if (!thead) return;
+
+            if (cat === 'queue_summary') {
+                thead.innerHTML = `
+                    <tr>
+                        <th style="width: 80px;">Queue #</th>
+                        <th>Patient Information</th>
+                        <th>Attending Doctor</th>
+                        <th>Treatment Procedure</th>
+                        <th>Operatory Station</th>
+                        <th>Queue Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                `;
+            } else if (cat === 'appointments_roster') {
+                thead.innerHTML = `
+                    <tr>
+                        <th>Schedule (Date &amp; Time)</th>
+                        <th>Patient Name &amp; Phone</th>
+                        <th>Attending Doctor</th>
+                        <th>Dental Procedure</th>
+                        <th>Station</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                `;
+            } else if (cat === 'patient_attendance') {
+                thead.innerHTML = `
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>Patient Information</th>
+                        <th>Attending Doctor</th>
+                        <th>Procedure</th>
+                        <th>Attendance Outcome</th>
+                        <th>Cancellation / Remarks</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                `;
+            } else if (cat === 'daily_collections') {
+                thead.innerHTML = `
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>Patient Name</th>
+                        <th>Attending Doctor</th>
+                        <th>Procedure Performed</th>
+                        <th>Standard Fee (₱)</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                `;
+            }
+        }
+
+        async function loadReceptionistReports() {
+            const tbody = document.getElementById('recReportTableBody');
+            const genBtn = document.getElementById('btnGenRecReport');
+            const origHtml = genBtn ? genBtn.innerHTML : '';
+
+            if (genBtn) {
+                genBtn.disabled = true;
+                genBtn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Generating...";
+            }
+
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--rec-text-muted);"><i class='bx bx-loader-alt bx-spin' style="font-size: 26px; display: block; margin-bottom: 6px; color: var(--rec-primary);"></i>Querying role-limited operational reports...</td></tr>`;
+            }
+
+            try {
+                const category = document.getElementById('recReportCategory')?.value || 'queue_summary';
+                const datePreset = document.getElementById('recReportDatePreset')?.value || 'today';
+                const doctor = document.getElementById('recReportDoctorFilter')?.value || 'all';
+                const status = document.getElementById('recReportStatusFilter')?.value || 'all';
+                const dateFrom = document.getElementById('recReportDateFrom')?.value || '';
+                const dateTo = document.getElementById('recReportDateTo')?.value || '';
+
+                const params = new URLSearchParams({
+                    category: category,
+                    date_preset: datePreset,
+                    doctor: doctor,
+                    status: status,
+                    date_from: dateFrom,
+                    date_to: dateTo
+                });
+
+                const res = await fetch(`api/receptionist/get_reports_data.php?${params.toString()}`);
+                const data = await res.json();
+
+                if (!res.ok || data.status !== 'success') {
+                    showToast('error', data.message || 'Unable to generate operational report.');
+                    if (tbody) {
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: #DC2626;"><i class='bx bx-error-circle' style="font-size: 28px; display: block; margin-bottom: 6px;"></i>${escapeHtml(data.message || 'Error querying report.')}</td></tr>`;
+                    }
+                    return;
+                }
+
+                cachedRecReportData = data;
+
+                // Update Doctors dropdown if needed
+                const docSel = document.getElementById('recReportDoctorFilter');
+                if (docSel && data.doctors && docSel.options.length <= 1) {
+                    const curVal = docSel.value;
+                    data.doctors.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d.name;
+                        opt.textContent = `${d.name} (${d.specialization})`;
+                        docSel.appendChild(opt);
+                    });
+                    docSel.value = curVal;
+                }
+
+                // Update Metrics
+                const m = data.metrics || {};
+                const elTot = document.getElementById('recReportStatTotal');
+                if (elTot) elTot.textContent = m.total_records || 0;
+                const elComp = document.getElementById('recReportStatCompleted');
+                if (elComp) elComp.textContent = m.completed_visits || 0;
+                const elWait = document.getElementById('recReportStatWaiting');
+                if (elWait) elWait.textContent = (m.waiting_queue || 0) + (m.in_operatory || 0);
+                const elVol = document.getElementById('recReportStatVolume');
+                if (elVol) elVol.textContent = m.total_service_volume || '₱0.00';
+
+                renderRecReportRows(category, data.data || {});
+            } catch (err) {
+                console.error("Receptionist report query error:", err);
+                showToast('error', 'Network error querying report.');
+            } finally {
+                if (genBtn) {
+                    genBtn.disabled = false;
+                    genBtn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        function renderRecReportRows(category, dataObj) {
+            const tbody = document.getElementById('recReportTableBody');
+            if (!tbody) return;
+
+            let rows = [];
+            if (category === 'queue_summary') {
+                rows = dataObj.queue_summary || dataObj.records || [];
+            } else if (category === 'appointments_roster') {
+                rows = dataObj.appointments_roster || dataObj.records || [];
+            } else if (category === 'patient_attendance') {
+                rows = dataObj.patient_attendance || dataObj.records || [];
+            } else if (category === 'daily_collections') {
+                rows = dataObj.daily_collections || dataObj.records || [];
+            } else {
+                rows = dataObj.records || [];
+            }
+
+            if (rows.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: var(--rec-text-muted);">
+                            <i class='bx bx-search' style="font-size: 36px; display: block; margin-bottom: 8px; color: var(--rec-primary);"></i>
+                            <div style="font-size: 14px; font-weight: 700; color: var(--rec-text);">No Records Found for Current Parameters</div>
+                            <div style="font-size: 12px; margin-top: 4px;">Try selecting "All Time Records" or choosing "All Attending Doctors".</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            if (category === 'queue_summary') {
+                tbody.innerHTML = rows.map((r, i) => {
+                    const status = (r.status || 'waiting').toLowerCase();
+                    const qNum = r.queue_number || (i + 1);
+                    return `
+                        <tr>
+                            <td>
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: rgba(14, 177, 177, 0.12); color: var(--rec-primary); font-weight: 800; font-size: 13px;">
+                                    #${qNum}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; font-size: 13px; color: var(--rec-text);">${escapeHtml(r.patient_name || 'Patient')}</div>
+                                <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(r.patient_phone || 'No phone')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; font-size: 12px; color: var(--rec-text);"><i class='bx bx-user mr-1'></i>${escapeHtml(r.doctor_name || 'Assigned Doctor')}</div>
+                            </td>
+                            <td>
+                                <div style="font-size: 12px;">${escapeHtml(r.service_name || 'Consultation')}</div>
+                            </td>
+                            <td>
+                                <span style="font-size: 11px; background: rgba(14, 177, 177, 0.08); padding: 3px 8px; border-radius: 6px; font-weight: 600; color: var(--rec-primary);">
+                                    ${escapeHtml(r.operatory_chair || 'Chair 1')}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-pill ${status}">
+                                    <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
+                                </span>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openViewUpdateApptModal('${r._id}')">
+                                    <i class='bx bx-edit-alt'></i> Details
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else if (category === 'appointments_roster') {
+                tbody.innerHTML = rows.map(r => {
+                    const status = (r.status || 'scheduled').toLowerCase();
+                    return `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; font-size: 12.5px;"><i class='bx bx-calendar text-primary mr-1'></i>${escapeHtml(r.appointment_date || 'TBD')}</div>
+                                <div style="font-size: 11px; color: var(--rec-primary); font-weight: 700;"><i class='bx bx-time mr-1'></i>${escapeHtml(r.time_slot || '09:00 AM')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; font-size: 13px; color: var(--rec-text);">${escapeHtml(r.patient_name || 'Patient')}</div>
+                                <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(r.patient_phone || 'No phone')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; font-size: 12px;"><i class='bx bx-user mr-1'></i>${escapeHtml(r.doctor_name || 'Attending Doctor')}</div>
+                            </td>
+                            <td>
+                                <div style="font-size: 12.5px; font-weight: 600;">${escapeHtml(r.service_name || 'Consultation')}</div>
+                                <div style="font-size: 11px; color: #059669; font-weight: 700;">${r.formatted_price || '₱500.00'}</div>
+                            </td>
+                            <td>
+                                <span style="font-size: 11px; background: rgba(14, 177, 177, 0.08); padding: 3px 8px; border-radius: 6px; font-weight: 600; color: var(--rec-primary);">
+                                    ${escapeHtml(r.operatory_chair || 'Operatory Chair 1')}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-pill ${status}">
+                                    <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
+                                </span>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openViewUpdateApptModal('${r._id}')">
+                                    <i class='bx bx-edit-alt'></i> View &amp; Update
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else if (category === 'patient_attendance') {
+                tbody.innerHTML = rows.map(r => {
+                    const status = (r.status || 'completed').toLowerCase();
+                    const isCancelled = ['cancelled', 'no_show'].includes(status);
+                    return `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; font-size: 12.5px;">${escapeHtml(r.appointment_date || 'TBD')}</div>
+                                <div style="font-size: 11px; color: var(--rec-primary);">${escapeHtml(r.time_slot || '09:00 AM')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; font-size: 13px;">${escapeHtml(r.patient_name || 'Patient')}</div>
+                                <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(r.patient_phone || 'No phone')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; font-size: 12px;">${escapeHtml(r.doctor_name || 'Doctor')}</div>
+                            </td>
+                            <td>
+                                <div style="font-size: 12px;">${escapeHtml(r.service_name || 'Consultation')}</div>
+                            </td>
+                            <td>
+                                <span class="status-pill ${status}">
+                                    <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-size: 11px; color: ${isCancelled ? '#DC2626' : 'var(--rec-text-muted)'}; font-weight: ${isCancelled ? '600' : '400'};">
+                                    ${escapeHtml(r.cancellation_reason || r.notes || (isCancelled ? 'Patient cancelled / No-show' : 'Visit completed successfully'))}
+                                </div>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openViewUpdateApptModal('${r._id}')">
+                                    <i class='bx bx-edit-alt'></i> Details
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else if (category === 'daily_collections') {
+                tbody.innerHTML = rows.map(r => {
+                    const status = (r.status || 'completed').toLowerCase();
+                    return `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; font-size: 12.5px;">${escapeHtml(r.appointment_date || 'TBD')}</div>
+                                <div style="font-size: 11px; color: var(--rec-primary);">${escapeHtml(r.time_slot || '09:00 AM')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; font-size: 13px;">${escapeHtml(r.patient_name || 'Patient')}</div>
+                                <div style="font-size: 11px; color: var(--rec-text-muted);">${escapeHtml(r.patient_phone || 'No phone')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; font-size: 12px;">${escapeHtml(r.doctor_name || 'Doctor')}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; font-size: 12.5px;">${escapeHtml(r.service_name || 'Treatment')}</div>
+                            </td>
+                            <td>
+                                <span style="font-size: 13px; font-weight: 800; color: #059669;">${r.formatted_price || '₱500.00'}</span>
+                            </td>
+                            <td>
+                                <span class="status-pill ${status}">
+                                    <i class='bx bxs-circle' style="font-size: 7px;"></i> ${escapeHtml(status.replace('_', ' ').toUpperCase())}
+                                </span>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openViewUpdateApptModal('${r._id}')">
+                                    <i class='bx bx-edit-alt'></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function exportRecReportCsv() {
+            if (!cachedRecReportData || !cachedRecReportData.data) {
+                showToast('info', 'Please generate a report first to export.');
+                return;
+            }
+            const cat = document.getElementById('recReportCategory')?.value || 'queue_summary';
+            const rows = cachedRecReportData.data[cat] || cachedRecReportData.data.records || [];
+            if (rows.length === 0) {
+                showToast('info', 'No records to export in the current report.');
+                return;
+            }
+
+            const headers = ['Date', 'Time Slot', 'Patient Name', 'Phone', 'Attending Doctor', 'Procedure', 'Station', 'Fee', 'Status', 'Notes'];
+            const csvRows = [headers.join(',')];
+
+            rows.forEach(r => {
+                const values = [
+                    `"${(r.appointment_date || '').replace(/"/g, '""')}"`,
+                    `"${(r.time_slot || '').replace(/"/g, '""')}"`,
+                    `"${(r.patient_name || '').replace(/"/g, '""')}"`,
+                    `"${(r.patient_phone || '').replace(/"/g, '""')}"`,
+                    `"${(r.doctor_name || '').replace(/"/g, '""')}"`,
+                    `"${(r.service_name || '').replace(/"/g, '""')}"`,
+                    `"${(r.operatory_chair || '').replace(/"/g, '""')}"`,
+                    `"${(r.price || 0)}"`,
+                    `"${(r.status || '').replace(/"/g, '""')}"`,
+                    `"${(r.notes || r.cancellation_reason || '').replace(/"/g, '""')}"`
+                ];
+                csvRows.push(values.join(','));
+            });
+
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `OptiDent_FrontDesk_Report_${cat}_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('success', 'Operational report CSV exported successfully.');
+        }
+
+        
+</script>
 </body>
 
 </html>
