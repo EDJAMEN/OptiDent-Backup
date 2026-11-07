@@ -273,6 +273,8 @@ router.post('/save_clinical_record', async (req, res) => {
             diagnosis,
             procedure_notes: procedureNotes,
             notes: procedureNotes,
+            treatment_category: body.treatment_category || body.category || 'General Dentistry',
+            anesthesia: (body.anesthesia || '').trim(),
             teeth_selected: teeth,
             tooth_surfaces: surfaces,
             prescription,
@@ -285,16 +287,30 @@ router.post('/save_clinical_record', async (req, res) => {
         };
 
         if (apptId) {
+            const existing = await dbClient.findOne('appointments', { _id: apptId });
+            if (existing) {
+                if (!diagnosis && existing.diagnosis) updateData.diagnosis = existing.diagnosis;
+                if (!procedureNotes && (existing.procedure_notes || existing.notes)) updateData.procedure_notes = existing.procedure_notes || existing.notes;
+                if (teeth.length === 0 && existing.teeth_selected) updateData.teeth_selected = existing.teeth_selected;
+                if (surfaces.length === 0 && existing.tooth_surfaces) updateData.tooth_surfaces = existing.tooth_surfaces;
+                if (!prescription && existing.prescription) updateData.prescription = existing.prescription;
+                if (!postOp && existing.post_op_instructions) updateData.post_op_instructions = existing.post_op_instructions;
+                if (!updateData.anesthesia && existing.anesthesia) updateData.anesthesia = existing.anesthesia;
+                if (!body.treatment_category && existing.treatment_category) updateData.treatment_category = existing.treatment_category;
+            }
             await dbClient.updateOne('appointments', { _id: apptId }, { $set: updateData });
         } else {
             // New direct clinical entry
+            const doctorAssigned = body.doctor_name || body.attending_doctor || req.user.full_name || 'Dr. Practitioner';
             const newRecord = {
                 ...updateData,
                 patient_name: body.patient_name,
                 patient_phone: body.patient_phone || '',
                 service_name: body.service_name || 'Dental Consultation',
-                doctor_name: req.user.full_name,
-                appointment_date: new Date().toISOString().slice(0, 10),
+                doctor_name: doctorAssigned,
+                attending_doctor: doctorAssigned,
+                appointment_date: body.appointment_date || body.date || new Date().toISOString().slice(0, 10),
+                appointment_time: body.appointment_time || body.time_slot || '09:00 AM',
                 created_at: updateData.completed_at
             };
             await dbClient.insertOne('appointments', newRecord);
@@ -304,8 +320,9 @@ router.post('/save_clinical_record', async (req, res) => {
         await dbClient.insertOne('clinical_records', {
             appointment_id: apptId || '',
             patient_name: body.patient_name || '',
-            doctor_name: req.user.full_name,
+            doctor_name: body.doctor_name || req.user.full_name,
             diagnosis,
+            treatment_category: body.treatment_category || body.category || 'General Dentistry',
             teeth_selected: teeth,
             prescription,
             created_at: new Date().toISOString().replace('T', ' ').slice(0, 19)
@@ -752,7 +769,13 @@ router.get('/get_clinical_records', async (req, res) => {
         const dateFrom = (req.query.date_from || '').trim();
         const dateTo = (req.query.date_to || '').trim();
 
-        const allCompleted = await dbClient.find('appointments', { status: 'completed' });
+        const allCompleted = await dbClient.find('appointments', {
+            $or: [
+                { status: 'completed' },
+                { diagnosis: { $exists: true, $ne: '' } },
+                { procedure_notes: { $exists: true, $ne: '' } }
+            ]
+        });
         const results = [];
 
         for (const rec of allCompleted) {

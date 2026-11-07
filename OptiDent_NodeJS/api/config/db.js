@@ -85,6 +85,71 @@ function writeFallback(data) {
     }
 }
 
+// Helper to match documents in fallback mode supporting MongoDB operators
+function matchItem(item, filter = {}) {
+    if (!filter || Object.keys(filter).length === 0) return true;
+    for (const key of Object.keys(filter)) {
+        if (key === '$or') {
+            if (Array.isArray(filter.$or)) {
+                const orMatch = filter.$or.some(subFilter => matchItem(item, subFilter));
+                if (!orMatch) return false;
+            }
+            continue;
+        }
+        if (key === '$and') {
+            if (Array.isArray(filter.$and)) {
+                const andMatch = filter.$and.every(subFilter => matchItem(item, subFilter));
+                if (!andMatch) return false;
+            }
+            continue;
+        }
+
+        const cond = filter[key];
+        const val = item ? item[key] : undefined;
+
+        if (key === '_id') {
+            const targetId = cond && typeof cond === 'object' && cond.toString ? cond.toString() : cond;
+            if (targetId && typeof targetId === 'object' && targetId.$ne !== undefined) {
+                if (String(item._id) === String(targetId.$ne)) return false;
+            } else if (String(item._id) !== String(targetId)) {
+                return false;
+            }
+            continue;
+        }
+
+        if (cond !== null && typeof cond === 'object') {
+            if (cond.$ne !== undefined) {
+                if (val === cond.$ne) return false;
+            }
+            if (cond.$in && Array.isArray(cond.$in)) {
+                if (!cond.$in.includes(val)) return false;
+            }
+            if (cond.$nin && Array.isArray(cond.$nin)) {
+                if (cond.$nin.includes(val)) return false;
+            }
+            if (cond.$exists !== undefined) {
+                const exists = val !== undefined && val !== null && val !== '';
+                if (cond.$exists !== exists) return false;
+            }
+            if (cond.$gte !== undefined) {
+                if (val < cond.$gte) return false;
+            }
+            if (cond.$lte !== undefined) {
+                if (val > cond.$lte) return false;
+            }
+            if (cond.$gt !== undefined) {
+                if (val <= cond.$gt) return false;
+            }
+            if (cond.$lt !== undefined) {
+                if (val >= cond.$lt) return false;
+            }
+        } else {
+            if (val !== cond) return false;
+        }
+    }
+    return true;
+}
+
 // Helper to prepare ObjectId query
 function prepareFilter(filter = {}) {
     if (!filter || typeof filter !== 'object') return {};
@@ -131,16 +196,7 @@ export const dbClient = {
         // Fallback
         const data = readFallback();
         const list = Array.isArray(data[collectionName]) ? data[collectionName] : [];
-        let filtered = list.filter(item => {
-            for (const key of Object.keys(filter)) {
-                if (key === '_id') {
-                    if (String(item._id) !== String(filter._id)) return false;
-                } else if (item[key] !== filter[key]) {
-                    return false;
-                }
-            }
-            return true;
-        });
+        let filtered = list.filter(item => matchItem(item, filter));
         if (options.limit) filtered = filtered.slice(0, options.limit);
         return filtered.map(formatDoc);
     },
@@ -158,16 +214,7 @@ export const dbClient = {
         // Fallback
         const data = readFallback();
         const list = Array.isArray(data[collectionName]) ? data[collectionName] : [];
-        const match = list.find(item => {
-            for (const key of Object.keys(filter)) {
-                if (key === '_id') {
-                    if (String(item._id) !== String(filter._id)) return false;
-                } else if (item[key] !== filter[key]) {
-                    return false;
-                }
-            }
-            return true;
-        });
+        const match = list.find(item => matchItem(item, filter));
         return formatDoc(match) || null;
     },
 
@@ -219,15 +266,7 @@ export const dbClient = {
         const list = Array.isArray(data[collectionName]) ? data[collectionName] : [];
         let modifiedCount = 0;
         for (let i = 0; i < list.length; i++) {
-            let match = true;
-            for (const key of Object.keys(filter)) {
-                if (key === '_id') {
-                    if (String(list[i]._id) !== String(filter._id)) match = false;
-                } else if (list[i][key] !== filter[key]) {
-                    match = false;
-                }
-            }
-            if (match) {
+            if (matchItem(list[i], filter)) {
                 list[i] = { ...list[i], ...setFields };
                 modifiedCount++;
                 break;
@@ -259,15 +298,7 @@ export const dbClient = {
         const list = Array.isArray(data[collectionName]) ? data[collectionName] : [];
         let modifiedCount = 0;
         for (let i = 0; i < list.length; i++) {
-            let match = true;
-            for (const key of Object.keys(filter)) {
-                if (key === '_id') {
-                    if (String(list[i]._id) !== String(filter._id)) match = false;
-                } else if (list[i][key] !== filter[key]) {
-                    match = false;
-                }
-            }
-            if (match) {
+            if (matchItem(list[i], filter)) {
                 list[i] = { ...list[i], ...setFields };
                 modifiedCount++;
             }
@@ -291,16 +322,7 @@ export const dbClient = {
         // Fallback
         const data = readFallback();
         const list = Array.isArray(data[collectionName]) ? data[collectionName] : [];
-        const index = list.findIndex(item => {
-            for (const key of Object.keys(filter)) {
-                if (key === '_id') {
-                    if (String(item._id) !== String(filter._id)) return false;
-                } else if (item[key] !== filter[key]) {
-                    return false;
-                }
-            }
-            return true;
-        });
+        const index = list.findIndex(item => matchItem(item, filter));
         let deletedCount = 0;
         if (index !== -1) {
             list.splice(index, 1);
@@ -328,16 +350,7 @@ export const dbClient = {
             writeFallback(data);
             return { deletedCount: count, acknowledged: true };
         }
-        const remaining = list.filter(item => {
-            for (const key of Object.keys(filter)) {
-                if (key === '_id') {
-                    if (String(item._id) === String(filter._id)) return false;
-                } else if (item[key] === filter[key]) {
-                    return false;
-                }
-            }
-            return true;
-        });
+        const remaining = list.filter(item => !matchItem(item, filter));
         const deletedCount = list.length - remaining.length;
         data[collectionName] = remaining;
         writeFallback(data);
@@ -356,16 +369,7 @@ export const dbClient = {
         const data = readFallback();
         const list = Array.isArray(data[collectionName]) ? data[collectionName] : [];
         if (!filter || Object.keys(filter).length === 0) return list.length;
-        return list.filter(item => {
-            for (const key of Object.keys(filter)) {
-                if (key === '_id') {
-                    if (String(item._id) !== String(filter._id)) return false;
-                } else if (item[key] !== filter[key]) {
-                    return false;
-                }
-            }
-            return true;
-        }).length;
+        return list.filter(item => matchItem(item, filter)).length;
     }
 };
 

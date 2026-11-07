@@ -1921,6 +1921,171 @@ router.post('/save_email_config', async (req, res) => {
     }
 });
 
+/**
+ * D-004: Clinical Records API for Super Admin
+ */
+router.get('/get_clinical_records', async (req, res) => {
+    try {
+        const query = (req.query.q || '').trim().toLowerCase();
+        const category = (req.query.category || '').trim();
+        const dateFrom = (req.query.date_from || '').trim();
+        const dateTo = (req.query.date_to || '').trim();
+
+        const allCompleted = await dbClient.find('appointments', {
+            $or: [
+                { status: 'completed' },
+                { diagnosis: { $exists: true, $ne: '' } },
+                { procedure_notes: { $exists: true, $ne: '' } }
+            ]
+        });
+        const results = [];
+
+        for (const rec of allCompleted) {
+            if (rec.is_deleted || rec.is_archived) continue;
+
+            const pName = rec.patient_name || '';
+            const diag = rec.diagnosis || '';
+            const serv = rec.service_name || '';
+            const teeth = Array.isArray(rec.teeth_selected) ? rec.teeth_selected.join(' ') : (rec.teeth_selected || '');
+            const cat = rec.treatment_category || 'General Dentistry';
+            const date = (rec.appointment_date || rec.date || '').slice(0, 10);
+
+            if (query) {
+                const searchCorpus = `${pName} ${diag} ${serv} ${teeth} ${rec.procedure_notes || ''} ${rec.prescription || ''}`.toLowerCase();
+                if (!searchCorpus.includes(query)) continue;
+            }
+
+            if (category && category !== 'all') {
+                if (cat.toLowerCase() !== category.toLowerCase() && !serv.toLowerCase().includes(category.toLowerCase())) {
+                    continue;
+                }
+            }
+
+            if (dateFrom && date < dateFrom) continue;
+            if (dateTo && date > dateTo) continue;
+
+            results.push({
+                _id: String(rec._id),
+                patient_name: pName,
+                patient_phone: rec.patient_phone || '',
+                patient_email: rec.patient_email || '',
+                appointment_date: date,
+                appointment_time: rec.time_slot || rec.appointment_time || '',
+                service_name: serv,
+                treatment_category: cat,
+                diagnosis: diag || 'Clinical examination and therapy',
+                teeth_selected: Array.isArray(rec.teeth_selected) ? rec.teeth_selected : (rec.teeth_selected ? [rec.teeth_selected] : []),
+                tooth_surfaces: Array.isArray(rec.tooth_surfaces) ? rec.tooth_surfaces : [],
+                vital_signs: rec.vital_signs || null,
+                anesthesia: rec.anesthesia || '',
+                procedure_notes: rec.procedure_notes || rec.notes || '',
+                prescription: rec.prescription || '',
+                follow_up_date: rec.follow_up_date || '',
+                post_op_instructions: rec.post_op_instructions || '',
+                attending_doctor: rec.attending_doctor || rec.doctor_name || 'Attending Doctor',
+                completed_at: rec.completed_at || rec.last_updated_at || date
+            });
+        }
+
+        results.sort((a, b) => b.appointment_date.localeCompare(a.appointment_date));
+
+        return res.status(200).json({
+            status: 'success',
+            total: results.length,
+            records: results
+        });
+    } catch (err) {
+        console.error('Admin get clinical records error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to fetch clinical records.' });
+    }
+});
+
+router.post('/save_clinical_record', async (req, res) => {
+    try {
+        const body = req.body;
+        const apptId = body.appointment_id;
+        const diagnosis = (body.diagnosis || '').trim();
+        const procedureNotes = (body.procedure_notes || body.notes || '').trim();
+        const teeth = Array.isArray(body.teeth_selected) ? body.teeth_selected : (body.teeth_selected ? [body.teeth_selected] : []);
+        const surfaces = Array.isArray(body.tooth_surfaces) ? body.tooth_surfaces : [];
+        const prescription = (body.prescription || '').trim();
+        const postOp = (body.post_op_instructions || '').trim();
+        const followUp = (body.follow_up_date || '').trim();
+        const vitalSigns = body.vital_signs || {};
+
+        if (!apptId && !body.patient_name) {
+            return res.status(400).json({ status: 'error', message: 'Appointment ID or patient name is required.' });
+        }
+
+        const updateData = {
+            diagnosis,
+            procedure_notes: procedureNotes,
+            notes: procedureNotes,
+            treatment_category: body.treatment_category || body.category || 'General Dentistry',
+            anesthesia: (body.anesthesia || '').trim(),
+            teeth_selected: teeth,
+            tooth_surfaces: surfaces,
+            prescription,
+            post_op_instructions: postOp,
+            follow_up_date: followUp,
+            vital_signs: vitalSigns,
+            status: 'completed',
+            completed_at: new Date().toISOString().replace('T', ' ').slice(0, 19),
+            completed_by: req.user.full_name || req.user.email
+        };
+
+        if (apptId) {
+            const existing = await dbClient.findOne('appointments', { _id: apptId });
+            if (existing) {
+                if (!diagnosis && existing.diagnosis) updateData.diagnosis = existing.diagnosis;
+                if (!procedureNotes && (existing.procedure_notes || existing.notes)) updateData.procedure_notes = existing.procedure_notes || existing.notes;
+                if (teeth.length === 0 && existing.teeth_selected) updateData.teeth_selected = existing.teeth_selected;
+                if (surfaces.length === 0 && existing.tooth_surfaces) updateData.tooth_surfaces = existing.tooth_surfaces;
+                if (!prescription && existing.prescription) updateData.prescription = existing.prescription;
+                if (!postOp && existing.post_op_instructions) updateData.post_op_instructions = existing.post_op_instructions;
+                if (!updateData.anesthesia && existing.anesthesia) updateData.anesthesia = existing.anesthesia;
+                if (!body.treatment_category && existing.treatment_category) updateData.treatment_category = existing.treatment_category;
+            }
+            await dbClient.updateOne('appointments', { _id: apptId }, { $set: updateData });
+        } else {
+            const doctorAssigned = body.doctor_name || body.attending_doctor || req.user.full_name || 'Dr. Practitioner';
+            const newRecord = {
+                ...updateData,
+                patient_name: body.patient_name,
+                patient_phone: body.patient_phone || '',
+                service_name: body.service_name || 'Dental Consultation',
+                doctor_name: doctorAssigned,
+                attending_doctor: doctorAssigned,
+                appointment_date: body.appointment_date || body.date || new Date().toISOString().slice(0, 10),
+                appointment_time: body.appointment_time || body.time_slot || '09:00 AM',
+                created_at: updateData.completed_at
+            };
+            await dbClient.insertOne('appointments', newRecord);
+        }
+
+        await dbClient.insertOne('clinical_records', {
+            appointment_id: apptId || '',
+            patient_name: body.patient_name || '',
+            doctor_name: body.doctor_name || req.user.full_name,
+            diagnosis,
+            treatment_category: body.treatment_category || body.category || 'General Dentistry',
+            teeth_selected: teeth,
+            prescription,
+            created_at: new Date().toISOString().replace('T', ' ').slice(0, 19)
+        });
+
+        await logAudit(req, 'SAVE_CLINICAL_RECORD', 'ADMIN', { appointment_id: apptId, diagnosis }, 'success');
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Clinical record saved successfully!'
+        });
+    } catch (err) {
+        console.error('Admin save clinical record error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to save clinical record.' });
+    }
+});
+
 export default router;
 
 

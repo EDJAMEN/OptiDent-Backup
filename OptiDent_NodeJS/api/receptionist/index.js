@@ -1356,11 +1356,6 @@ router.get('/get_reports_data', async (req, res) => {
         return res.status(500).json({ status: 'error', message: 'Failed to generate operational reports.' });
     }
 });
-    } catch (err) {
-        console.error('Receptionist reports error:', err);
-        return res.status(500).json({ status: 'error', message: 'Failed to generate operational reports.' });
-    }
-});
 
 export default router;
 

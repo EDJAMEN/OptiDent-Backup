@@ -160,6 +160,130 @@
         input:checked+.rbac-slider:before {
             transform: translateX(18px);
         }
+        /* D-004: Clinical Record Management & Odontogram Styles */
+        .teeth-selector-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0;
+            max-height: 125px;
+            overflow-y: auto;
+            padding: 8px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+        }
+
+        .tooth-chip {
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+            background: #ffffff;
+            border: 1px solid #CBD5E1;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            color: #334155;
+        }
+
+        .tooth-chip:hover {
+            border-color: #0EB1B1;
+            color: #0EB1B1;
+        }
+
+        .tooth-chip.selected {
+            background: #0EB1B1;
+            color: #ffffff;
+            border-color: #0a8f8f;
+        }
+
+        .quadrant-bar {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .quadrant-btn {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: #F1F5F9;
+            border: 1px solid #CBD5E1;
+            color: #475569;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .quadrant-btn:hover {
+            background: #E2E8F0;
+            color: #0F172A;
+        }
+
+        .surface-selector-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin: 6px 0;
+        }
+
+        .surface-chip {
+            padding: 3px 9px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+            background: #F8FAFC;
+            border: 1px solid #CBD5E1;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            color: #475569;
+        }
+
+        .surface-chip.selected {
+            background: #3B82F6;
+            color: #ffffff;
+            border-color: #2563EB;
+        }
+
+        .quick-chips-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 5px;
+            margin-bottom: 8px;
+        }
+
+        .quick-chip {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(14, 177, 177, 0.08);
+            border: 1px solid rgba(14, 177, 177, 0.25);
+            color: #0a8f8f;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .quick-chip:hover {
+            background: #0EB1B1;
+            color: #ffffff;
+        }
+
+        .operatory-pill {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: #EEF2FF;
+            color: #4F46E5;
+            display: inline-block;
+        }
+
 
         input:disabled+.rbac-slider {
             background-color: #0EB1B1;
@@ -607,6 +731,10 @@
                         <i class='bx bx-bar-chart-alt-2'></i>
                         <span>Reports & Monitoring (SA-009)</span>
                     </li>
+                    <li id="menu-tab-clinical" onclick="switchTab('clinical')">
+                        <i class='bx bx-book-content'></i>
+                        <span>Clinical Records (D-004)</span>
+                    </li>
                     <li class="mt-auto" onclick="toggleTheme()"
                         style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 20px !important; cursor: pointer;">
                         <div class="theme-switch w-full">
@@ -817,6 +945,152 @@
                                         <td colspan="5" class="text-center py-2 text-dim">
                                             <i class='bx bx-loader-alt bx-spin mr-1'></i> Loading invitations from
                                             MongoDB...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ==========================================
+                     TAB 9: CLINICAL RECORD MANAGEMENT (D-004)
+                     ========================================== -->
+                <div id="tab-clinical" class="admin-tab" style="display: none;">
+                    
+                    <!-- Top Action / Header Card -->
+                    <div class="card bg-white soft-shadow-sm" style="padding: 18px 24px; margin-bottom: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <div class="flex items-center justify-between gap-1" style="flex-wrap: wrap;">
+                            <div>
+                                <div class="flex items-center gap-1 mb-1">
+                                    <h2 class="text-xl font-bold text-dark m-0">Clinical Record Management (D-004)</h2>
+                                    <span class="badge" style="background: rgba(14, 177, 177, 0.12); color: #0eb1b1; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 4px;">D-004 Clinical Governance</span>
+                                </div>
+                                <p class="text-xs text-dim m-0">
+                                    <strong>User Story:</strong> As a Doctor, I want to record diagnoses, treatments, notes, and procedures so that each patient's dental records remain updated.
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-1" style="flex-wrap: wrap;">
+                                <button type="button" class="btn-primary text-xs" onclick="openAdminNewClinicalModal()" style="padding: 8px 16px; background: #0eb1b1; border-color: #0c9696; color: white; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; border-radius: 8px; cursor: pointer;">
+                                    <i class='bx bx-plus-circle'></i> New Clinical Record
+                                </button>
+                                <button type="button" class="btn-outline text-xs" onclick="exportAdminClinicalCsv()" style="padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;">
+                                    <i class='bx bx-download'></i> Export CSV
+                                </button>
+                                <button type="button" class="btn-outline text-xs" onclick="loadAdminClinicalRecords()" title="Refresh live clinical records" style="padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;">
+                                    <i class='bx bx-refresh'></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Multi-Parameter Filter Toolbar -->
+                    <div class="card bg-white soft-shadow-sm" style="padding: 18px 22px; margin-bottom: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <div style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
+                            <!-- Search Input -->
+                            <div style="flex: 2; min-width: 250px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                    <i class='bx bx-search text-primary' style="font-size: 15px;"></i> SEARCH CLINICAL DOSSIER
+                                </label>
+                                <input type="text" id="clinicalAdminSearch" oninput="filterAdminClinicalRecords()" class="form-control" placeholder="Search patient name, diagnosis, tooth #, procedure..." style="height: 38px; width: 100%; padding: 0 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none;">
+                            </div>
+
+                            <!-- Treatment Category Filter -->
+                            <div style="flex: 1.2; min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                    <i class='bx bx-category text-primary' style="font-size: 15px;"></i> CATEGORY FILTER
+                                </label>
+                                <select id="clinicalAdminCategoryFilter" onchange="filterAdminClinicalRecords()" class="form-control" style="height: 38px; width: 100%; padding: 0 10px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none;">
+                                    <option value="all">All Dental Categories</option>
+                                    <option value="Restorative Dentistry">Restorative Dentistry</option>
+                                    <option value="Oral Surgery">Oral Surgery / Extraction</option>
+                                    <option value="Endodontics">Endodontics (Root Canal)</option>
+                                    <option value="Periodontics">Periodontics (Gum Therapy)</option>
+                                    <option value="Preventive Care">Preventive Care</option>
+                                    <option value="Prosthodontics">Prosthodontics</option>
+                                    <option value="Orthodontics">Orthodontics</option>
+                                    <option value="General Dentistry">General Dentistry</option>
+                                </select>
+                            </div>
+
+                            <!-- Attending Doctor Filter -->
+                            <div style="flex: 1.2; min-width: 170px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                    <i class='bx bx-user text-primary' style="font-size: 15px;"></i> ATTENDING PRACTITIONER
+                                </label>
+                                <select id="clinicalAdminDoctorFilter" onchange="filterAdminClinicalRecords()" class="form-control" style="height: 38px; width: 100%; padding: 0 10px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none;">
+                                    <option value="all">All Attending Doctors</option>
+                                </select>
+                            </div>
+
+                            <!-- Reset Button -->
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" class="btn-outline" onclick="resetAdminClinicalFilters()" title="Reset Filters" style="height: 38px; padding: 0 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; border-radius: 8px;">
+                                    <i class='bx bx-reset'></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4 Summary KPI Statistics Cards -->
+                    <div class="stats-grid mb-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px;">
+                        <div class="card bg-white soft-shadow-sm" style="padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <div class="flex items-center gap-1 mb-1">
+                                <i class='bx bx-book-content text-primary' style="font-size: 20px;"></i>
+                                <span class="text-xs uppercase font-bold text-dim">Total Clinical Encounters</span>
+                            </div>
+                            <h3 class="text-2xl font-bold m-0" style="color: var(--primary);" id="clinicalStatTotal">0</h3>
+                            <div class="text-xs text-dim mt-0">Permanent electronic dental records</div>
+                        </div>
+
+                        <div class="card bg-white soft-shadow-sm" style="padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <div class="flex items-center gap-1 mb-1">
+                                <i class='bx bx-first-aid' style="font-size: 20px; color: #059669;"></i>
+                                <span class="text-xs uppercase font-bold text-dim">Restorative &amp; Surgery</span>
+                            </div>
+                            <h3 class="text-2xl font-bold m-0" style="color: #059669;" id="clinicalStatRestorative">0</h3>
+                            <div class="text-xs text-dim mt-0">Operative restorative procedures</div>
+                        </div>
+
+                        <div class="card bg-white soft-shadow-sm" style="padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <div class="flex items-center gap-1 mb-1">
+                                <i class='bx bx-circle' style="font-size: 20px; color: #4F46E5;"></i>
+                                <span class="text-xs uppercase font-bold text-dim">Charted Teeth Treated</span>
+                            </div>
+                            <h3 class="text-2xl font-bold m-0" style="color: #4F46E5;" id="clinicalStatTeeth">0</h3>
+                            <div class="text-xs text-dim mt-0">Odontogram anatomical charts</div>
+                        </div>
+
+                        <div class="card bg-white soft-shadow-sm" style="padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <div class="flex items-center gap-1 mb-1">
+                                <i class='bx bx-capsule' style="font-size: 20px; color: #d97706;"></i>
+                                <span class="text-xs uppercase font-bold text-dim">Prescriptions (Rx) Issued</span>
+                            </div>
+                            <h3 class="text-2xl font-bold m-0" style="color: #d97706;" id="clinicalStatRx">0</h3>
+                            <div class="text-xs text-dim mt-0">Post-operative pharmaceutical logs</div>
+                        </div>
+                    </div>
+
+                    <!-- Clinical Records Data Table -->
+                    <div class="card bg-white soft-shadow-sm p-0 overflow-hidden mb-4" style="border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <div class="table-responsive" style="max-height: 560px; overflow-y: auto;">
+                            <table class="data-table w-full" style="font-size: 13px; width: 100%;">
+                                <thead class="bg-muted">
+                                    <tr style="text-align: left;">
+                                        <th style="width: 120px;">Encounter Date</th>
+                                        <th style="width: 170px;">Patient Dossier</th>
+                                        <th style="width: 180px;">Procedure &amp; Category</th>
+                                        <th style="width: 220px;">Clinical Diagnosis &amp; Teeth</th>
+                                        <th>Operative Notes &amp; Rx</th>
+                                        <th style="width: 150px;">Attending Doctor</th>
+                                        <th style="width: 130px; text-align: right;">Clinical Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clinicalAdminTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-dim">
+                                            <i class='bx bx-loader-alt bx-spin mr-1'></i> Loading clinical records from MongoDB...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -2621,6 +2895,9 @@
             if (document.getElementById('tab-reports')) {
                 document.getElementById('tab-reports').style.display = tabName === 'reports' ? 'block' : 'none';
             }
+            if (document.getElementById('tab-clinical')) {
+                document.getElementById('tab-clinical').style.display = tabName === 'clinical' ? 'block' : 'none';
+            }
 
             document.getElementById('menu-tab-dashboard').className = tabName === 'dashboard' ? 'active' : '';
             document.getElementById('menu-tab-invitations').className = tabName === 'invitations' ? 'active' : '';
@@ -2642,6 +2919,9 @@
             if (document.getElementById('menu-tab-reports')) {
                 document.getElementById('menu-tab-reports').className = tabName === 'reports' ? 'active' : '';
             }
+            if (document.getElementById('menu-tab-clinical')) {
+                document.getElementById('menu-tab-clinical').className = tabName === 'clinical' ? 'active' : '';
+            }
 
             if (tabName === 'invitations') {
                 loadInvitations();
@@ -2658,6 +2938,8 @@
                 loadArchivedRecords();
             } else if (tabName === 'reports') {
                 loadReportsWorkspace();
+            } else if (tabName === 'clinical') {
+                loadAdminClinicalRecords();
             }
         }
 
@@ -6381,7 +6663,532 @@
         function exportReportsCsv() {
             exportSelectedReportCsv();
         }
-    </script>
+    
+        // ============================================================
+        // D-004: CLINICAL RECORD MANAGEMENT JAVASCRIPT WORKSPACE
+        // ============================================================
+        let rawAdminClinicalRecords = [];
+        let selectedAdminTeeth = new Set();
+        let selectedAdminSurfaces = new Set();
+        let viewingClinicalRecord = null;
+
+        const ADMIN_ALL_TEETH = [
+            'Tooth 18', 'Tooth 17', 'Tooth 16', 'Tooth 15', 'Tooth 14', 'Tooth 13', 'Tooth 12', 'Tooth 11',
+            'Tooth 21', 'Tooth 22', 'Tooth 23', 'Tooth 24', 'Tooth 25', 'Tooth 26', 'Tooth 27', 'Tooth 28',
+            'Tooth 48', 'Tooth 47', 'Tooth 46', 'Tooth 45', 'Tooth 44', 'Tooth 43', 'Tooth 42', 'Tooth 41',
+            'Tooth 31', 'Tooth 32', 'Tooth 33', 'Tooth 34', 'Tooth 35', 'Tooth 36', 'Tooth 37', 'Tooth 38'
+        ];
+
+        const ADMIN_QUADRANTS = {
+            'UR': ['Tooth 18', 'Tooth 17', 'Tooth 16', 'Tooth 15', 'Tooth 14', 'Tooth 13', 'Tooth 12', 'Tooth 11'],
+            'UL': ['Tooth 21', 'Tooth 22', 'Tooth 23', 'Tooth 24', 'Tooth 25', 'Tooth 26', 'Tooth 27', 'Tooth 28'],
+            'LR': ['Tooth 48', 'Tooth 47', 'Tooth 46', 'Tooth 45', 'Tooth 44', 'Tooth 43', 'Tooth 42', 'Tooth 41'],
+            'LL': ['Tooth 31', 'Tooth 32', 'Tooth 33', 'Tooth 34', 'Tooth 35', 'Tooth 36', 'Tooth 37', 'Tooth 38']
+        };
+
+        async function loadAdminClinicalRecords() {
+            const tbody = document.getElementById('clinicalAdminTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-dim"><i class="bx bx-loader-alt bx-spin mr-1"></i> Loading clinical records from MongoDB...</td></tr>';
+            }
+
+            try {
+                const res = await fetch('api/doctor/get_clinical_records.php');
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    rawAdminClinicalRecords = data.records || [];
+                    populateAdminDoctorFilter(rawAdminClinicalRecords);
+                    updateAdminClinicalKpis(rawAdminClinicalRecords);
+                    renderAdminClinicalRecords(rawAdminClinicalRecords);
+                } else {
+                    if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger">${escapeHtml(data.message || 'Failed to load clinical records.')}</td></tr>`;
+                }
+            } catch (err) {
+                console.error("Clinical records loading error:", err);
+                if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Network error connecting to MongoDB.</td></tr>';
+            }
+        }
+
+        function populateAdminDoctorFilter(records) {
+            const docSel = document.getElementById('clinicalAdminDoctorFilter');
+            const newDocSel = document.getElementById('adminNewRecDoctor');
+            if (!records) return;
+
+            const docs = Array.from(new Set(records.map(r => r.attending_doctor || r.doctor_name || 'Dr. Dental Specialist'))).filter(Boolean);
+
+            if (docSel && docSel.options.length <= 1) {
+                docs.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = d;
+                    docSel.appendChild(opt);
+                });
+            }
+
+            if (newDocSel) {
+                newDocSel.innerHTML = '';
+                if (docs.length === 0) docs.push('Dr. Dental Practitioner');
+                docs.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = d;
+                    newDocSel.appendChild(opt);
+                });
+            }
+        }
+
+        function updateAdminClinicalKpis(records) {
+            const list = records || [];
+            const elTot = document.getElementById('clinicalStatTotal');
+            if (elTot) elTot.textContent = list.length;
+
+            const elRest = document.getElementById('clinicalStatRestorative');
+            if (elRest) {
+                const restCount = list.filter(r => ['restorative dentistry', 'oral surgery', 'endodontics'].includes((r.treatment_category || '').toLowerCase())).length;
+                elRest.textContent = restCount;
+            }
+
+            const elTeeth = document.getElementById('clinicalStatTeeth');
+            if (elTeeth) {
+                let totalTeeth = 0;
+                list.forEach(r => {
+                    if (Array.isArray(r.teeth_selected)) totalTeeth += r.teeth_selected.length;
+                    else if (r.teeth_selected) totalTeeth++;
+                });
+                elTeeth.textContent = totalTeeth;
+            }
+
+            const elRx = document.getElementById('clinicalStatRx');
+            if (elRx) {
+                const rxCount = list.filter(r => (r.prescription || '').trim().length > 0).length;
+                elRx.textContent = rxCount;
+            }
+        }
+
+        function renderAdminClinicalRecords(list) {
+            const tbody = document.getElementById('clinicalAdminTableBody');
+            if (!tbody) return;
+
+            if (!list || list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-dim">No clinical records found matching parameters.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = list.map(r => {
+                const teethArr = Array.isArray(r.teeth_selected) ? r.teeth_selected : (r.teeth_selected ? [r.teeth_selected] : []);
+                const surfaces = Array.isArray(r.tooth_surfaces) && r.tooth_surfaces.length > 0 ? ` [${r.tooth_surfaces.join('')}]` : '';
+                
+                const teethBadgesHtml = teethArr.length > 0
+                    ? teethArr.map(t => `<span class="badge" style="background: rgba(14, 177, 177, 0.12); color: #0a8f8f; font-weight: 700; font-size: 10.5px; padding: 2px 6px; border-radius: 4px; margin-right: 3px; display: inline-block;">${escapeHtml(t.replace('Tooth ', '#'))}${surfaces}</span>`).join('')
+                    : '<span class="text-dim text-xs">General Charting</span>';
+
+                const category = r.treatment_category || 'General Dentistry';
+
+                return `
+                    <tr class="border-bottom">
+                        <td>
+                            <div class="font-bold text-xs" style="white-space: nowrap;">${escapeHtml(r.appointment_date || 'N/A')}</div>
+                            <div class="text-xs text-dim">${escapeHtml(r.appointment_time || '')}</div>
+                        </td>
+                        <td>
+                            <div class="font-bold text-sm" style="color: #0f172a;">${escapeHtml(r.patient_name || 'Patient')}</div>
+                            <div class="text-xs text-dim"><i class='bx bx-phone mr-1'></i>${escapeHtml(r.patient_phone || 'No phone')}</div>
+                        </td>
+                        <td>
+                            <div class="font-bold text-xs text-primary">${escapeHtml(r.service_name || 'Consultation')}</div>
+                            <span class="operatory-pill" style="margin-top: 3px;">${escapeHtml(category)}</span>
+                        </td>
+                        <td>
+                            <div class="font-bold text-xs" style="color: #334155; margin-bottom: 3px;">${escapeHtml(r.diagnosis || 'Clinical examination')}</div>
+                            <div>${teethBadgesHtml}</div>
+                        </td>
+                        <td>
+                            <div class="text-xs" style="color: #475569; max-width: 280px; line-height: 1.35; max-height: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(r.procedure_notes || '')}">
+                                ${escapeHtml(r.procedure_notes || 'No operative steps documented')}
+                            </div>
+                            ${r.prescription ? `<div class="text-xs font-semibold text-primary mt-1" style="font-size: 11px;"><i class='bx bx-capsule mr-1'></i>Rx: ${escapeHtml(r.prescription)}</div>` : ''}
+                        </td>
+                        <td>
+                            <div class="text-xs font-semibold" style="color: #1e293b;"><i class='bx bx-user mr-1 text-dim'></i>${escapeHtml(r.attending_doctor || r.doctor_name || 'Doctor')}</div>
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <div class="flex items-center justify-end gap-1">
+                                <button type="button" class="btn-outline text-xs" onclick="openAdminViewClinicalModal('${r._id}')" title="View Full Clinical Chart Dossier" style="padding: 4px 8px; border-radius: 6px;">
+                                    <i class='bx bx-show'></i>
+                                </button>
+                                <button type="button" class="btn-primary text-xs" onclick="openAdminEditClinicalModal('${r._id}')" title="Update Clinical Record Information" style="padding: 4px 10px; background: #0eb1b1; border-color: #0c9696; border-radius: 6px;">
+                                    <i class='bx bx-edit'></i> Update
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterAdminClinicalRecords() {
+            const q = (document.getElementById('clinicalAdminSearch')?.value || '').toLowerCase().trim();
+            const cat = document.getElementById('clinicalAdminCategoryFilter')?.value || 'all';
+            const doc = document.getElementById('clinicalAdminDoctorFilter')?.value || 'all';
+
+            const filtered = (rawAdminClinicalRecords || []).filter(r => {
+                if (cat !== 'all' && (r.treatment_category || '').toLowerCase() !== cat.toLowerCase()) return false;
+                if (doc !== 'all' && (r.attending_doctor || r.doctor_name || '').toLowerCase() !== doc.toLowerCase()) return false;
+
+                if (q) {
+                    const teethStr = Array.isArray(r.teeth_selected) ? r.teeth_selected.join(' ') : (r.teeth_selected || '');
+                    const corpus = `${r.patient_name || ''} ${r.diagnosis || ''} ${r.service_name || ''} ${teethStr} ${r.procedure_notes || ''} ${r.prescription || ''}`.toLowerCase();
+                    if (!corpus.includes(q)) return false;
+                }
+                return true;
+            });
+
+            renderAdminClinicalRecords(filtered);
+        }
+
+        function resetAdminClinicalFilters() {
+            const search = document.getElementById('clinicalAdminSearch');
+            if (search) search.value = '';
+            const cat = document.getElementById('clinicalAdminCategoryFilter');
+            if (cat) cat.value = 'all';
+            const doc = document.getElementById('clinicalAdminDoctorFilter');
+            if (doc) doc.value = 'all';
+
+            renderAdminClinicalRecords(rawAdminClinicalRecords);
+        }
+
+        function exportAdminClinicalCsv() {
+            const list = rawAdminClinicalRecords || [];
+            if (list.length === 0) {
+                showToast('info', 'No clinical records available to export.');
+                return;
+            }
+
+            const headers = ['Date', 'Time', 'Patient Name', 'Phone', 'Attending Doctor', 'Category', 'Procedure', 'Diagnosis', 'Teeth Charted', 'Surfaces', 'Local Anesthesia', 'Operative Notes', 'Prescription (Rx)', 'Post-Op Instructions', 'Recall Date'];
+            const csvRows = [headers.join(',')];
+
+            list.forEach(r => {
+                const teethStr = Array.isArray(r.teeth_selected) ? r.teeth_selected.join('; ') : (r.teeth_selected || '');
+                const surfStr = Array.isArray(r.tooth_surfaces) ? r.tooth_surfaces.join('') : '';
+                csvRows.push([
+                    `"${(r.appointment_date || '').replace(/"/g, '""')}"`,
+                    `"${(r.appointment_time || '').replace(/"/g, '""')}"`,
+                    `"${(r.patient_name || '').replace(/"/g, '""')}"`,
+                    `"${(r.patient_phone || '').replace(/"/g, '""')}"`,
+                    `"${(r.attending_doctor || r.doctor_name || '').replace(/"/g, '""')}"`,
+                    `"${(r.treatment_category || '').replace(/"/g, '""')}"`,
+                    `"${(r.service_name || '').replace(/"/g, '""')}"`,
+                    `"${(r.diagnosis || '').replace(/"/g, '""')}"`,
+                    `"${teethStr.replace(/"/g, '""')}"`,
+                    `"${surfStr.replace(/"/g, '""')}"`,
+                    `"${(r.anesthesia || '').replace(/"/g, '""')}"`,
+                    `"${(r.procedure_notes || '').replace(/"/g, '""')}"`,
+                    `"${(r.prescription || '').replace(/"/g, '""')}"`,
+                    `"${(r.post_op_instructions || '').replace(/"/g, '""')}"`,
+                    `"${(r.follow_up_date || '').replace(/"/g, '""')}"`
+                ].join(','));
+            });
+
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `OptiDent_Clinical_Records_D004_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('success', 'Clinical records CSV exported successfully.');
+        }
+
+        // --- NEW CLINICAL RECORD MODAL HANDLERS ---
+        function openAdminNewClinicalModal() {
+            initAdminNewRecTeethGrid();
+            selectedAdminTeeth.clear();
+            selectedAdminSurfaces.clear();
+            document.querySelectorAll('#adminNewClinicalRecordModal .surface-chip').forEach(c => c.classList.remove('selected'));
+            const disp = document.getElementById('adminNewRecSelectedTeethDisplay');
+            if (disp) disp.textContent = 'None';
+            const dt = document.getElementById('adminNewRecDate');
+            if (dt) dt.value = new Date().toISOString().slice(0, 10);
+            
+            const modal = document.getElementById('adminNewClinicalRecordModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeAdminNewClinicalModal() {
+            const modal = document.getElementById('adminNewClinicalRecordModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function initAdminNewRecTeethGrid() {
+            const grid = document.getElementById('adminNewRecTeethGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            ADMIN_ALL_TEETH.forEach(tooth => {
+                const chip = document.createElement('div');
+                chip.className = 'tooth-chip';
+                chip.textContent = tooth.replace('Tooth ', '#');
+                chip.title = tooth;
+                chip.onclick = () => {
+                    if (selectedAdminTeeth.has(tooth)) {
+                        selectedAdminTeeth.delete(tooth);
+                        chip.classList.remove('selected');
+                    } else {
+                        selectedAdminTeeth.add(tooth);
+                        chip.classList.add('selected');
+                    }
+                    const disp = document.getElementById('adminNewRecSelectedTeethDisplay');
+                    if (disp) disp.textContent = selectedAdminTeeth.size > 0 ? Array.from(selectedAdminTeeth).map(t => t.replace('Tooth ', '#')).join(', ') : 'None';
+                };
+                grid.appendChild(chip);
+            });
+        }
+
+        function selectAdminNewRecQuadrant(quad) {
+            const list = ADMIN_QUADRANTS[quad] || [];
+            list.forEach(t => selectedAdminTeeth.add(t));
+            updateAdminTeethChipsUI();
+        }
+
+        function clearAdminNewRecTeeth() {
+            selectedAdminTeeth.clear();
+            updateAdminTeethChipsUI();
+        }
+
+        function updateAdminTeethChipsUI() {
+            const grid = document.getElementById('adminNewRecTeethGrid');
+            if (!grid) return;
+            grid.querySelectorAll('.tooth-chip').forEach(chip => {
+                const tooth = 'Tooth ' + chip.textContent.replace('#', '');
+                if (selectedAdminTeeth.has(tooth)) chip.classList.add('selected');
+                else chip.classList.remove('selected');
+            });
+            const disp = document.getElementById('adminNewRecSelectedTeethDisplay');
+            if (disp) disp.textContent = selectedAdminTeeth.size > 0 ? Array.from(selectedAdminTeeth).map(t => t.replace('Tooth ', '#')).join(', ') : 'None';
+        }
+
+        function toggleAdminSurface(surf, el) {
+            if (selectedAdminSurfaces.has(surf)) {
+                selectedAdminSurfaces.delete(surf);
+                el.classList.remove('selected');
+            } else {
+                selectedAdminSurfaces.add(surf);
+                el.classList.add('selected');
+            }
+        }
+
+        function applyAdminQuickDiagnosis(text) {
+            const input = document.getElementById('adminNewRecDiagnosis');
+            if (input) input.value = text;
+        }
+
+        async function saveAdminNewClinicalRecord(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveAdminNewClinicalBtn');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Saving to MongoDB...";
+            }
+
+            try {
+                const payload = {
+                    patient_name: document.getElementById('adminNewRecPatientName').value.trim(),
+                    patient_phone: document.getElementById('adminNewRecPatientPhone').value.trim(),
+                    service_name: document.getElementById('adminNewRecServiceName').value.trim(),
+                    treatment_category: document.getElementById('adminNewRecCategory').value,
+                    doctor_name: document.getElementById('adminNewRecDoctor').value,
+                    diagnosis: document.getElementById('adminNewRecDiagnosis').value.trim(),
+                    teeth_selected: Array.from(selectedAdminTeeth),
+                    tooth_surfaces: Array.from(selectedAdminSurfaces),
+                    anesthesia: document.getElementById('adminNewRecAnesthesia').value.trim(),
+                    procedure_notes: document.getElementById('adminNewRecProcedureNotes').value.trim(),
+                    prescription: document.getElementById('adminNewRecPrescription').value.trim(),
+                    post_op_instructions: document.getElementById('adminNewRecPostOp').value.trim(),
+                    appointment_date: document.getElementById('adminNewRecDate').value,
+                    follow_up_date: document.getElementById('adminNewRecFollowUp').value
+                };
+
+                const res = await fetch('api/doctor/save_clinical_record.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    showToast('success', 'Clinical record saved successfully!');
+                    closeAdminNewClinicalModal();
+                    document.getElementById('adminNewClinicalForm').reset();
+                    loadAdminClinicalRecords();
+                } else {
+                    showToast('error', data.message || 'Failed to save clinical record.');
+                }
+            } catch (err) {
+                console.error("Save clinical record error:", err);
+                showToast('error', 'Network error saving clinical record.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        // --- EDIT CLINICAL RECORD MODAL HANDLERS ---
+        function openAdminEditClinicalModal(recordId) {
+            const rec = (rawAdminClinicalRecords || []).find(r => r._id === recordId);
+            if (!rec) return;
+
+            document.getElementById('adminEditRecId').value = recordId;
+            document.getElementById('adminEditRecSubtitle').textContent = `Patient: ${rec.patient_name} • ${rec.service_name} (${rec.appointment_date})`;
+            document.getElementById('adminEditRecDiagnosis').value = rec.diagnosis || '';
+            document.getElementById('adminEditRecProcedureNotes').value = rec.procedure_notes || '';
+            document.getElementById('adminEditRecPrescription').value = rec.prescription || '';
+            document.getElementById('adminEditRecPostOp').value = rec.post_op_instructions || '';
+            document.getElementById('adminEditRecFollowUp').value = rec.follow_up_date || '';
+
+            const modal = document.getElementById('adminEditClinicalRecordModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeAdminEditClinicalModal() {
+            const modal = document.getElementById('adminEditClinicalRecordModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function saveAdminEditClinicalRecord(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveAdminEditClinicalBtn');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Updating...";
+            }
+
+            try {
+                const recId = document.getElementById('adminEditRecId').value;
+                const payload = {
+                    appointment_id: recId,
+                    diagnosis: document.getElementById('adminEditRecDiagnosis').value.trim(),
+                    procedure_notes: document.getElementById('adminEditRecProcedureNotes').value.trim(),
+                    prescription: document.getElementById('adminEditRecPrescription').value.trim(),
+                    post_op_instructions: document.getElementById('adminEditRecPostOp').value.trim(),
+                    follow_up_date: document.getElementById('adminEditRecFollowUp').value
+                };
+
+                const res = await fetch('api/doctor/save_clinical_record.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    showToast('success', 'Clinical record updated successfully!');
+                    closeAdminEditClinicalModal();
+                    loadAdminClinicalRecords();
+                } else {
+                    showToast('error', data.message || 'Failed to update record.');
+                }
+            } catch (err) {
+                console.error("Update clinical record error:", err);
+                showToast('error', 'Network error updating record.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        // --- VIEW CLINICAL CHART MODAL ---
+        function openAdminViewClinicalModal(recordId) {
+            const rec = (rawAdminClinicalRecords || []).find(r => r._id === recordId);
+            if (!rec) return;
+            viewingClinicalRecord = rec;
+
+            const teethArr = Array.isArray(rec.teeth_selected) ? rec.teeth_selected : (rec.teeth_selected ? [rec.teeth_selected] : []);
+            const surfacesStr = Array.isArray(rec.tooth_surfaces) && rec.tooth_surfaces.length > 0 ? ` [${rec.tooth_surfaces.join('')}]` : '';
+            const teethHtml = teethArr.length > 0 ? teethArr.map(t => `<span class="badge" style="background: rgba(14, 177, 177, 0.12); color: #0a8f8f; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 6px; margin-right: 4px;">${escapeHtml(t)}${surfacesStr}</span>`).join('') : '<span class="text-dim">No specific teeth charted</span>';
+
+            const container = document.getElementById('adminViewChartContent');
+            if (container) {
+                container.innerHTML = `
+                    <div style="background: var(--muted); border-radius: 10px; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <div class="text-xs text-dim font-bold uppercase">Patient Name</div>
+                            <div class="font-bold text-sm" style="color: #0f172a;">${escapeHtml(rec.patient_name || 'Patient')}</div>
+                            <div class="text-xs text-dim">${escapeHtml(rec.patient_phone || 'No contact')}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-dim font-bold uppercase">Encounter Date & Time</div>
+                            <div class="font-bold text-sm" style="color: #0f172a;">${escapeHtml(rec.appointment_date || 'N/A')} ${escapeHtml(rec.appointment_time || '')}</div>
+                            <div class="text-xs text-primary font-semibold">Attending: ${escapeHtml(rec.attending_doctor || rec.doctor_name || 'Doctor')}</div>
+                        </div>
+                    </div>
+
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+                        <div class="text-xs text-dim font-bold uppercase mb-1">Dental Procedure & Treatment Category</div>
+                        <div class="font-bold text-sm text-primary">${escapeHtml(rec.service_name || 'Dental Procedure')}</div>
+                        <div class="text-xs text-dim" style="margin-top: 2px;">Category: <strong>${escapeHtml(rec.treatment_category || 'General Dentistry')}</strong></div>
+                    </div>
+
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+                        <div class="text-xs text-dim font-bold uppercase mb-1">Clinical Diagnosis</div>
+                        <div class="font-bold text-sm" style="color: #1e293b;">${escapeHtml(rec.diagnosis || 'Clinical examination and therapy')}</div>
+                        <div class="mt-2 text-xs text-dim font-bold uppercase mb-1">Charted Teeth & Anatomical Surfaces</div>
+                        <div>${teethHtml}</div>
+                    </div>
+
+                    ${rec.anesthesia ? `
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+                        <div class="text-xs text-dim font-bold uppercase mb-1">Local Anesthesia Administered</div>
+                        <div class="text-xs font-semibold" style="color: #334155;">${escapeHtml(rec.anesthesia)}</div>
+                    </div>` : ''}
+
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+                        <div class="text-xs text-dim font-bold uppercase mb-1">Operative Procedure Notes & Clinical Technique</div>
+                        <div class="text-xs" style="color: #334155; line-height: 1.5; white-space: pre-wrap;">${escapeHtml(rec.procedure_notes || 'No operative steps documented.')}</div>
+                    </div>
+
+                    ${rec.prescription ? `
+                    <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px; padding: 14px;">
+                        <div class="text-xs font-bold uppercase mb-1" style="color: #166534;"><i class='bx bx-capsule mr-1'></i>Prescription (Rx) & Dosages</div>
+                        <div class="text-xs font-semibold" style="color: #15803D; line-height: 1.4; white-space: pre-wrap;">${escapeHtml(rec.prescription)}</div>
+                    </div>` : ''}
+
+                    ${rec.post_op_instructions ? `
+                    <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; padding: 14px;">
+                        <div class="text-xs font-bold uppercase mb-1" style="color: #92400E;"><i class='bx bx-info-circle mr-1'></i>Post-Operative Instructions</div>
+                        <div class="text-xs" style="color: #B45309; line-height: 1.4; white-space: pre-wrap;">${escapeHtml(rec.post_op_instructions)}</div>
+                    </div>` : ''}
+
+                    ${rec.follow_up_date ? `
+                    <div style="font-size: 12px; color: var(--primary); font-weight: 700;">
+                        <i class='bx bx-calendar-check mr-1'></i> Recommended Recall / Follow-up Date: ${escapeHtml(rec.follow_up_date)}
+                    </div>` : ''}
+                `;
+            }
+
+            const modal = document.getElementById('adminViewClinicalChartModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeAdminViewClinicalModal() {
+            const modal = document.getElementById('adminViewClinicalChartModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function printAdminClinicalSlip() {
+            if (!viewingClinicalRecord) return;
+            window.print();
+        }
+
+</script>
 
     <!-- User Deletion / Soft-Delete Secondary Confirmation Modal -->
     <div id="deleteUserModal" onclick="if(event.target === this) closeDeleteUserModal()"
@@ -6678,6 +7485,233 @@
             </div>
         </div>
     </div>
+
+    <!-- ========================================================
+         MODALS: CLINICAL RECORD MANAGEMENT & ODONTOGRAM (D-004)
+         ======================================================== -->
+    
+    <!-- MODAL 1: Document New Clinical Treatment Record -->
+    <div id="adminNewClinicalRecordModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card bg-white soft-shadow-lg" style="width: 100%; max-width: 760px; margin: 20px; border-radius: 16px; padding: 24px; max-height: 90vh; overflow-y: auto;">
+            <div class="flex items-center justify-between border-bottom pb-2 mb-3">
+                <div>
+                    <h3 class="font-bold text-lg mb-0" style="display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-plus-medical text-primary' style="font-size: 22px;"></i> Document New Clinical Encounter (D-004)
+                    </h3>
+                    <p class="text-xs text-dim m-0">Record diagnosis, odontogram charted teeth, clinical procedures, anesthesia, and prescriptions.</p>
+                </div>
+                <button type="button" class="btn-text text-dim font-bold" onclick="closeAdminNewClinicalModal()" style="font-size: 24px; cursor: pointer; border: none; background: transparent;">&times;</button>
+            </div>
+
+            <form id="adminNewClinicalForm" onsubmit="saveAdminNewClinicalRecord(event)">
+                <!-- Row 1: Patient Details -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;" class="mb-2">
+                    <div>
+                        <label class="text-xs font-bold text-dim uppercase">Patient Full Name *</label>
+                        <input type="text" id="adminNewRecPatientName" required class="form-control" placeholder="e.g. Maria Santos" style="height: 38px; width: 100%; padding: 0 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-dim uppercase">Patient Phone / Contact</label>
+                        <input type="text" id="adminNewRecPatientPhone" class="form-control" placeholder="e.g. +63 917 555 4321" style="height: 38px; width: 100%; padding: 0 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    </div>
+                </div>
+
+                <!-- Row 2: Service & Category & Attending Doctor -->
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px;" class="mb-2">
+                    <div>
+                        <label class="text-xs font-bold text-dim uppercase">Procedure / Treatment Name *</label>
+                        <input type="text" id="adminNewRecServiceName" required class="form-control" placeholder="e.g. Light-Cure Composite Restoration" style="height: 38px; width: 100%; padding: 0 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-dim uppercase">Treatment Category</label>
+                        <select id="adminNewRecCategory" class="form-control" style="height: 38px; width: 100%; padding: 0 10px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                            <option value="Restorative Dentistry">Restorative Dentistry</option>
+                            <option value="Oral Surgery">Oral Surgery / Extraction</option>
+                            <option value="Endodontics">Endodontics (Root Canal)</option>
+                            <option value="Periodontics">Periodontics (Gum Therapy)</option>
+                            <option value="Preventive Care">Preventive Care</option>
+                            <option value="Prosthodontics">Prosthodontics</option>
+                            <option value="Orthodontics">Orthodontics</option>
+                            <option value="General Dentistry">General Dentistry</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-dim uppercase">Attending Doctor</label>
+                        <select id="adminNewRecDoctor" class="form-control" style="height: 38px; width: 100%; padding: 0 10px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                            <option value="Dr. Dental Specialist">Dr. Dental Specialist</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 3: Diagnosis & Quick Diagnosis Chips -->
+                <div class="mb-2">
+                    <label class="text-xs font-bold text-dim uppercase">Clinical Diagnosis *</label>
+                    <input type="text" id="adminNewRecDiagnosis" required class="form-control" placeholder="e.g. Deep dental caries with dentinal hypersensitivity" style="height: 38px; width: 100%; padding: 0 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <div class="quick-chips-wrap">
+                        <span class="text-dim" style="font-size: 10px; font-weight: 700; align-self: center; margin-right: 2px;">QUICK DIAGNOSIS:</span>
+                        <span class="quick-chip" onclick="applyAdminQuickDiagnosis('Dental Caries (Class II Occlusal-Mesial)')">Dental Caries (Class II)</span>
+                        <span class="quick-chip" onclick="applyAdminQuickDiagnosis('Chronic Marginal Gingivitis with Calculus')">Chronic Gingivitis</span>
+                        <span class="quick-chip" onclick="applyAdminQuickDiagnosis('Irreversible Pulpitis with Periapical Lucency')">Irreversible Pulpitis</span>
+                        <span class="quick-chip" onclick="applyAdminQuickDiagnosis('Impacted Third Molar (Mesioangular)')">Impacted Wisdom Tooth</span>
+                        <span class="quick-chip" onclick="applyAdminQuickDiagnosis('Severe Enamel Attrition & Erosion')">Enamel Attrition</span>
+                    </div>
+                </div>
+
+                <!-- Row 4: Odontogram 32-Teeth Selector & Surfaces -->
+                <div class="mb-2" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px;">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-bold text-dim uppercase" style="margin: 0;">Odontogram Teeth Selector (Click to Select / Deselect)</label>
+                        <div class="quadrant-bar" style="margin-bottom: 0;">
+                            <button type="button" class="quadrant-btn" onclick="selectAdminNewRecQuadrant('UR')">UR (18-11)</button>
+                            <button type="button" class="quadrant-btn" onclick="selectAdminNewRecQuadrant('UL')">UL (21-28)</button>
+                            <button type="button" class="quadrant-btn" onclick="selectAdminNewRecQuadrant('LL')">LL (31-38)</button>
+                            <button type="button" class="quadrant-btn" onclick="selectAdminNewRecQuadrant('LR')">LR (48-41)</button>
+                            <button type="button" class="quadrant-btn" onclick="clearAdminNewRecTeeth()">Clear</button>
+                        </div>
+                    </div>
+                    <div class="teeth-selector-grid" id="adminNewRecTeethGrid">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                    <div class="flex justify-between items-center mt-1 flex-wrap gap-1">
+                        <span class="text-xs text-dim">Selected Teeth: <strong id="adminNewRecSelectedTeethDisplay" class="text-primary font-bold">None</strong></span>
+                        <div class="surface-selector-group" style="margin: 0;">
+                            <span class="text-dim" style="font-size: 10px; font-weight: 700; align-self: center;">Tooth Surfaces:</span>
+                            <span class="surface-chip" onclick="toggleAdminSurface('M', this)">M (Mesial)</span>
+                            <span class="surface-chip" onclick="toggleAdminSurface('O', this)">O / I (Occlusal/Incisal)</span>
+                            <span class="surface-chip" onclick="toggleAdminSurface('D', this)">D (Distal)</span>
+                            <span class="surface-chip" onclick="toggleAdminSurface('B', this)">B / F (Buccal/Facial)</span>
+                            <span class="surface-chip" onclick="toggleAdminSurface('L', this)">L (Lingual)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 5: Local Anesthesia & Procedure Notes -->
+                <div class="mb-2">
+                    <label class="text-xs font-bold text-dim uppercase">Local Anesthesia Administered</label>
+                    <input type="text" id="adminNewRecAnesthesia" class="form-control" placeholder="e.g. Lidocaine 2% w/ 1:100k Epinephrine (1.8 ml carpule)" style="height: 38px; width: 100%; padding: 0 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                </div>
+
+                <div class="mb-2">
+                    <label class="text-xs font-bold text-dim uppercase">Operative Procedure Notes &amp; Clinical Steps *</label>
+                    <textarea id="adminNewRecProcedureNotes" required class="form-control" rows="3" placeholder="Describe cavity preparation, etching/bonding technique, composite layering, curing, and occlusal equilibration..." style="width: 100%; padding: 10px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
+                </div>
+
+                <!-- Row 6: Prescription & Post-Op Guidelines -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;" class="mb-2">
+                    <div>
+                        <label class="text-xs font-bold text-dim uppercase">Prescription (Rx) &amp; Dosages</label>
+                        <textarea id="adminNewRecPrescription" class="form-control" rows="2" placeholder="e.g. Amoxicillin 500mg #21 caps TID x 7 days; Mefenamic Acid 500mg PRN" style="width: 100%; padding: 8px 12px; font-size: 12.5px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-dim uppercase">Post-Op Care &amp; Instructions</label>
+                        <textarea id="adminNewRecPostOp" class="form-control" rows="2" placeholder="e.g. Avoid mastication of hard foods on restored tooth for 24 hours. Normal sensitivity expected." style="width: 100%; padding: 8px 12px; font-size: 12.5px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Row 7: Treatment Encounter Date & Recall Follow-up -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;" class="mb-3">
+                    <div>
+                        <label class="text-xs font-bold text-dim uppercase">Treatment Date</label>
+                        <input type="date" id="adminNewRecDate" class="form-control" style="height: 38px; width: 100%; padding: 0 10px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-dim uppercase">Recommended Recall / Follow-up Date</label>
+                        <input type="date" id="adminNewRecFollowUp" class="form-control" style="height: 38px; width: 100%; padding: 0 10px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-1 border-top pt-2">
+                    <button type="button" class="btn-outline" onclick="closeAdminNewClinicalModal()" style="height: 40px; padding: 0 16px;">Cancel</button>
+                    <button type="submit" id="saveAdminNewClinicalBtn" class="btn-primary" style="height: 40px; padding: 0 20px; font-weight: 700; background: #0eb1b1; border-color: #0c9696; color: white;">
+                        <i class='bx bx-check-double mr-1'></i> Finalize &amp; Save Clinical Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Edit Existing Clinical Record -->
+    <div id="adminEditClinicalRecordModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card bg-white soft-shadow-lg" style="width: 100%; max-width: 700px; margin: 20px; border-radius: 16px; padding: 24px; max-height: 90vh; overflow-y: auto;">
+            <div class="flex items-center justify-between border-bottom pb-2 mb-3">
+                <div>
+                    <h3 class="font-bold text-lg mb-0" style="display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-edit text-primary' style="font-size: 22px;"></i> Update Clinical Record Information (D-004)
+                    </h3>
+                    <p class="text-xs text-dim m-0" id="adminEditRecSubtitle">Updating patient clinical record</p>
+                </div>
+                <button type="button" class="btn-text text-dim font-bold" onclick="closeAdminEditClinicalModal()" style="font-size: 24px; cursor: pointer; border: none; background: transparent;">&times;</button>
+            </div>
+
+            <form id="adminEditClinicalForm" onsubmit="saveAdminEditClinicalRecord(event)">
+                <input type="hidden" id="adminEditRecId">
+
+                <div class="mb-2">
+                    <label class="text-xs font-bold text-dim uppercase">Clinical Diagnosis</label>
+                    <input type="text" id="adminEditRecDiagnosis" class="form-control" placeholder="Update diagnosis..." style="height: 38px; width: 100%; padding: 0 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                </div>
+
+                <div class="mb-2">
+                    <label class="text-xs font-bold text-dim uppercase">Operative Procedure Notes &amp; Updates</label>
+                    <textarea id="adminEditRecProcedureNotes" class="form-control" rows="3" placeholder="Clinical notes, treatment progress, or procedure observations..." style="width: 100%; padding: 10px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;" class="mb-2">
+                    <div>
+                        <label class="text-xs font-bold text-dim uppercase">Prescription (Rx)</label>
+                        <textarea id="adminEditRecPrescription" class="form-control" rows="2" placeholder="Pharmaceutical medications & dosages..." style="width: 100%; padding: 8px 12px; font-size: 12.5px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-dim uppercase">Post-Op Instructions</label>
+                        <textarea id="adminEditRecPostOp" class="form-control" rows="2" placeholder="Home care instructions..." style="width: 100%; padding: 8px 12px; font-size: 12.5px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-xs font-bold text-dim uppercase">Recall / Follow-up Date</label>
+                    <input type="date" id="adminEditRecFollowUp" class="form-control" style="height: 38px; width: 100%; padding: 0 10px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                </div>
+
+                <div class="flex justify-end gap-1 border-top pt-2">
+                    <button type="button" class="btn-outline" onclick="closeAdminEditClinicalModal()" style="height: 40px; padding: 0 16px;">Cancel</button>
+                    <button type="submit" id="saveAdminEditClinicalBtn" class="btn-primary" style="height: 40px; padding: 0 20px; font-weight: 700; background: #0eb1b1; border-color: #0c9696; color: white;">
+                        <i class='bx bx-save mr-1'></i> Update Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: View Full Clinical Dossier & Printable Chart -->
+    <div id="adminViewClinicalChartModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card bg-white soft-shadow-lg" style="width: 100%; max-width: 680px; margin: 20px; border-radius: 16px; padding: 26px; max-height: 90vh; overflow-y: auto;">
+            <div class="flex items-center justify-between border-bottom pb-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <i class='bx bx-file-blank text-primary' style="font-size: 26px;"></i>
+                    <div>
+                        <h3 class="font-bold text-lg mb-0" id="adminViewChartTitle">Clinical Encounter Record</h3>
+                        <p class="text-xs text-dim m-0">Official Dental Operatory Record &amp; Charting</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-text text-dim font-bold" onclick="closeAdminViewClinicalModal()" style="font-size: 24px; cursor: pointer; border: none; background: transparent;">&times;</button>
+            </div>
+
+            <div id="adminViewChartContent" style="display: flex; flex-direction: column; gap: 14px;">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div class="flex justify-between items-center border-top pt-3 mt-3">
+                <span class="text-xs text-dim">Verified Electronic Health Record (EHR) &bull; OptiDent Dental Clinic</span>
+                <div class="flex gap-1">
+                    <button type="button" class="btn-outline text-xs" onclick="printAdminClinicalSlip()" style="padding: 6px 14px; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class='bx bx-printer'></i> Print Slip
+                    </button>
+                    <button type="button" class="btn-primary text-xs" onclick="closeAdminViewClinicalModal()" style="padding: 6px 16px; background: #0eb1b1;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
