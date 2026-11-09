@@ -183,7 +183,20 @@ export async function autoCreateGoogleCalendarEvent(apptDetails) {
                 });
                 console.log(`[Google Calendar API] Also synced appointment directly to doctor calendar (${apptDetails.doctor_email})`);
             } catch (docErr) {
-                console.log(`[Google Calendar API Notice] Doctor calendar ${apptDetails.doctor_email} not yet shared with service account (notified via email invite instead).`);
+                console.log(`[Google Calendar API Notice] Doctor calendar ${apptDetails.doctor_email} not shared with service account (notified via email invite instead).`);
+            }
+        }
+
+        // If patient email is provided, also sync directly to patient's calendar if shared
+        if (apptDetails.patient_email && apptDetails.patient_email.includes('@') && apptDetails.patient_email.toLowerCase() !== targetCalId.toLowerCase()) {
+            try {
+                await calendar.events.insert({
+                    calendarId: apptDetails.patient_email.trim(),
+                    requestBody: event
+                });
+                console.log(`[Google Calendar API] Also synced appointment directly to patient calendar (${apptDetails.patient_email})`);
+            } catch (patErr) {
+                console.log(`[Google Calendar API Notice] Patient calendar ${apptDetails.patient_email} not shared with service account (notified via email invite instead).`);
             }
         }
 
@@ -225,36 +238,47 @@ export async function autoDeleteGoogleCalendarEvent(eventIdOrAppt) {
         } catch (_) {}
 
         const eventId = typeof eventIdOrAppt === 'string' ? eventIdOrAppt : (eventIdOrAppt.google_calendar_event_id || '');
-        if (eventId) {
-            try {
-                await calendar.events.delete({
-                    calendarId: targetCalId,
-                    eventId: eventId
-                });
-                console.log(`[Google Calendar API] Deleted event ${eventId} on calendar ${targetCalId}`);
-                return;
-            } catch (delErr) {
-                console.warn(`[Google Calendar API Warning] Direct delete failed: ${delErr.message}. Attempting query search...`);
+        const calsToCheck = [targetCalId];
+        if (typeof eventIdOrAppt === 'object') {
+            if (eventIdOrAppt.doctor_email && eventIdOrAppt.doctor_email.includes('@') && !calsToCheck.includes(eventIdOrAppt.doctor_email.trim())) {
+                calsToCheck.push(eventIdOrAppt.doctor_email.trim());
+            }
+            if (eventIdOrAppt.patient_email && eventIdOrAppt.patient_email.includes('@') && !calsToCheck.includes(eventIdOrAppt.patient_email.trim())) {
+                calsToCheck.push(eventIdOrAppt.patient_email.trim());
             }
         }
 
-        // Fallback: search for event by patient name / query if object provided
-        if (typeof eventIdOrAppt === 'object') {
-            const q = eventIdOrAppt.patient_name || eventIdOrAppt.service_name || '';
-            if (q) {
-                const searchRes = await calendar.events.list({
-                    calendarId: targetCalId,
-                    q,
-                    maxResults: 10
-                });
-                const items = searchRes?.data?.items || [];
-                const targetDate = eventIdOrAppt.appointment_date || eventIdOrAppt.date || '';
-                for (const item of items) {
-                    const itemDate = (item.start?.dateTime || item.start?.date || '').slice(0, 10);
-                    if (!targetDate || itemDate === targetDate) {
-                        await calendar.events.delete({ calendarId: targetCalId, eventId: item.id }).catch(() => {});
-                        console.log(`[Google Calendar API] Deleted matched event ${item.id} (${item.summary}) on calendar ${targetCalId}`);
-                    }
+        for (const calId of calsToCheck) {
+            if (eventId) {
+                try {
+                    await calendar.events.delete({
+                        calendarId: calId,
+                        eventId: eventId
+                    });
+                    console.log(`[Google Calendar API] Deleted event ${eventId} on calendar ${calId}`);
+                } catch (_) {}
+            }
+
+            // Fallback: search for event by patient name / query if object provided
+            if (typeof eventIdOrAppt === 'object') {
+                const q = eventIdOrAppt.patient_name || eventIdOrAppt.service_name || '';
+                if (q) {
+                    try {
+                        const searchRes = await calendar.events.list({
+                            calendarId: calId,
+                            q,
+                            maxResults: 10
+                        });
+                        const items = searchRes?.data?.items || [];
+                        const targetDate = eventIdOrAppt.appointment_date || eventIdOrAppt.date || '';
+                        for (const item of items) {
+                            const itemDate = (item.start?.dateTime || item.start?.date || '').slice(0, 10);
+                            if (!targetDate || itemDate === targetDate) {
+                                await calendar.events.delete({ calendarId: calId, eventId: item.id }).catch(() => {});
+                                console.log(`[Google Calendar API] Deleted matched event ${item.id} (${item.summary}) on calendar ${calId}`);
+                            }
+                        }
+                    } catch (_) {}
                 }
             }
         }
