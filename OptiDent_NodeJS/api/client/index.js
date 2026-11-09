@@ -5,6 +5,7 @@ import logAudit from '../config/auditLogger.js';
 import { getServicePrice, formatPhp } from '../config/servicePricing.js';
 import { ClinicHoursHelper } from '../config/clinicHoursHelper.js';
 import { sendAppointmentNotificationEmail, sendPatientOTPEmail, generateGoogleCalendarUrl } from '../config/mailer.js';
+import { autoCreateGoogleCalendarEvent, autoDeleteGoogleCalendarEvent } from '../config/googleCalendar.js';
 
 const router = express.Router();
 
@@ -295,6 +296,15 @@ router.post('/book_appointment', async (req, res) => {
             // Dispatches to Patient, Super Admin (jamgamer1014@gmail.com), and Attending Doctor
             sendAppointmentNotificationEmail(user.email, user.full_name, apptDetails, 'booked')
                 .catch(e => console.warn('[Email Warning] Booking email notification:', e.message));
+
+            // Direct Server-to-Server Google Calendar API Creation (Zero Clicks)
+            autoCreateGoogleCalendarEvent(apptDetails).then(gRes => {
+                if (gRes && gRes.success && gRes.eventId) {
+                    dbClient.updateOne('appointments', { _id: result.insertedId }, {
+                        $set: { google_calendar_event_id: gRes.eventId, google_calendar_html_link: gRes.htmlLink }
+                    }).catch(() => {});
+                }
+            }).catch(e => console.warn('[Google Calendar API Warning]:', e.message));
         } catch (notifErr) {
             console.warn('[Notification Warning] Booking notification record failed:', notifErr.message);
         }
@@ -412,6 +422,11 @@ router.post('/cancel_appointment', async (req, res) => {
         });
 
         await logAudit(req, 'CANCEL_APPOINTMENT', 'CLIENT', { appointment_id: apptId, reason }, 'success');
+
+        // Automatically delete from Google Calendar via API if present
+        if (appt.google_calendar_event_id) {
+            autoDeleteGoogleCalendarEvent(appt.google_calendar_event_id).catch(() => {});
+        }
 
         // C-009: Record in-app notification & dispatch email update
         try {
