@@ -4,7 +4,7 @@ import requireAuth from '../middleware/authGuard.js';
 import logAudit from '../config/auditLogger.js';
 import { getServicePrice, formatPhp } from '../config/servicePricing.js';
 import { ClinicHoursHelper } from '../config/clinicHoursHelper.js';
-import { sendAppointmentNotificationEmail, sendPatientOTPEmail } from '../config/mailer.js';
+import { sendAppointmentNotificationEmail, sendPatientOTPEmail, generateGoogleCalendarUrl } from '../config/mailer.js';
 
 const router = express.Router();
 
@@ -246,7 +246,32 @@ router.post('/book_appointment', async (req, res) => {
         const result = await dbClient.insertOne('appointments', newAppt);
         await logAudit(req, 'BOOK_APPOINTMENT', 'CLIENT', { appointment_id: result.insertedId, date, timeSlot }, 'success');
 
-        // C-009: Record in-app notification & dispatch email update
+        // Lookup attending doctor's email for notification dispatch
+        let doctorEmail = '';
+        try {
+            const docUser = await dbClient.findOne('users', {
+                $or: [
+                    { full_name: doctorName },
+                    { name: doctorName }
+                ]
+            });
+            if (docUser && docUser.email) doctorEmail = docUser.email;
+        } catch (e) {}
+
+        const apptDetails = {
+            id: String(result.insertedId || newAppt._id || ''),
+            patient_name: user.full_name,
+            patient_email: user.email,
+            patient_phone: user.phone || '',
+            doctor_name: doctor,
+            doctor_email: doctorEmail,
+            service_name: serviceName,
+            date: date,
+            time: timeSlot
+        };
+        const gCalUrl = generateGoogleCalendarUrl(apptDetails);
+
+        // C-009: Record in-app notification & dispatch email + calendar update
         try {
             await dbClient.insertOne('notifications', {
                 user_id: user._id,
@@ -261,18 +286,15 @@ router.post('/book_appointment', async (req, res) => {
                     doctor_name: doctor,
                     service_name: serviceName,
                     date: date,
-                    time: timeSlot
+                    time: timeSlot,
+                    google_calendar_url: gCalUrl
                 },
                 created_at: new Date().toISOString()
             });
 
-            sendAppointmentNotificationEmail(user.email, user.full_name, {
-                id: String(result.insertedId || newAppt._id || ''),
-                date,
-                time: timeSlot,
-                doctor_name: doctor,
-                service_name: serviceName
-            }, 'booked').catch(e => console.warn('[Email Warning] Booking email notification:', e.message));
+            // Dispatches to Patient, Super Admin (jamgamer1014@gmail.com), and Attending Doctor
+            sendAppointmentNotificationEmail(user.email, user.full_name, apptDetails, 'booked')
+                .catch(e => console.warn('[Email Warning] Booking email notification:', e.message));
         } catch (notifErr) {
             console.warn('[Notification Warning] Booking notification record failed:', notifErr.message);
         }
@@ -280,7 +302,9 @@ router.post('/book_appointment', async (req, res) => {
         return res.status(201).json({
             status: 'success',
             message: 'Your dental appointment has been scheduled successfully!',
-            appointment_id: result.insertedId
+            appointment_id: result.insertedId,
+            google_calendar_url: gCalUrl,
+            appointment: apptDetails
         });
     } catch (err) {
         console.error('Book appointment error:', err);

@@ -282,24 +282,17 @@ export async function sendPasswordResetEmail(toEmail, toName, code, customUser =
 }
 
 /**
- * Builds RFC 5545 iCalendar stream for Google Calendar Auto-Add and Auto-Remove
- * Strictly formatted with Asia/Manila (PST) VTIMEZONE so Google Calendar renders
- * the exact appointment time with zero timezone drift or hour shift!
+ * Builds direct 1-click Google Calendar TEMPLATE URL for browser sync
+ * Compatible with all desktop browsers, Android, and iOS Google Calendar apps.
  */
-function buildAppointmentIcs(apptDetails, eventType, toEmail, displayName) {
-    const aptId = String(apptDetails.id || apptDetails._id || `${apptDetails.date || ''}_${apptDetails.time || ''}`.replace(/[^a-zA-Z0-9]/g, ''));
-    const uid = `optident-apt-${aptId}@optident.com`;
-    const dateStr = (apptDetails.date || apptDetails.appointment_date || new Date().toISOString().slice(0, 10)).trim();
-    const timeStr = (apptDetails.time || apptDetails.time_slot || apptDetails.appointment_time || '09:00 AM').trim();
+export function generateGoogleCalendarUrl(apptDetails) {
     const service = apptDetails.service_name || 'Dental Appointment';
     const doctor = apptDetails.doctor_name || 'Dental Specialist';
-    const isCancelled = eventType === 'cancelled';
-    const isRescheduled = eventType === 'rescheduled';
-    const sequence = isCancelled ? 2 : (isRescheduled ? 1 : 0);
+    const dateStr = (apptDetails.date || apptDetails.appointment_date || new Date().toISOString().slice(0, 10)).trim();
+    const timeStr = (apptDetails.time || apptDetails.time_slot || apptDetails.appointment_time || '09:00 AM').trim();
+    const patientName = apptDetails.patient_name || 'Patient';
+    const clinicAddress = 'OptiDent Dental Clinic, Fortich St., Malaybalay City';
 
-    const pad = n => String(n).padStart(2, '0');
-
-    // Robust Date parser (supports YYYY-MM-DD or MM/DD/YYYY)
     let year = 2026, month = 11, day = 10;
     if (dateStr.includes('-')) {
         const parts = dateStr.split('-');
@@ -323,7 +316,6 @@ function buildAppointmentIcs(apptDetails, eventType, toEmail, displayName) {
         }
     }
 
-    // Robust Time parser (supports 12h "09:00 AM", "1:00 PM", and 24h "13:00")
     let h = 9, min = 0;
     const m = timeStr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i) || timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
     if (m) {
@@ -334,27 +326,94 @@ function buildAppointmentIcs(apptDetails, eventType, toEmail, displayName) {
         if (ampm === 'AM' && h === 12) h = 0;
     }
 
-    // Calculate exact start and end ISO strings (1 hour duration)
-    const startIso = `${year}${pad(month)}${pad(day)}T${pad(h)}${pad(min)}00`;
-    
-    // Safely calculate end time accounting for midnight / day rollover
-    const startUtcDate = new Date(Date.UTC(year, month - 1, day, h, min, 0));
-    const endUtcDate = new Date(startUtcDate.getTime() + 60 * 60 * 1000);
-    const endYear = endUtcDate.getUTCFullYear();
-    const endMonth = endUtcDate.getUTCMonth() + 1;
-    const endDay = endUtcDate.getUTCDate();
-    const endH = endUtcDate.getUTCHours();
-    const endMin = endUtcDate.getUTCMinutes();
-    const endIso = `${endYear}${pad(endMonth)}${pad(endDay)}T${pad(endH)}${pad(endMin)}00`;
+    // Convert local Manila time (UTC+8) to UTC ISO string
+    const localMs = Date.UTC(year, month - 1, day, h, min, 0) - (8 * 60 * 60 * 1000);
+    const startUtc = new Date(localMs);
+    const endUtc = new Date(localMs + 60 * 60 * 1000);
 
-    const nowIso = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
+    const formatUtc = d => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const dates = `${formatUtc(startUtc)}/${formatUtc(endUtc)}`;
+
+    const title = `OptiDent Dental: ${service} - ${patientName}`;
+    const details = `Confirmed Dental Appointment with ${doctor} at OptiDent Dental Clinic.\nPatient: ${patientName}\nTreatment: ${service}\nScheduled Time: ${timeStr}\nClinic Location: ${clinicAddress}\nPlease arrive 10 minutes prior to your appointment time.`;
+
+    const guests = ['jamgamer1014@gmail.com'];
+    if (apptDetails.patient_email && apptDetails.patient_email.includes('@')) {
+        guests.push(apptDetails.patient_email.trim());
+    }
+    if (apptDetails.doctor_email && apptDetails.doctor_email.includes('@')) {
+        guests.push(apptDetails.doctor_email.trim());
+    }
+
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${dates}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(clinicAddress)}&add=${encodeURIComponent(guests.join(','))}`;
+}
+
+/**
+ * Builds RFC 5545 iCalendar stream for Google Calendar Auto-Add and Auto-Remove
+ * Formatted with UTC timestamps (Z) and full guest participant metadata
+ * for instant 1-click addition across Gmail, Google Calendar, and mobile apps.
+ */
+export function buildAppointmentIcs(apptDetails, eventType, toEmail, displayName) {
+    const aptId = String(apptDetails.id || apptDetails._id || `${apptDetails.date || ''}_${apptDetails.time || ''}`.replace(/[^a-zA-Z0-9]/g, ''));
+    const uid = `optident-apt-${aptId}@optident.clinic`;
+    const dateStr = (apptDetails.date || apptDetails.appointment_date || new Date().toISOString().slice(0, 10)).trim();
+    const timeStr = (apptDetails.time || apptDetails.time_slot || apptDetails.appointment_time || '09:00 AM').trim();
+    const service = apptDetails.service_name || 'Dental Appointment';
+    const doctor = apptDetails.doctor_name || 'Dental Specialist';
+    const doctorEmail = (apptDetails.doctor_email || 'doctor@optident.com').trim();
+    const isCancelled = eventType === 'cancelled';
+    const isRescheduled = eventType === 'rescheduled';
+    const sequence = isCancelled ? 2 : (isRescheduled ? 1 : 0);
+
+    let year = 2026, month = 11, day = 10;
+    if (dateStr.includes('-')) {
+        const parts = dateStr.split('-');
+        if (parts.length >= 3) {
+            year = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10);
+            day = parseInt(parts[2], 10);
+        }
+    } else if (dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        if (parts.length >= 3) {
+            if (parts[0].length === 4) {
+                year = parseInt(parts[0], 10);
+                month = parseInt(parts[1], 10);
+                day = parseInt(parts[2], 10);
+            } else {
+                month = parseInt(parts[0], 10);
+                day = parseInt(parts[1], 10);
+                year = parseInt(parts[2], 10);
+            }
+        }
+    }
+
+    let h = 9, min = 0;
+    const m = timeStr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i) || timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (m) {
+        h = parseInt(m[1], 10);
+        min = parseInt(m[2], 10);
+        const ampm = m[3] ? m[3].toUpperCase() : null;
+        if (ampm === 'PM' && h < 12) h += 12;
+        if (ampm === 'AM' && h === 12) h = 0;
+    }
+
+    // Convert local Manila time (UTC+8) to UTC ISO string
+    const localMs = Date.UTC(year, month - 1, day, h, min, 0) - (8 * 60 * 60 * 1000);
+    const startUtc = new Date(localMs);
+    const endUtc = new Date(localMs + 60 * 60 * 1000);
+
+    const formatUtc = d => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const startIso = formatUtc(startUtc);
+    const endIso = formatUtc(endUtc);
+    const nowIso = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 
     const method = isCancelled ? 'CANCEL' : 'REQUEST';
     const status = isCancelled ? 'CANCELLED' : 'CONFIRMED';
-    const summary = isCancelled ? `CANCELLED: OptiDent Dental - ${service}` : `OptiDent Dental: ${service}`;
+    const summary = isCancelled ? `CANCELLED: OptiDent Dental - ${service}` : `OptiDent Dental: ${service} - ${displayName || 'Patient'}`;
     const description = isCancelled 
         ? `Your appointment for ${service} with ${doctor} at OptiDent Dental Clinic has been CANCELLED.` 
-        : `Dental visit for ${service} with ${doctor} at OptiDent Dental Clinic. Location: Fortich St., Malaybalay City. Scheduled time: ${timeStr}.`;
+        : `Confirmed Dental Appointment at OptiDent Dental Clinic.\nPatient: ${displayName || 'Patient'}\nDoctor: ${doctor}\nService: ${service}\nDate: ${dateStr}\nTime: ${timeStr}\nLocation: Fortich St., Malaybalay City.`;
 
     const lines = [
         'BEGIN:VCALENDAR',
@@ -362,30 +421,25 @@ function buildAppointmentIcs(apptDetails, eventType, toEmail, displayName) {
         'VERSION:2.0',
         'CALSCALE:GREGORIAN',
         `METHOD:${method}`,
-        'X-WR-TIMEZONE:Asia/Manila',
-        'BEGIN:VTIMEZONE',
-        'TZID:Asia/Manila',
-        'X-LIC-LOCATION:Asia/Manila',
-        'BEGIN:STANDARD',
-        'TZOFFSETFROM:+0800',
-        'TZOFFSETTO:+0800',
-        'TZNAME:PHT',
-        'DTSTART:19700101T000000',
-        'END:STANDARD',
-        'END:VTIMEZONE',
         'BEGIN:VEVENT',
         `UID:${uid}`,
         `SEQUENCE:${sequence}`,
         `STATUS:${status}`,
         `DTSTAMP:${nowIso}`,
-        `DTSTART;TZID=Asia/Manila:${startIso}`,
-        `DTEND;TZID=Asia/Manila:${endIso}`,
+        `DTSTART:${startIso}`,
+        `DTEND:${endIso}`,
         `SUMMARY:${summary}`,
-        `DESCRIPTION:${description}`,
-        'LOCATION:OptiDent Dental Clinic, Fortich St., Malaybalay City',
+        `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
+        'LOCATION:OptiDent Dental Clinic\\, Fortich St.\\, Malaybalay City',
         'ORGANIZER;CN="OptiDent Dental Clinic":mailto:jamgamer1014@gmail.com',
-        `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${isCancelled ? 'DECLINED' : 'ACCEPTED'};CN="${displayName || 'Patient'}":mailto:${toEmail}`,
-        `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${isCancelled ? 'DECLINED' : 'ACCEPTED'};CN="OptiDent Doctor":mailto:edjamenf@gmail.com`,
+        `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${isCancelled ? 'DECLINED' : 'NEEDS-ACTION'};RSVP=TRUE;CN="${displayName || 'Patient'}":mailto:${toEmail}`,
+        'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="OptiDent Super Admin":mailto:jamgamer1014@gmail.com',
+        `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="${doctor}":mailto:${doctorEmail}`,
+        'BEGIN:VALARM',
+        'ACTION:DISPLAY',
+        `DESCRIPTION:Reminder: Dental appointment for ${service} at OptiDent`,
+        'TRIGGER:-PT2H',
+        'END:VALARM',
         'END:VEVENT',
         'END:VCALENDAR'
     ];
@@ -395,13 +449,15 @@ function buildAppointmentIcs(apptDetails, eventType, toEmail, displayName) {
 
 /**
  * Sends branded appointment update email (booking, rescheduling, cancellation)
+ * Syncs automatically with Google Calendar and dispatches to Patient, Super Admin, and Doctor.
  */
 export async function sendAppointmentNotificationEmail(toEmail, toName, apptDetails, eventType = 'booked', customUser = '', customPass = '') {
     const displayName = toName || 'Patient';
     const date = apptDetails.date || apptDetails.appointment_date || '';
-    const time = apptDetails.time || apptDetails.time_slot || '';
+    const time = apptDetails.time || apptDetails.time_slot || apptDetails.appointment_time || '';
     const doctor = apptDetails.doctor_name || 'Assigned Dental Specialist';
     const service = apptDetails.service_name || 'Dental Consultation';
+    const gCalUrl = generateGoogleCalendarUrl({ ...apptDetails, patient_name: displayName, patient_email: toEmail });
 
     let subject = '';
     let badgeColor = '#0EB1B1';
@@ -429,25 +485,37 @@ export async function sendAppointmentNotificationEmail(toEmail, toName, apptDeta
     const icsContent = buildAppointmentIcs(apptDetails, eventType, toEmail, displayName);
 
     const mailOptionsBuilder = (senderUser) => {
-        const recipients = [toEmail];
-        if (toEmail && toEmail.toLowerCase() !== 'edjamenf@gmail.com') {
-            recipients.push('edjamenf@gmail.com');
+        // Collect all recipients: Patient, Super Admin (jamgamer1014@gmail.com), and Attending Doctor
+        const recipients = [];
+        if (toEmail && toEmail.includes('@')) {
+            recipients.push(toEmail.trim());
         }
+
+        const adminEmail = 'jamgamer1014@gmail.com';
+        if (!recipients.map(r => r.toLowerCase()).includes(adminEmail)) {
+            recipients.push(adminEmail);
+        }
+
+        const docEmail = apptDetails.doctor_email;
+        if (docEmail && typeof docEmail === 'string' && docEmail.includes('@') && !recipients.map(r => r.toLowerCase()).includes(docEmail.toLowerCase())) {
+            recipients.push(docEmail.trim());
+        }
+
         return {
             from: `"${SMTP_FROM_NAME}" <${senderUser}>`,
             to: recipients.join(', '),
             subject,
-            text: `Hello ${displayName},\n\n${headline}\n\nDetails:\nService: ${service}\nDoctor: ${doctor}\nDate: ${date}\nTime: ${time}\nLocation: OptiDent Dental Clinic, Malaybalay City`,
+            text: `Hello ${displayName},\n\n${headline}\n\nDetails:\nService: ${service}\nDoctor: ${doctor}\nDate: ${date}\nTime: ${time}\nLocation: OptiDent Dental Clinic, Fortich St., Malaybalay City\n\nAdd to Google Calendar: ${gCalUrl}`,
             html: `
         <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 25px 12px; color: #1e293b;">
-            <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 14px; padding: 28px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
+            <div style="max-width: 540px; margin: 0 auto; background: #ffffff; border-radius: 14px; padding: 28px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
                 <div style="text-align: center; margin-bottom: 20px;">
                     <h2 style="color: #0EB1B1; margin: 0; font-size: 24px; font-weight: 800;">OptiDent Dental Clinic</h2>
-                    <p style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px;">Patient Appointment Notification</p>
+                    <p style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px;">Appointment &amp; Calendar Notification (C-009)</p>
                 </div>
                 
                 <div style="text-align: center; margin-bottom: 20px;">
-                    <span style="background: ${badgeColor}; color: #ffffff; font-size: 11px; font-weight: 800; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">
+                    <span style="background: ${badgeColor}; color: #ffffff; font-size: 11px; font-weight: 800; padding: 4px 14px; border-radius: 20px; letter-spacing: 0.5px;">
                         ${badgeText}
                     </span>
                     <h3 style="color: #0f172a; margin: 12px 0 4px 0; font-size: 17px;">Hello ${displayName},</h3>
@@ -473,27 +541,193 @@ export async function sendAppointmentNotificationEmail(toEmail, toName, apptDeta
                     </div>
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: #64748b; font-weight: 600;">Clinic Location:</span>
-                        <strong style="color: #0f172a;">OptiDent Clinic, Fortich St.</strong>
+                        <strong style="color: #0f172a;">OptiDent Clinic, Fortich St., Malaybalay</strong>
                     </div>
                 </div>
 
+                ${!isCancelled ? `
+                <!-- 1-Click Google Calendar Integration Button -->
+                <div style="text-align: center; margin: 24px 0 16px 0;">
+                    <a href="${gCalUrl}" target="_blank" style="background: linear-gradient(135deg, #0EB1B1, #0284C7); color: #ffffff; text-decoration: none; padding: 13px 26px; border-radius: 8px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(14, 177, 177, 0.35);">
+                        📅 Add to Google Calendar (1-Click)
+                    </a>
+                </div>
+                <p style="text-align: center; font-size: 11.5px; color: #64748b; margin: 0 0 16px 0;">
+                    Click the button above to instantly save this appointment to your Google Calendar schedule.
+                </p>
+                ` : ''}
+
                 <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 0;">
-                    ${isCancelled ? 'This visit has been removed from your Google Calendar schedule.' : '📅 This appointment is automatically synced to your Google Calendar. Please present your Digital QR Pass at our reception counter upon arrival.'}
+                    ${isCancelled ? 'This visit has been removed from your Google Calendar schedule.' : '📅 An iCalendar (.ics) invite is also attached for automatic integration with Apple Calendar, Outlook, and Android. Please present your Digital QR Pass at our reception counter upon arrival.'}
                 </p>
                 
                 <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0 12px;">
                 <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
-                    OptiDent Dental Clinic &bull; Automated Patient Notification System
+                    OptiDent Dental Clinic &bull; Automated Patient &amp; Doctor Notification System (C-009)
                 </p>
             </div>
         </div>`,
-        icalEvent: {
-            filename: isCancelled ? 'cancel_appointment.ics' : 'appointment.ics',
-            method: isCancelled ? 'CANCEL' : 'REQUEST',
-            content: icsContent
-        }
+            icalEvent: {
+                filename: isCancelled ? 'cancel_appointment.ics' : 'appointment.ics',
+                method: isCancelled ? 'CANCEL' : 'REQUEST',
+                content: icsContent
+            },
+            alternatives: [
+                {
+                    contentType: 'text/calendar; charset="utf-8"; method=' + (isCancelled ? 'CANCEL' : 'REQUEST'),
+                    content: icsContent
+                }
+            ],
+            attachments: [
+                {
+                    filename: isCancelled ? 'cancel_appointment.ics' : 'appointment.ics',
+                    content: icsContent,
+                    contentType: 'text/calendar; charset=utf-8'
+                }
+            ]
+        };
     };
-};
+
+    return await sendMailWithFallback(mailOptionsBuilder, customUser, customPass);
+}
+
+/**
+ * Sends a daily clinical agenda briefing email to Doctor & Super Admin
+ */
+export async function sendDoctorDailyAgendaEmail(doctorEmail, doctorName, todayAppts = [], dateStr = '', customUser = '', customPass = '') {
+    const date = dateStr || new Date().toISOString().slice(0, 10);
+    const docName = doctorName || 'Doctor';
+    const totalCount = todayAppts.length;
+    const completedCount = todayAppts.filter(a => (a.status || '').toLowerCase() === 'completed').length;
+    const inProgressCount = todayAppts.filter(a => ['in_progress', 'in_chair', 'ongoing'].includes((a.status || '').toLowerCase())).length;
+    const upcomingCount = totalCount - completedCount - inProgressCount;
+
+    const subject = `OptiDent Doctor Daily Briefing: ${totalCount} Patient Appointment(s) Scheduled for Today (${date})`;
+
+    let apptsHtml = '';
+    if (todayAppts.length === 0) {
+        apptsHtml = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 24px; color: #64748b; font-size: 13px;">
+                    No patient appointments scheduled for today yet.
+                </td>
+            </tr>
+        `;
+    } else {
+        apptsHtml = todayAppts.map((a, idx) => {
+            const time = a.appointment_time || a.time_slot || a.time || '09:00 AM';
+            const patient = a.patient_name || 'Patient';
+            const phone = a.patient_phone || 'N/A';
+            const service = a.service_name || 'Consultation';
+            const chair = a.operatory_chair || 'Operatory Chair 1';
+            const status = (a.status || 'scheduled').toUpperCase();
+            const notes = a.notes || '';
+            const statusColor = status === 'COMPLETED' ? '#059669' : (status === 'IN_PROGRESS' || status === 'IN_CHAIR' ? '#0284C7' : '#D97706');
+
+            return `
+                <tr style="border-bottom: 1px solid #e2e8f0; background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                    <td style="padding: 12px 14px; font-weight: 700; color: #0EB1B1; font-size: 13px; white-space: nowrap;">
+                        ${time}
+                    </td>
+                    <td style="padding: 12px 14px;">
+                        <strong style="color: #0f172a; font-size: 13.5px;">${patient}</strong>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">📞 ${phone}</div>
+                    </td>
+                    <td style="padding: 12px 14px; color: #334155; font-size: 13px;">
+                        <div style="font-weight: 600;">${service}</div>
+                        <div style="font-size: 11px; color: #64748b;">${chair}</div>
+                    </td>
+                    <td style="padding: 12px 14px; text-align: center;">
+                        <span style="background: ${statusColor}18; color: ${statusColor}; font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 4px; display: inline-block;">
+                            ${status}
+                        </span>
+                    </td>
+                    <td style="padding: 12px 14px; font-size: 11.5px; color: #475569;">
+                        ${notes ? `<em>${notes}</em>` : '<span style="color: #94a3b8;">None</span>'}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    const html = `
+    <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 25px 12px; color: #1e293b;">
+        <div style="max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 14px; padding: 28px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
+            <div style="border-bottom: 2px solid #0EB1B1; padding-bottom: 14px; margin-bottom: 20px;">
+                <h2 style="color: #0EB1B1; margin: 0; font-size: 22px; font-weight: 800;">OptiDent Dental Clinic</h2>
+                <p style="color: #64748b; font-size: 12px; margin: 4px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Doctor Daily Clinical Briefing &bull; 📅 ${date}</p>
+                <p style="color: #059669; font-size: 13px; font-weight: 700; margin: 4px 0 0 0;">Attending Doctor: ${docName}</p>
+            </div>
+
+            <!-- KPI Summary Bar -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div style="flex: 1; background: #F0FBFA; border: 1px solid #99E6E6; border-radius: 8px; padding: 10px; text-align: center;">
+                    <div style="font-size: 20px; font-weight: 800; color: #0EB1B1;">${totalCount}</div>
+                    <div style="font-size: 10.5px; font-weight: 700; color: #076d6d; text-transform: uppercase;">Total Patients</div>
+                </div>
+                <div style="flex: 1; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 10px; text-align: center;">
+                    <div style="font-size: 20px; font-weight: 800; color: #2563EB;">${inProgressCount}</div>
+                    <div style="font-size: 10.5px; font-weight: 700; color: #1E40AF; text-transform: uppercase;">In Treatment</div>
+                </div>
+                <div style="flex: 1; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; padding: 10px; text-align: center;">
+                    <div style="font-size: 20px; font-weight: 800; color: #059669;">${completedCount}</div>
+                    <div style="font-size: 10.5px; font-weight: 700; color: #065F46; text-transform: uppercase;">Completed</div>
+                </div>
+                <div style="flex: 1; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: 10px; text-align: center;">
+                    <div style="font-size: 20px; font-weight: 800; color: #D97706;">${upcomingCount}</div>
+                    <div style="font-size: 10.5px; font-weight: 700; color: #92400E; text-transform: uppercase;">Upcoming</div>
+                </div>
+            </div>
+
+            <h4 style="color: #0f172a; margin: 0 0 10px 0; font-size: 14px; font-weight: 700;">📋 Patient Treatment Schedule:</h4>
+            <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 24px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12.5px;">
+                    <thead>
+                        <tr style="background: #f1f5f9; color: #475569; font-weight: 700; border-bottom: 1px solid #e2e8f0;">
+                            <th style="padding: 10px 14px;">Time</th>
+                            <th style="padding: 10px 14px;">Patient Details</th>
+                            <th style="padding: 10px 14px;">Procedure / Chair</th>
+                            <th style="padding: 10px 14px; text-align: center;">Status</th>
+                            <th style="padding: 10px 14px;">Clinical Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${apptsHtml}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="http://localhost:3000/doctor_dashboard.html" target="_blank" style="background: #0EB1B1; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 13.5px; display: inline-block;">
+                    🩺 Open Doctor Clinical Dashboard
+                </a>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0 12px;">
+            <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
+                OptiDent Dental Clinic &bull; Automated Practitioner Notification &bull; Confidential Medical Data
+            </p>
+        </div>
+    </div>`;
+
+    const mailOptionsBuilder = (senderUser) => {
+        const recipients = [];
+        if (doctorEmail && doctorEmail.includes('@')) {
+            recipients.push(doctorEmail.trim());
+        }
+        const adminEmail = 'jamgamer1014@gmail.com';
+        if (!recipients.map(r => r.toLowerCase()).includes(adminEmail)) {
+            recipients.push(adminEmail);
+        }
+
+        return {
+            from: `"${SMTP_FROM_NAME}" <${senderUser}>`,
+            to: recipients.join(', '),
+            subject,
+            text: `OptiDent Doctor Daily Briefing (${date}) for ${docName}:\nTotal Patients: ${totalCount}\nCompleted: ${completedCount}\nIn-Chair: ${inProgressCount}\nUpcoming: ${upcomingCount}\n\nPlease check your Doctor Dashboard at http://localhost:3000/doctor_dashboard.html`,
+            html
+        };
+    };
 
     return await sendMailWithFallback(mailOptionsBuilder, customUser, customPass);
 }

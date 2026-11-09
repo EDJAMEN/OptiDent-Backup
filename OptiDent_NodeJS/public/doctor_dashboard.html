@@ -1061,12 +1061,17 @@
                     <p class="text-dim text-xs mt-1" id="currentDateString">Saturday, September 26, 2026 &bull; Active
                         Clinical Shift</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" style="flex-wrap: wrap;">
                     <span class="operatory-pill in-progress" id="doctorPresenceStatus">
                         <i class='bx bxs-circle' style="font-size: 8px;"></i> Available in Operatory
                     </span>
-                    <button class="btn-primary" onclick="loadDoctorDashboard()"
-                        style="padding: 8px 14px; font-size: 13px; border-radius: 8px;">
+                    <button type="button" id="btnEmailTodaySchedule" class="btn-primary" onclick="emailDoctorTodaySchedule()"
+                        style="padding: 8px 14px; font-size: 13px; border-radius: 8px; background: linear-gradient(135deg, #0EB1B1, #0284C7); border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff;"
+                        title="Send today's patient schedule to your registered email & Super Admin (C-009)">
+                        <i class='bx bx-envelope' style="font-size: 16px;"></i> Email Today's Schedule
+                    </button>
+                    <button class="btn-outline" onclick="loadDoctorDashboard()"
+                        style="padding: 8px 14px; font-size: 13px; border-radius: 8px; background: #ffffff; border: 1.5px solid #e2e8f0; color: #475569; font-weight: 600; cursor: pointer;">
                         <i class='bx bx-refresh mr-1'></i> Refresh
                     </button>
                 </div>
@@ -2841,6 +2846,31 @@
             }
             const display = document.getElementById('selectedTeethDisplay');
             display.textContent = selectedTeeth.size > 0 ? Array.from(selectedTeeth).join(', ') : 'None';
+        }
+
+        async function emailDoctorTodaySchedule() {
+            const btn = document.getElementById('btnEmailTodaySchedule');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Sending Email...";
+            }
+            try {
+                const res = await fetch('api/doctor/email_today_schedule.php', { method: 'POST' });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('success', data.message || "Today's patient schedule has been dispatched to your email!");
+                } else {
+                    showToast('error', data.message || "Failed to dispatch today's schedule email.");
+                }
+            } catch (e) {
+                showToast('error', "Network error connecting to email dispatch service.");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
         }
 
         async function loadDoctorDashboard() {

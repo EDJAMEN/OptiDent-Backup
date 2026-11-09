@@ -5,6 +5,7 @@ import requireAuth from '../middleware/authGuard.js';
 import logAudit from '../config/auditLogger.js';
 import ClinicHoursHelper from '../config/clinicHoursHelper.js';
 import { getServicePrice, formatPhp } from '../config/servicePricing.js';
+import { sendDoctorDailyAgendaEmail, sendAppointmentNotificationEmail } from '../config/mailer.js';
 
 const router = express.Router();
 
@@ -362,6 +363,22 @@ router.post('/update_appointment_status', async (req, res) => {
         await dbClient.updateOne('appointments', { _id: apptId }, { $set: updateDoc });
         await logAudit(req, 'UPDATE_STATUS', 'DOCTOR', { appointment_id: apptId, status: newStatus }, 'success');
 
+        // C-009: Notify Patient, Super Admin, and Doctor
+        try {
+            const appt = await dbClient.findOne('appointments', { _id: apptId });
+            if (appt && appt.patient_email) {
+                const eventType = newStatus === 'cancelled' ? 'cancelled' : 'booked';
+                sendAppointmentNotificationEmail(appt.patient_email, appt.patient_name, {
+                    id: String(appt._id),
+                    date: appt.appointment_date || appt.date,
+                    time: appt.appointment_time || appt.time_slot,
+                    doctor_name: appt.doctor_name || req.user.full_name || 'Doctor',
+                    doctor_email: req.user.email,
+                    service_name: appt.service_name
+                }, eventType).catch(e => console.warn('[Email Warning] Status update notification:', e.message));
+            }
+        } catch (e) {}
+
         return res.status(200).json({ status: 'success', message: `Status updated to ${newStatus}.` });
     } catch (err) {
         console.error('Status update error:', err);
@@ -385,6 +402,21 @@ router.post('/approve_appointment', async (req, res) => {
                 approved_at: new Date().toISOString().replace('T', ' ').slice(0, 19)
             }
         });
+
+        // C-009: Notify Patient, Super Admin, and Doctor of approval
+        try {
+            const appt = await dbClient.findOne('appointments', { _id: apptId });
+            if (appt && appt.patient_email) {
+                sendAppointmentNotificationEmail(appt.patient_email, appt.patient_name, {
+                    id: String(appt._id),
+                    date: appt.appointment_date || appt.date,
+                    time: appt.appointment_time || appt.time_slot,
+                    doctor_name: appt.doctor_name || req.user.full_name || 'Doctor',
+                    doctor_email: req.user.email,
+                    service_name: appt.service_name
+                }, 'booked').catch(e => console.warn('[Email Warning] Approval notification:', e.message));
+            }
+        } catch (e) {}
 
         return res.status(200).json({ status: 'success', message: 'Appointment approved and scheduled.' });
     } catch (err) {
@@ -905,6 +937,71 @@ router.post('/delete_record_history', async (req, res) => {
         return res.status(500).json({ status: 'error', message: 'Failed to delete record history.' });
     }
 });
+
+/**
+ * Doctor Today's Clinical Schedule Email Dispatch
+ * Sends daily briefing of today's appointments to Doctor and Super Admin (jamgamer1014@gmail.com)
+ */
+const handleEmailTodaySchedule = async (req, res) => {
+    try {
+        const userEmail = req.user.email;
+        const userRole = (req.user.role || '').toLowerCase();
+
+        let doctor = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: userEmail });
+        const docName = doctor?.full_name || req.user.name || 'Doctor';
+        const docEmail = doctor?.email || userEmail;
+
+        const todayDate = new Date().toISOString().slice(0, 10);
+        const allAppts = await dbClient.find('appointments', {
+            is_deleted: { $ne: true },
+            is_archived: { $ne: true }
+        });
+
+        const todayList = [];
+        for (const apt of allAppts) {
+            const aptDate = (apt.appointment_date || apt.date || '').slice(0, 10);
+            if (aptDate !== todayDate) continue;
+
+            if (userRole === 'doctor') {
+                const aptDoc = (apt.doctor_name || apt.attending_doctor || '').toLowerCase().trim();
+                const currentDoc = (docName || '').toLowerCase().trim();
+                if (aptDoc && currentDoc && !aptDoc.includes(currentDoc) && !currentDoc.includes(aptDoc)) {
+                    continue;
+                }
+            }
+            todayList.push({
+                ...apt,
+                id: String(apt._id)
+            });
+        }
+
+        todayList.sort((a, b) => {
+            const tA = a.appointment_time || a.time_slot || a.time || '';
+            const tB = b.appointment_time || b.time_slot || b.time || '';
+            return tA.localeCompare(tB);
+        });
+
+        const sendResult = await sendDoctorDailyAgendaEmail(docEmail, docName, todayList, todayDate);
+        await logAudit(req, 'EMAIL_TODAY_SCHEDULE', 'DOCTOR', {
+            doctor: docEmail,
+            date: todayDate,
+            appointments_count: todayList.length
+        }, 'success');
+
+        return res.status(200).json({
+            status: 'success',
+            message: `Today's clinical schedule with ${todayList.length} appointment(s) has been sent to your email (${docEmail}) and Super Admin (jamgamer1014@gmail.com).`,
+            count: todayList.length,
+            provider: sendResult?.provider || 'smtp'
+        });
+    } catch (err) {
+        console.error('Email today schedule error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to send today schedule email: ' + err.message });
+    }
+};
+
+router.post('/email_today_schedule', handleEmailTodaySchedule);
+router.get('/email_today_schedule', handleEmailTodaySchedule);
 
 export default router;
 

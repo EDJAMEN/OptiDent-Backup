@@ -541,7 +541,7 @@ router.get('/get_google_calendar_status', async (req, res) => {
         const isEnabled = integrations.google_calendar_sync !== false;
         
         // Target Gmail account: use admin user email or clinic google account
-        const targetEmail = req.user?.email || 'edjamenf@gmail.com';
+        const targetEmail = req.user?.email || 'jamgamer1014@gmail.com';
 
         // Retrieve upcoming and active appointments
         const allAppts = await dbClient.find('appointments', {});
@@ -603,7 +603,7 @@ const handleGoogleCalendarSync = async (req, res) => {
         });
 
         const now = new Date().toISOString();
-        const targetEmail = req.user?.email || 'edjamenf@gmail.com';
+        const targetEmail = req.user?.email || 'jamgamer1014@gmail.com';
 
         // Actively dispatch invites to targetEmail for upcoming appointments
         let sentCount = 0;
