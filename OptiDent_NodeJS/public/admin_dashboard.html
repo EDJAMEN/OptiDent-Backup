@@ -5369,7 +5369,7 @@
                 const res = await fetch(`api/admin/get_deleted_records.php?collection=${encodeURIComponent(currentVaultFilter)}`);
                 const data = await res.json();
                 if (data.status === 'success') {
-                    vaultRecordsData = data.items || [];
+                    vaultRecordsData = data.items || data.records || [];
                     renderVaultRecords(vaultRecordsData);
 
                     // Update summary counts
@@ -5390,7 +5390,8 @@
                     tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-dim">${data.message || 'No records in vault.'}</td></tr>`;
                 }
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-danger"><i class='bx bx-error-circle mr-1'></i> Error connecting to Recovery Vault.</td></tr>`;
+                console.error('[Recovery Vault Error]:', err);
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-danger"><i class='bx bx-error-circle mr-1'></i> Error connecting to Recovery Vault (${err.message || 'Network error'}).</td></tr>`;
             }
         }
 
@@ -5398,7 +5399,7 @@
             const tbody = document.getElementById('vaultTableBody');
             if (!tbody) return;
 
-            if (items.length === 0) {
+            if (!items || items.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="5" class="text-center py-4 text-dim">
@@ -5413,31 +5414,39 @@
 
             let html = '';
             items.forEach(item => {
-                const colBadge = item.collection === 'users' ? 
-                    '<span class="badge" style="background: rgba(37,99,235,0.1); color: #2563eb; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 999px;">User Account</span>' :
-                    '<span class="badge" style="background: rgba(245,158,11,0.1); color: #b45309; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 999px;">Staff Invitation</span>';
+                let colBadge = '<span class="badge" style="background: rgba(37,99,235,0.1); color: #2563eb; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 999px;">User Account</span>';
+                if (item.collection === 'invitations') {
+                    colBadge = '<span class="badge" style="background: rgba(245,158,11,0.1); color: #b45309; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 999px;">Staff Invitation</span>';
+                } else if (item.collection === 'appointments') {
+                    colBadge = '<span class="badge" style="background: rgba(14,177,177,0.1); color: #0EB1B1; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 999px;">Appointment</span>';
+                }
+
+                const safeTitle = (item.title || 'Record').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeIdent = (item.identifier || item.id || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeCollection = (item.collection || item.type || 'users').replace(/'/g, "\\'");
+                const safeId = String(item.id || '').replace(/'/g, "\\'");
 
                 html += `
                     <tr style="border-bottom: 1px solid var(--border-color);">
                         <td style="padding: 10px 14px;">
-                            <div class="font-bold text-dark text-xs">${item.title}</div>
-                            <div class="text-dim text-xs font-mono">${item.identifier}</div>
+                            <div class="font-bold text-dark text-xs">${escapeHtml(item.title || 'Untitled Record')}</div>
+                            <div class="text-dim text-xs font-mono">${escapeHtml(item.identifier || '--')}</div>
                         </td>
                         <td style="padding: 10px 14px;">${colBadge}</td>
                         <td style="padding: 10px 14px; font-size: 12px; color: #64748b;">
-                            <i class='bx bx-time-five mr-1'></i>${item.deleted_at}
+                            <i class='bx bx-time-five mr-1'></i>${escapeHtml(item.deleted_at || 'Recently')}
                         </td>
                         <td style="padding: 10px 14px; font-size: 12px;">
-                            <div class="text-dark font-medium">${item.deleted_by}</div>
-                            <div class="text-dim text-xs" style="font-size: 11px;">${item.deleted_reason}</div>
+                            <div class="text-dark font-medium">${escapeHtml(item.deleted_by || 'Admin')}</div>
+                            <div class="text-dim text-xs" style="font-size: 11px;">${escapeHtml(item.deleted_reason || 'Deactivated')}</div>
                         </td>
                         <td style="padding: 10px 14px; text-align: right;">
                             <div class="flex gap-1 justify-end">
-                                <button class="btn-primary py-1 px-2 text-xs" onclick="restoreRecord('${item.collection}', '${item.id}', '${item.identifier}', '${item.title.replace(/'/g, "\\'")}')" style="background: #10b981; border-color: #059669;" title="Restore this record back to active status">
+                                <button class="btn-primary py-1 px-2 text-xs" onclick="restoreRecord('${safeCollection}', '${safeId}', '${safeIdent}', '${safeTitle}')" style="background: #10b981; border-color: #059669;" title="Restore this record back to active status">
                                     <i class='bx bx-undo mr-1'></i> Restore
                                 </button>
                                 ${item.can_purge ? `
-                                <button class="btn-outline py-1 px-2 text-xs text-danger" onclick="openPurgeModal('${item.collection}', '${item.id}', '${item.identifier}', '${item.title.replace(/'/g, "\\'")}')" style="border-color: rgba(239, 68, 68, 0.4);" title="Permanently delete from database">
+                                <button class="btn-outline py-1 px-2 text-xs text-danger" onclick="openPurgeModal('${safeCollection}', '${safeId}', '${safeIdent}', '${safeTitle}')" style="border-color: rgba(239, 68, 68, 0.4);" title="Permanently delete from database">
                                     <i class='bx bx-trash mr-1'></i> Purge
                                 </button>` : `
                                 <span class="badge" style="background: rgba(234,179,8,0.15); color: #b45309; font-size: 10px; padding: 2px 6px; border-radius: 4px;" title="Root Administrator cannot be purged">

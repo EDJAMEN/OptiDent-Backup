@@ -730,36 +730,88 @@ router.get('/google_calendar_feed', async (req, res) => {
 });
 
 /**
- * SA-006: Soft-Deleted Records
+ * SA-006: Soft-Deleted Records (Data Recovery Vault)
  */
 router.get('/get_deleted_records', async (req, res) => {
     try {
-        const users = await dbClient.find('users', { is_deleted: true });
-        const appts = await dbClient.find('appointments', { is_deleted: true });
+        const filter = (req.query.collection || 'all').toLowerCase();
+        const items = [];
 
-        const formattedUsers = users.map(u => ({
-            id: String(u._id),
-            type: 'user',
-            title: `${u.full_name} (${u.role})`,
-            deleted_at: u.deleted_at || u.updated_at || '',
-            deleted_by: u.deleted_by || 'Admin'
-        }));
+        // 1. Soft-deleted users
+        if (filter === 'all' || filter === 'users') {
+            const users = await dbClient.find('users', {
+                $or: [{ is_deleted: true }, { status: 'deleted' }]
+            });
+            for (const u of users) {
+                items.push({
+                    id: String(u._id),
+                    collection: 'users',
+                    type: 'user',
+                    title: u.full_name ? `${u.full_name} (${u.role || 'user'})` : (u.name || u.email || 'User Account'),
+                    identifier: u.email || String(u._id),
+                    role: u.role || 'user',
+                    deleted_at: u.deleted_at || u.updated_at || '',
+                    deleted_by: u.deleted_by || 'Super Admin',
+                    deleted_reason: u.delete_reason || u.deleted_reason || 'Deactivated by Administrator',
+                    can_purge: !u.is_master && u.role !== 'super_admin' && u.email !== 'optidentt@gmail.com'
+                });
+            }
+        }
 
-        const formattedAppts = appts.map(a => ({
-            id: String(a._id),
-            type: 'appointment',
-            title: `Appointment: ${a.patient_name} - ${a.service_name} (${a.date || a.appointment_date})`,
-            deleted_at: a.deleted_at || a.updated_at || '',
-            deleted_by: a.deleted_by || 'Admin'
-        }));
+        // 2. Soft-deleted / cancelled staff invitations
+        if (filter === 'all' || filter === 'invitations') {
+            const invitations = await dbClient.find('invitations', {
+                $or: [{ is_deleted: true }, { status: 'cancelled' }, { status: 'revoked' }, { status: 'deleted' }]
+            });
+            for (const inv of invitations) {
+                items.push({
+                    id: String(inv._id),
+                    collection: 'invitations',
+                    type: 'invitation',
+                    title: `Staff Invite: ${inv.email} (${inv.role || 'Staff'})`,
+                    identifier: inv.email,
+                    role: inv.role || 'Staff',
+                    deleted_at: inv.cancelled_at || inv.deleted_at || inv.created_at || '',
+                    deleted_by: inv.cancelled_by || inv.deleted_by || 'Super Admin',
+                    deleted_reason: inv.cancel_reason || inv.deleted_reason || 'Invitation revoked / cancelled',
+                    can_purge: true
+                });
+            }
+        }
+
+        // 3. Soft-deleted appointments
+        if (filter === 'all' || filter === 'appointments') {
+            const appts = await dbClient.find('appointments', {
+                $or: [{ is_deleted: true }, { status: 'cancelled' }]
+            });
+            for (const a of appts) {
+                items.push({
+                    id: String(a._id),
+                    collection: 'appointments',
+                    type: 'appointment',
+                    title: `${a.patient_name || 'Patient'} - ${a.service_name || 'Dental Procedure'}`,
+                    identifier: a.appointment_code || a.patient_phone || a.patient_email || (a.date ? `${a.date} ${a.time || ''}` : String(a._id)),
+                    role: 'patient',
+                    deleted_at: a.deleted_at || a.cancelled_at || a.updated_at || '',
+                    deleted_by: a.deleted_by || a.cancelled_by || 'Staff / Client',
+                    deleted_reason: a.cancellation_reason || a.delete_reason || 'Appointment cancelled / removed',
+                    can_purge: true
+                });
+            }
+        }
+
+        // Sort latest deleted first
+        items.sort((a, b) => (b.deleted_at || '').localeCompare(a.deleted_at || ''));
 
         return res.status(200).json({
             status: 'success',
-            records: [...formattedUsers, ...formattedAppts]
+            items: items,
+            records: items,
+            total: items.length
         });
     } catch (err) {
         console.error('Deleted records error:', err);
-        return res.status(500).json({ status: 'error', message: 'Failed to retrieve deleted records.' });
+        return res.status(500).json({ status: 'error', message: 'Failed to retrieve deleted records: ' + err.message });
     }
 });
 
@@ -768,19 +820,34 @@ router.get('/get_deleted_records', async (req, res) => {
  */
 router.post('/restore_record', async (req, res) => {
     try {
-        const { id, type } = req.body;
-        if (!id) return res.status(400).json({ status: 'error', message: 'Record ID is required.' });
+        const { id, type, collection, identifier } = req.body;
+        if (!id && !identifier) return res.status(400).json({ status: 'error', message: 'Record ID or Identifier is required.' });
 
-        const collection = type === 'appointment' ? 'appointments' : 'users';
-        await dbClient.updateOne(collection, { _id: id }, {
-            $set: { is_deleted: false, status: 'active', updated_at: new Date().toISOString() }
-        });
+        const col = collection || (type === 'appointment' ? 'appointments' : (type === 'invitation' ? 'invitations' : 'users'));
+        const query = id ? { _id: id } : { email: identifier };
 
-        await logAudit(req, 'RESTORE_RECORD', 'ADMIN', { id, type }, 'success');
-        return res.status(200).json({ status: 'success', message: 'Record restored successfully.' });
+        if (col === 'users') {
+            await dbClient.updateOne('users', query, {
+                $set: { is_deleted: false, status: 'active', updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19) },
+                $unset: { deleted_at: "", deleted_by: "", delete_reason: "" }
+            });
+        } else if (col === 'invitations') {
+            await dbClient.updateOne('invitations', query, {
+                $set: { is_deleted: false, status: 'pending', updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19) },
+                $unset: { cancelled_at: "", cancelled_by: "", cancel_reason: "" }
+            });
+        } else if (col === 'appointments') {
+            await dbClient.updateOne('appointments', query, {
+                $set: { is_deleted: false, status: 'scheduled', updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19) },
+                $unset: { deleted_at: "", deleted_by: "", cancellation_reason: "" }
+            });
+        }
+
+        await logAudit(req, 'RESTORE_RECORD', 'ADMIN', { id, identifier, collection: col }, 'success');
+        return res.status(200).json({ status: 'success', message: 'Record restored successfully back to active status.' });
     } catch (err) {
         console.error('Restore error:', err);
-        return res.status(500).json({ status: 'error', message: 'Failed to restore record.' });
+        return res.status(500).json({ status: 'error', message: 'Failed to restore record: ' + err.message });
     }
 });
 
@@ -1756,14 +1823,26 @@ router.post('/assign_user_role', async (req, res) => {
  */
 router.post('/purge_record', async (req, res) => {
     try {
-        const { id, type } = req.body;
-        if (!id) return res.status(400).json({ status: 'error', message: 'Record ID is required.' });
+        const { id, type, collection, identifier } = req.body;
+        if (!id && !identifier) return res.status(400).json({ status: 'error', message: 'Record ID or Identifier is required.' });
 
-        const col = type === 'appointment' ? 'appointments' : 'users';
-        await dbClient.deleteOne(col, { _id: id });
-        return res.status(200).json({ status: 'success', message: 'Record permanently purged.' });
+        const col = collection || (type === 'appointment' ? 'appointments' : (type === 'invitation' ? 'invitations' : 'users'));
+        
+        // Prevent purging root super admin or master
+        if (col === 'users') {
+            const user = await dbClient.findOne('users', id ? { _id: id } : { email: identifier });
+            if (user && (user.is_master || user.role === 'super_admin' || user.email === 'optidentt@gmail.com')) {
+                return res.status(403).json({ status: 'error', message: 'Super Administrator accounts cannot be permanently purged.' });
+            }
+        }
+
+        const query = id ? { _id: id } : { email: identifier };
+        await dbClient.deleteOne(col, query);
+        await logAudit(req, 'PURGE_RECORD', 'ADMIN', { id, identifier, collection: col }, 'success');
+        return res.status(200).json({ status: 'success', message: 'Record permanently purged from database.' });
     } catch (err) {
-        return res.status(500).json({ status: 'error', message: 'Failed to purge record.' });
+        console.error('Purge error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to purge record: ' + err.message });
     }
 });
 
