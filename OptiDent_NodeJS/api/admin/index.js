@@ -404,11 +404,37 @@ router.post('/update_role_permissions', async (req, res) => {
  */
 router.get('/get_audit_logs', async (req, res) => {
     try {
-        const logs = await dbClient.find('audit_logs', {}, { sort: { created_at: -1 }, limit: 100 });
+        const limit = parseInt(req.query.limit, 10) || 150;
+        const rawLogs = await dbClient.find('audit_logs', {}, { sort: { created_at: -1 }, limit });
+        const allLogs = await dbClient.find('audit_logs', {}).catch(() => rawLogs);
+        const totalCount = Array.isArray(allLogs) ? allLogs.length : rawLogs.length;
+
+        const normalizedLogs = rawLogs.map(l => {
+            const rawTime = l.created_at || l.timestamp || '';
+            const email = l.user_email || l.actor_name || l.actor_email || 'system@optident.local';
+            const role = (l.user_role || l.actor_role || (String(email).includes('admin') ? 'super_admin' : 'staff')).toLowerCase();
+
+            return {
+                id: String(l._id || l.id || ''),
+                action: l.action || 'SYSTEM_EVENT',
+                category: l.category || 'ADMIN',
+                user_email: email,
+                actor_name: l.actor_name || email,
+                user_role: role,
+                actor_role: role,
+                ip_address: l.ip_address || '127.0.0.1',
+                created_at: rawTime,
+                timestamp: rawTime,
+                details: l.details || {},
+                status: l.status || 'success'
+            };
+        });
+
         return res.status(200).json({
             status: 'success',
-            count: logs.length,
-            logs: logs
+            count: normalizedLogs.length,
+            total_count: totalCount,
+            logs: normalizedLogs
         });
     } catch (err) {
         console.error('Audit logs error:', err);
