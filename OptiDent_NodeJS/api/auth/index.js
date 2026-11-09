@@ -1134,6 +1134,54 @@ router.post('/forgot_password', async (req, res) => {
 });
 
 /**
+ * Verify OTP Code for Password Reset
+ */
+router.post('/verify_reset_code', async (req, res) => {
+    try {
+        const email = (req.body.email || '').trim().toLowerCase();
+        const code = (req.body.code || '').trim();
+
+        if (!email || !code) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Both email and 6-digit verification code are required.'
+            });
+        }
+
+        if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Verification code must be exactly 6 numeric digits.'
+            });
+        }
+
+        const resetRecord = await dbClient.findOne('password_resets', { email, code });
+        if (!resetRecord) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid verification code. Please check your code or request a new one.'
+            });
+        }
+
+        if (new Date(resetRecord.expires_at) < new Date()) {
+            await dbClient.deleteMany('password_resets', { email }).catch(() => { });
+            return res.status(400).json({
+                status: 'error',
+                message: 'This verification code has expired. Please request a new code.'
+            });
+        }
+
+        return res.json({
+            status: 'success',
+            message: 'Verification code confirmed. You can now set your new password.'
+        });
+    } catch (err) {
+        console.error('Verify reset code error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to verify reset code.' });
+    }
+});
+
+/**
  * Verify Code & Complete Password Reset
  */
 router.post('/reset_password', async (req, res) => {

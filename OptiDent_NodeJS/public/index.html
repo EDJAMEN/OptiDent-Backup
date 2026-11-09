@@ -355,10 +355,18 @@
             border-color: #0EB1B1;
             background: #f0fdfa;
         }
+        .otp-box.error {
+            border-color: #ef4444 !important;
+            background: #fef2f2 !important;
+            color: #b91c1c !important;
+        }
         @keyframes otpShake {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-7px); }
             40%, 80% { transform: translateX(7px); }
+        }
+        .shake {
+            animation: otpShake 0.45s ease-in-out;
         }
         .otp-modal-close {
             position: absolute;
@@ -728,18 +736,18 @@
             </form>
 
             <!-- TAB 3: FORGOT PASSWORD FORM (Self-service recovery for all roles) -->
-            <form id="form-forgot" class="auth-form" style="display: none;" onsubmit="handleForgotPasswordSubmit(event)">
-                <!-- Forgot Password Header Card -->
-                <div style="background: rgba(14, 177, 177, 0.08); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 10px; padding: 12px 14px; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px;">
-                    <i class='bx bx-lock-open-alt' style="font-size: 26px; color: var(--primary);"></i>
-                    <div>
-                        <div style="font-size: 13px; font-weight: 700; color: var(--primary-dark);">Forgot Your Password?</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Enter your registered email to receive a secure 6-digit recovery code.</div>
-                    </div>
-                </div>
-
+            <form id="form-forgot" class="auth-form" style="display: none;" onsubmit="event.preventDefault();">
                 <!-- STEP 1: Enter Registered Email -->
                 <div id="forgotStep1">
+                    <!-- Forgot Password Header Card -->
+                    <div style="background: rgba(14, 177, 177, 0.08); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 10px; padding: 12px 14px; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px;">
+                        <i class='bx bx-lock-open-alt' style="font-size: 26px; color: var(--primary);"></i>
+                        <div>
+                            <div style="font-size: 13px; font-weight: 700; color: var(--primary-dark);">Forgot Your Password?</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">Enter your registered email to receive a secure 6-digit recovery code.</div>
+                        </div>
+                    </div>
+
                     <div class="input-group">
                         <i class='bx bx-envelope'></i>
                         <input type="email" id="forgotEmail" placeholder="Enter your registered email" required autocomplete="email">
@@ -749,20 +757,82 @@
                             style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px; margin-top: 6px;">
                         <i class='bx bx-send mr-1'></i> Send Recovery Code
                     </button>
+
+                    <div class="mt-3 text-center border-top pt-2">
+                        <p class="text-xs text-dim">
+                            Remember your password?
+                            <a href="javascript:void(0)" onclick="switchAuthTab('login')" class="text-primary font-semibold" style="text-decoration: none;">
+                                Back to Sign In
+                            </a>
+                        </p>
+                    </div>
                 </div>
 
-                <!-- STEP 2: Enter Code & New Password -->
+                <!-- STEP 2: Dedicated OTP Verification Screen (Exact Design from Image 2) -->
                 <div id="forgotStep2" style="display: none;">
-                    <div style="margin-bottom: 12px; font-size: 12px; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px;">
-                        Code sent to: <strong id="forgotEmailDisplay" style="color: #0f172a;"></strong>
-                        <button type="button" onclick="editForgotEmail()" style="background: none; border: none; color: var(--primary); font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 6px;">
-                            (Change)
-                        </button>
+                    <div style="text-align: center; margin-bottom: 12px;">
+                        <div class="otp-icon-wrap" style="width: 50px; height: 50px; font-size: 24px; margin-bottom: 8px;">
+                            <i class='bx bx-shield-quarter'></i>
+                        </div>
+                        <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">
+                            OTP Verification
+                        </h4>
+                        <p style="font-size: 12.5px; color: #475569; margin: 0 0 10px 0; line-height: 1.45;">
+                            Please enter the OTP (One-Time Password) sent to your registered email to complete your verification.
+                        </p>
+                        <div style="display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; color: #0f172a;">
+                            <i class='bx bxl-gmail' style="color: #ea4335;"></i>
+                            <span id="forgotEmailDisplay"></span>
+                            <button type="button" onclick="editForgotEmail()" style="background: none; border: none; color: #0EB1B1; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 4px;">
+                                (Change)
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="input-group">
-                        <i class='bx bx-shield-quarter'></i>
-                        <input type="text" id="forgotCode" placeholder="6-Digit Verification Code" maxlength="6" pattern="[0-9]{6}" required style="letter-spacing: 4px; font-weight: 700; font-size: 15px;">
+                    <!-- 6 Separate Digit Boxes for OTP -->
+                    <div class="otp-inputs-grid" id="forgotOtpInputsContainer">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="0" autocomplete="off">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="1" autocomplete="off">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="2" autocomplete="off">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="3" autocomplete="off">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="4" autocomplete="off">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="5" autocomplete="off">
+                    </div>
+
+                    <!-- Timer & Resend (Matches Image 2) -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0 16px 0; font-size: 12px;">
+                        <span style="color: #64748b;">
+                            Remaining time: <strong id="forgotRemainingTimer" style="color: #0EB1B1; font-weight: 700;">14:59s</strong>
+                        </span>
+                        <span style="color: #64748b;">
+                            Didn't get the code? 
+                            <button type="button" id="btnForgotResend" onclick="sendForgotPasswordCode(true)" style="background: none; border: none; color: #0EB1B1; font-weight: 700; cursor: pointer; padding: 0; text-decoration: underline;">
+                                Resend
+                            </button>
+                        </span>
+                    </div>
+
+                    <!-- Action Buttons (Matches Image 2) -->
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button type="button" id="btnVerifyForgotOtp" onclick="verifyForgotOtpCode()" class="btn-primary w-full shadow-hover"
+                                style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px;">
+                            Verify
+                        </button>
+                        <button type="button" onclick="cancelForgotOtp()" class="btn-secondary w-full"
+                                style="padding: 11px; font-weight: 600; font-size: 13.5px; border-radius: 10px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Create New Password (After OTP is Verified) -->
+                <div id="forgotStep3" style="display: none;">
+                    <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px;">
+                        <i class='bx bx-check-shield' style="font-size: 26px; color: #059669;"></i>
+                        <div>
+                            <div style="font-size: 13px; font-weight: 700; color: #065f46;">OTP Verified Successfully</div>
+                            <div style="font-size: 11px; color: #047857;">Please create your new secure password below.</div>
+                        </div>
                     </div>
 
                     <div class="input-group">
@@ -781,25 +851,19 @@
                         </button>
                     </div>
 
-                    <button type="submit" id="btnSubmitResetPassword" class="btn-primary w-full shadow-hover"
+                    <button type="button" id="btnSubmitResetPassword" onclick="handleFinalPasswordReset()" class="btn-primary w-full shadow-hover"
                             style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px; margin-top: 6px;">
                         <i class='bx bx-reset mr-1'></i> Update Password &amp; Sign In
                     </button>
 
-                    <div class="text-center mt-2">
-                        <button type="button" onclick="sendForgotPasswordCode(true)" id="btnResendForgotCode" style="background: none; border: none; color: var(--primary); font-size: 11px; font-weight: 600; cursor: pointer;">
-                            Didn't get the code? Resend
-                        </button>
+                    <div class="mt-3 text-center border-top pt-2">
+                        <p class="text-xs text-dim">
+                            Remember your password?
+                            <a href="javascript:void(0)" onclick="switchAuthTab('login')" class="text-primary font-semibold" style="text-decoration: none;">
+                                Back to Sign In
+                            </a>
+                        </p>
                     </div>
-                </div>
-
-                <div class="mt-3 text-center border-top pt-2">
-                    <p class="text-xs text-dim">
-                        Remember your password?
-                        <a href="javascript:void(0)" onclick="switchAuthTab('login')" class="text-primary font-semibold" style="text-decoration: none;">
-                            Back to Sign In
-                        </a>
-                    </p>
                 </div>
             </form>
 
@@ -1232,6 +1296,7 @@
                 btnReg.classList.add('active');
                 formLogin.style.display = 'none';
                 if (formForgot) formForgot.style.display = 'none';
+                if (typeof cancelForgotOtp === 'function') cancelForgotOtp();
                 formReg.style.display = 'block';
                 subtext.textContent = 'Create your patient account to access dental records & book visits.';
                 window.location.hash = '#register';
@@ -1253,6 +1318,7 @@
                 btnLogin.classList.add('active');
                 formReg.style.display = 'none';
                 if (formForgot) formForgot.style.display = 'none';
+                if (typeof cancelForgotOtp === 'function') cancelForgotOtp();
                 formLogin.style.display = 'block';
                 if (isMaintenanceMode) {
                     subtext.innerHTML = '<span style="color: #dc2626; font-weight: 700; font-size: 13px;"><i class="bx bx-shield-quarter mr-1"></i> Super Administrator Emergency Access Console</span>';
@@ -1816,7 +1882,110 @@
             document.getElementById('authNotification').style.display = 'none';
         }
 
-        // ── Forgot Password Logic ─────────────────────────────────────────
+        // ── Forgot Password Logic (Image 2 Segmented OTP Design) ───────────
+        let verifiedForgotCode = '';
+        let forgotTimerInterval = null;
+
+        function setupForgotOtpInputs() {
+            const boxes = document.querySelectorAll('.forgot-otp-box');
+            boxes.forEach((box, idx) => {
+                box.addEventListener('input', (e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    e.target.value = val ? val[val.length - 1] : '';
+                    e.target.classList.remove('error');
+                    
+                    if (e.target.value) {
+                        e.target.classList.add('filled');
+                        if (idx < boxes.length - 1) {
+                            boxes[idx + 1].focus();
+                        } else {
+                            const code = getForgotOtpCode();
+                            if (code.length === 6) {
+                                document.getElementById('btnVerifyForgotOtp').focus();
+                            }
+                        }
+                    } else {
+                        e.target.classList.remove('filled');
+                    }
+                });
+
+                box.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace') {
+                        if (!box.value && idx > 0) {
+                            boxes[idx - 1].focus();
+                            boxes[idx - 1].value = '';
+                            boxes[idx - 1].classList.remove('filled', 'error');
+                        } else {
+                            box.value = '';
+                            box.classList.remove('filled', 'error');
+                        }
+                    } else if (e.key === 'ArrowLeft' && idx > 0) {
+                        boxes[idx - 1].focus();
+                    } else if (e.key === 'ArrowRight' && idx < boxes.length - 1) {
+                        boxes[idx + 1].focus();
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const code = getForgotOtpCode();
+                        if (code.length === 6) {
+                            verifyForgotOtpCode();
+                        }
+                    }
+                });
+
+                box.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+                    const digits = pasteData.replace(/[^0-9]/g, '').slice(0, 6);
+                    if (digits) {
+                        digits.split('').forEach((d, i) => {
+                            if (boxes[i]) {
+                                boxes[i].value = d;
+                                boxes[i].classList.add('filled');
+                                boxes[i].classList.remove('error');
+                            }
+                        });
+                        const focusIdx = Math.min(digits.length, boxes.length - 1);
+                        if (boxes[focusIdx]) boxes[focusIdx].focus();
+                        if (digits.length === 6) {
+                            verifyForgotOtpCode();
+                        }
+                    }
+                });
+            });
+        }
+
+        function getForgotOtpCode() {
+            const boxes = document.querySelectorAll('.forgot-otp-box');
+            let code = '';
+            boxes.forEach(b => { code += (b.value || '').trim(); });
+            return code;
+        }
+
+        function startForgotTimer(totalSeconds = 899) {
+            clearInterval(forgotTimerInterval);
+            let remaining = totalSeconds;
+            const timerEl = document.getElementById('forgotRemainingTimer');
+            const resendBtn = document.getElementById('btnForgotResend');
+            if (resendBtn) resendBtn.disabled = true;
+
+            function updateDisplay() {
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}s`;
+                if (timerEl) timerEl.textContent = formatted;
+
+                if (remaining <= 0) {
+                    clearInterval(forgotTimerInterval);
+                    if (timerEl) timerEl.textContent = 'Expired';
+                    if (resendBtn) resendBtn.disabled = false;
+                }
+                remaining--;
+            }
+
+            updateDisplay();
+            forgotTimerInterval = setInterval(updateDisplay, 1000);
+        }
+
         async function sendForgotPasswordCode(isResend = false) {
             hideNotif();
             const emailInp = document.getElementById('forgotEmail');
@@ -1827,10 +1996,10 @@
                 return;
             }
 
-            const btn = document.getElementById(isResend ? 'btnResendForgotCode' : 'btnSendForgotCode');
+            const btn = document.getElementById(isResend ? 'btnForgotResend' : 'btnSendForgotCode');
             const origHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Sending Code...";
+            btn.innerHTML = isResend ? "<i class='bx bx-loader-alt bx-spin'></i> Sending..." : "<i class='bx bx-loader-alt bx-spin mr-1'></i> Sending Code...";
 
             try {
                 const res = await fetch('api/auth/forgot_password.php', {
@@ -1842,13 +2011,23 @@
 
                 if (res.ok && data.status === 'success') {
                     document.getElementById('forgotStep1').style.display = 'none';
+                    document.getElementById('forgotStep3').style.display = 'none';
                     document.getElementById('forgotStep2').style.display = 'block';
                     document.getElementById('forgotEmailDisplay').textContent = email;
-                    if (data.dev_code) {
-                        document.getElementById('forgotCode').value = data.dev_code;
-                    }
-                    showNotif('success', data.message || 'Verification code sent to your email.');
-                    document.getElementById('forgotCode').focus();
+                    
+                    // Reset OTP boxes
+                    const boxes = document.querySelectorAll('.forgot-otp-box');
+                    boxes.forEach(b => {
+                        b.value = '';
+                        b.classList.remove('filled', 'error');
+                    });
+
+                    startForgotTimer(899);
+                    showNotif('success', data.message || '6-digit OTP code sent to your email.');
+
+                    setTimeout(() => {
+                        if (boxes[0]) boxes[0].focus();
+                    }, 150);
                 } else {
                     showNotif('error', data.message || 'Failed to send recovery code. Please check your email.');
                 }
@@ -1861,24 +2040,94 @@
         }
 
         function editForgotEmail() {
+            clearInterval(forgotTimerInterval);
             document.getElementById('forgotStep2').style.display = 'none';
+            document.getElementById('forgotStep3').style.display = 'none';
             document.getElementById('forgotStep1').style.display = 'block';
             document.getElementById('forgotEmail').focus();
             hideNotif();
         }
 
-        async function handleForgotPasswordSubmit(e) {
-            e.preventDefault();
+        function cancelForgotOtp() {
+            clearInterval(forgotTimerInterval);
+            document.getElementById('forgotStep2').style.display = 'none';
+            document.getElementById('forgotStep3').style.display = 'none';
+            document.getElementById('forgotStep1').style.display = 'block';
             hideNotif();
+        }
 
+        async function verifyForgotOtpCode() {
+            hideNotif();
             const email = (document.getElementById('forgotEmail').value || '').trim();
-            const code = (document.getElementById('forgotCode').value || '').trim();
+            const code = getForgotOtpCode();
+            const container = document.getElementById('forgotOtpInputsContainer');
+            const boxes = document.querySelectorAll('.forgot-otp-box');
+
+            if (!code || code.length !== 6) {
+                showNotif('error', 'Please enter the complete 6-digit verification code.');
+                if (container) {
+                    container.classList.remove('shake');
+                    void container.offsetWidth;
+                    container.classList.add('shake');
+                }
+                boxes.forEach(b => { if (!b.value) b.classList.add('error'); });
+                return;
+            }
+
+            const btn = document.getElementById('btnVerifyForgotOtp');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Verifying Code...";
+
+            try {
+                const res = await fetch('api/auth/verify_reset_code.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    verifiedForgotCode = code;
+                    clearInterval(forgotTimerInterval);
+
+                    showNotif('success', data.message || 'OTP verified! Now create your new password.');
+                    document.getElementById('forgotStep2').style.display = 'none';
+                    document.getElementById('forgotStep3').style.display = 'block';
+
+                    setTimeout(() => {
+                        const newPassInp = document.getElementById('forgotNewPassword');
+                        if (newPassInp) newPassInp.focus();
+                    }, 150);
+                } else {
+                    showNotif('error', data.message || 'Invalid or expired OTP code.');
+                    if (container) {
+                        container.classList.remove('shake');
+                        void container.offsetWidth;
+                        container.classList.add('shake');
+                    }
+                    boxes.forEach(b => b.classList.add('error'));
+                    if (boxes[0]) boxes[0].focus();
+                }
+            } catch (err) {
+                showNotif('error', 'Unable to reach the server. Please verify your connection.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        async function handleFinalPasswordReset() {
+            hideNotif();
+            const email = (document.getElementById('forgotEmail').value || '').trim();
+            const code = verifiedForgotCode || getForgotOtpCode();
             const newPassword = (document.getElementById('forgotNewPassword').value || '').trim();
             const confirmPassword = (document.getElementById('forgotConfirmPassword').value || '').trim();
 
             if (!code || code.length !== 6) {
-                showNotif('error', 'Please enter the 6-digit verification code.');
-                document.getElementById('forgotCode').focus();
+                showNotif('error', 'Verification code session expired. Please verify again.');
+                document.getElementById('forgotStep3').style.display = 'none';
+                document.getElementById('forgotStep2').style.display = 'block';
                 return;
             }
 
@@ -1916,11 +2165,12 @@
                     document.getElementById('loginEmail').value = email;
                     document.getElementById('loginPassword').value = '';
                     
+                    document.getElementById('forgotStep3').style.display = 'none';
                     document.getElementById('forgotStep2').style.display = 'none';
                     document.getElementById('forgotStep1').style.display = 'block';
-                    document.getElementById('forgotCode').value = '';
                     document.getElementById('forgotNewPassword').value = '';
                     document.getElementById('forgotConfirmPassword').value = '';
+                    verifiedForgotCode = '';
 
                     setTimeout(() => {
                         switchAuthTab('login');
@@ -1951,10 +2201,12 @@
         }
         checkHashAndInitTab();
         setupOtpInputs();
+        setupForgotOtpInputs();
 
         window.addEventListener('DOMContentLoaded', () => {
             checkHashAndInitTab();
             setupOtpInputs();
+            setupForgotOtpInputs();
 
             // Sync tab with URL hash change (e.g. browser back/forward buttons)
             window.addEventListener('hashchange', checkHashAndInitTab);
