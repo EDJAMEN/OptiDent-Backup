@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const TARGET_CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'jamgamer1014@gmail.com';
+const TARGET_CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'optidentt@gmail.com';
 
 /**
  * Initializes Google Calendar API client using either:
@@ -16,12 +16,21 @@ const TARGET_CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'jamgamer1014@gmail
  */
 function getGoogleCalendarClient() {
     try {
-        // Strategy A: Service Account JSON file in api/config or root
-        const saPaths = [
-            path.resolve(__dirname, 'google-service-account.json'),
-            path.resolve(__dirname, '../../google-service-account.json'),
-            process.env.GOOGLE_SERVICE_ACCOUNT_PATH ? path.resolve(process.env.GOOGLE_SERVICE_ACCOUNT_PATH) : null
-        ].filter(Boolean);
+        // Strategy A: Service Account JSON file in OptiDent_NodeJS or root
+        const candidateFiles = ['google-service-account.json', 'master-host-514202-g2-5a4a6823ad9c.json'];
+        const saPaths = [];
+        for (const f of candidateFiles) {
+            saPaths.push(
+                path.resolve(process.cwd(), f),
+                path.resolve(process.cwd(), 'OptiDent_NodeJS', f),
+                path.resolve(__dirname, f),
+                path.resolve(__dirname, '..', f),
+                path.resolve(__dirname, '..', '..', f)
+            );
+        }
+        if (process.env.GOOGLE_SERVICE_ACCOUNT_PATH) {
+            saPaths.push(path.resolve(process.env.GOOGLE_SERVICE_ACCOUNT_PATH));
+        }
 
         for (const p of saPaths) {
             if (fs.existsSync(p)) {
@@ -107,7 +116,7 @@ export async function autoCreateGoogleCalendarEvent(apptDetails) {
         const endDateTime = `${year}-${pad(month)}-${pad(day)}T${pad(Math.min(h + 1, 23))}:${pad(min)}:00+08:00`;
 
         const attendees = [
-            { email: 'jamgamer1014@gmail.com', displayName: 'OptiDent Super Admin', responseStatus: 'accepted' }
+            { email: 'optidentt@gmail.com', displayName: 'OptiDent Super Admin', responseStatus: 'accepted' }
         ];
         if (apptDetails.patient_email && apptDetails.patient_email.includes('@')) {
             attendees.push({ email: apptDetails.patient_email.trim(), displayName: patientName });
@@ -180,3 +189,4 @@ export async function autoDeleteGoogleCalendarEvent(eventId) {
         console.warn(`[Google Calendar API Warning] Could not delete event ${eventId}:`, err.message);
     }
 }
+

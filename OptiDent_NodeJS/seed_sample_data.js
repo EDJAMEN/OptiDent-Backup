@@ -42,7 +42,7 @@ async function seed() {
     await dbClient.updateOne('system_settings', { setting_type: 'email_config' }, {
         $set: {
             setting_type: 'email_config',
-            smtp_user: 'jamgamer1014@gmail.com',
+            smtp_user: 'optidentt@gmail.com',
             smtp_pass: 'emuvfyqhuyyafpku',
             smtp_host: 'smtp.gmail.com',
             smtp_port: 587,

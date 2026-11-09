@@ -541,7 +541,7 @@ router.get('/get_google_calendar_status', async (req, res) => {
         const isEnabled = integrations.google_calendar_sync !== false;
         
         // Target Gmail account: use admin user email or clinic google account
-        const targetEmail = req.user?.email || 'jamgamer1014@gmail.com';
+        const targetEmail = req.user?.email || 'optidentt@gmail.com';
 
         // Retrieve upcoming and active appointments
         const allAppts = await dbClient.find('appointments', {});
@@ -603,7 +603,7 @@ const handleGoogleCalendarSync = async (req, res) => {
         });
 
         const now = new Date().toISOString();
-        const targetEmail = req.user?.email || 'jamgamer1014@gmail.com';
+        const targetEmail = req.user?.email || 'optidentt@gmail.com';
 
         // Actively dispatch invites to targetEmail for upcoming appointments
         let sentCount = 0;
@@ -1876,7 +1876,7 @@ router.post('/batch_archive', async (req, res) => {
 router.get('/get_email_config', async (req, res) => {
     try {
         const configDoc = await dbClient.findOne('system_settings', { setting_type: 'email_config' });
-        const user = configDoc?.smtp_user || process.env.SMTP_USER || 'jamgamer1014@gmail.com';
+        const user = configDoc?.smtp_user || process.env.SMTP_USER || 'optidentt@gmail.com';
         const pass = configDoc?.smtp_pass || process.env.SMTP_PASS || 'emuvfyqhuyyafpku';
         return res.status(200).json({
             status: 'success',

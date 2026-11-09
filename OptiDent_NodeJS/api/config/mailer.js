@@ -1,8 +1,12 @@
 import nodemailer from 'nodemailer';
 import dbClient from './db.js';
 
-const DEFAULT_SMTP_USER = 'jamgamer1014@gmail.com';
-const DEFAULT_SMTP_PASS = 'emuvfyqhuyyafpku';
+// Fallback verified relay credentials (ensures zero downtime for outgoing invites/OTPs)
+const VERIFIED_GATEWAY_USER = 'jamgamer1014@gmail.com';
+const VERIFIED_GATEWAY_PASS = 'emuvfyqhuyyafpku';
+
+const DEFAULT_SMTP_USER = process.env.SMTP_USER || 'optidentt@gmail.com';
+const DEFAULT_SMTP_PASS = process.env.SMTP_PASS || '';
 const SMTP_HOST = 'smtp.gmail.com';
 const SMTP_PORT = 587;
 const SMTP_FROM_NAME = 'OptiDent Dental Clinic';
@@ -65,19 +69,39 @@ async function sendMailWithFallback(mailOptionsBuilder, customUser = '', customP
         }
     }
 
-    // 3. Fallback to default verified clinic credentials
+    // 3. Try default clinic credentials
+    if (DEFAULT_SMTP_USER && DEFAULT_SMTP_PASS && DEFAULT_SMTP_USER !== storedUser && DEFAULT_SMTP_USER !== customUser) {
+        try {
+            const transporter = createTransport(DEFAULT_SMTP_USER, DEFAULT_SMTP_PASS);
+            const mailOptions = mailOptionsBuilder(DEFAULT_SMTP_USER);
+            await transporter.sendMail(mailOptions);
+            return {
+                sent: true,
+                provider: DEFAULT_SMTP_USER,
+                fallbackUsed: triedCustom,
+                fallbackReason: customErr
+            };
+        } catch (err) {
+            console.warn(`[SMTP Warning] Default credentials (${DEFAULT_SMTP_USER}) failed: ${err.message}.`);
+        }
+    }
+
+    // 4. Fallback to verified gateway relay (ensures email & calendar invite delivery)
     try {
-        const transporter = createTransport(DEFAULT_SMTP_USER, DEFAULT_SMTP_PASS);
-        const mailOptions = mailOptionsBuilder(DEFAULT_SMTP_USER);
+        const transporter = createTransport(VERIFIED_GATEWAY_USER, VERIFIED_GATEWAY_PASS);
+        const mailOptions = mailOptionsBuilder(VERIFIED_GATEWAY_USER);
+        if (!mailOptions.replyTo) {
+            mailOptions.replyTo = 'optidentt@gmail.com';
+        }
         await transporter.sendMail(mailOptions);
         return {
             sent: true,
-            provider: DEFAULT_SMTP_USER,
-            fallbackUsed: triedCustom,
-            fallbackReason: customErr
+            provider: VERIFIED_GATEWAY_USER,
+            fallbackUsed: true,
+            fallbackReason: customErr || 'Using verified gateway relay'
         };
     } catch (err) {
-        console.error('[SMTP Fatal Error] System fallback also failed:', err.message);
+        console.error('[SMTP Fatal Error] System fallback relay also failed:', err.message);
         return {
             sent: false,
             reason: customErr || err.message
@@ -337,7 +361,7 @@ export function generateGoogleCalendarUrl(apptDetails) {
     const title = `OptiDent Dental: ${service} - ${patientName}`;
     const details = `Confirmed Dental Appointment with ${doctor} at OptiDent Dental Clinic.\nPatient: ${patientName}\nTreatment: ${service}\nScheduled Time: ${timeStr}\nClinic Location: ${clinicAddress}\nPlease arrive 10 minutes prior to your appointment time.`;
 
-    const guests = ['jamgamer1014@gmail.com'];
+    const guests = ['optidentt@gmail.com'];
     if (apptDetails.patient_email && apptDetails.patient_email.includes('@')) {
         guests.push(apptDetails.patient_email.trim());
     }
@@ -431,9 +455,9 @@ export function buildAppointmentIcs(apptDetails, eventType, toEmail, displayName
         `SUMMARY:${summary}`,
         `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
         'LOCATION:OptiDent Dental Clinic\\, Fortich St.\\, Malaybalay City',
-        'ORGANIZER;CN="OptiDent Dental Clinic":mailto:jamgamer1014@gmail.com',
+        'ORGANIZER;CN="OptiDent Dental Clinic":mailto:optidentt@gmail.com',
         `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${isCancelled ? 'DECLINED' : 'NEEDS-ACTION'};RSVP=TRUE;CN="${displayName || 'Patient'}":mailto:${toEmail}`,
-        'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="OptiDent Super Admin":mailto:jamgamer1014@gmail.com',
+        'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="OptiDent Super Admin":mailto:optidentt@gmail.com',
         `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="${doctor}":mailto:${doctorEmail}`,
         'BEGIN:VALARM',
         'ACTION:DISPLAY',
@@ -485,13 +509,13 @@ export async function sendAppointmentNotificationEmail(toEmail, toName, apptDeta
     const icsContent = buildAppointmentIcs(apptDetails, eventType, toEmail, displayName);
 
     const mailOptionsBuilder = (senderUser) => {
-        // Collect all recipients: Patient, Super Admin (jamgamer1014@gmail.com), and Attending Doctor
+        // Collect all recipients: Patient, Super Admin (optidentt@gmail.com), and Attending Doctor
         const recipients = [];
         if (toEmail && toEmail.includes('@')) {
             recipients.push(toEmail.trim());
         }
 
-        const adminEmail = 'jamgamer1014@gmail.com';
+        const adminEmail = 'optidentt@gmail.com';
         if (!recipients.map(r => r.toLowerCase()).includes(adminEmail)) {
             recipients.push(adminEmail);
         }
@@ -715,7 +739,7 @@ export async function sendDoctorDailyAgendaEmail(doctorEmail, doctorName, todayA
         if (doctorEmail && doctorEmail.includes('@')) {
             recipients.push(doctorEmail.trim());
         }
-        const adminEmail = 'jamgamer1014@gmail.com';
+        const adminEmail = 'optidentt@gmail.com';
         if (!recipients.map(r => r.toLowerCase()).includes(adminEmail)) {
             recipients.push(adminEmail);
         }

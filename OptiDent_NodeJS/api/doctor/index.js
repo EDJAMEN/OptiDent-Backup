@@ -940,7 +940,7 @@ router.post('/delete_record_history', async (req, res) => {
 
 /**
  * Doctor Today's Clinical Schedule Email Dispatch
- * Sends daily briefing of today's appointments to Doctor and Super Admin (jamgamer1014@gmail.com)
+ * Sends daily briefing of today's appointments to Doctor and Super Admin (optidentt@gmail.com)
  */
 const handleEmailTodaySchedule = async (req, res) => {
     try {
@@ -990,7 +990,7 @@ const handleEmailTodaySchedule = async (req, res) => {
 
         return res.status(200).json({
             status: 'success',
-            message: `Today's clinical schedule with ${todayList.length} appointment(s) has been sent to your email (${docEmail}) and Super Admin (jamgamer1014@gmail.com).`,
+            message: `Today's clinical schedule with ${todayList.length} appointment(s) has been sent to your email (${docEmail}) and Super Admin (optidentt@gmail.com).`,
             count: todayList.length,
             provider: sendResult?.provider || 'smtp'
         });

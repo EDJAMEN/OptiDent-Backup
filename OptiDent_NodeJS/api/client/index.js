@@ -293,7 +293,7 @@ router.post('/book_appointment', async (req, res) => {
                 created_at: new Date().toISOString()
             });
 
-            // Dispatches to Patient, Super Admin (jamgamer1014@gmail.com), and Attending Doctor
+            // Dispatches to Patient, Super Admin (optidentt@gmail.com), and Attending Doctor
             sendAppointmentNotificationEmail(user.email, user.full_name, apptDetails, 'booked')
                 .catch(e => console.warn('[Email Warning] Booking email notification:', e.message));
 
