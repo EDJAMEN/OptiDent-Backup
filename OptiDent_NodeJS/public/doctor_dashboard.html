@@ -914,6 +914,118 @@
             font-size: 18px;
             flex-shrink: 0;
         }
+
+        /* ── Doctor Actions Dropdown (Fixed Viewport Floating & Non-Clipping) ── */
+        .doctor-action-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .btn-action-trigger {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f172a;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            background: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .btn-action-trigger:hover, .btn-action-trigger.active {
+            border-color: #0EB1B1;
+            background: #f0fdfa;
+            color: #0d9488;
+        }
+
+        .appt-dropdown-menu {
+            position: fixed;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.18), 0 4px 10px -2px rgba(15, 23, 42, 0.08);
+            min-width: 220px;
+            z-index: 99999 !important;
+            padding: 6px 0;
+            animation: doctorDropdownFade 0.15s ease-out;
+            text-align: left;
+        }
+
+        @keyframes doctorDropdownFade {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .appt-dropdown-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #334155;
+            background: transparent;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+
+        .appt-dropdown-item:hover {
+            background: #f8fafc;
+            color: #0EB1B1;
+        }
+
+        .appt-dropdown-item.text-danger {
+            color: #dc2626 !important;
+        }
+
+        .appt-dropdown-item.text-danger:hover {
+            background: #fef2f2;
+            color: #b91c1c !important;
+        }
+
+        .appt-dropdown-divider {
+            height: 1px;
+            background: #f1f5f9;
+            margin: 4px 0;
+        }
+
+        body[data-theme="dark"] .btn-action-trigger {
+            background: #1e293b;
+            color: #f1f5f9;
+            border-color: #334155;
+        }
+        body[data-theme="dark"] .btn-action-trigger:hover,
+        body[data-theme="dark"] .btn-action-trigger.active {
+            background: rgba(14, 177, 177, 0.15);
+            border-color: #0EB1B1;
+            color: #0EB1B1;
+        }
+        body[data-theme="dark"] .appt-dropdown-menu {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.5);
+        }
+        body[data-theme="dark"] .appt-dropdown-item {
+            color: #cbd5e1;
+        }
+        body[data-theme="dark"] .appt-dropdown-item:hover {
+            background: #334155;
+            color: #0EB1B1;
+        }
+        body[data-theme="dark"] .appt-dropdown-divider {
+            background: #334155;
+        }
     </style>
 </head>
 
@@ -2895,6 +3007,71 @@
             window.open(url, '_blank');
         }
 
+        // ── Doctor Appointment Action Dropdown Handlers (Fixed Viewport Floating) ──
+        function toggleDoctorActionDropdown(event, id) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            const menu = document.getElementById(`docDropdown-${id}`);
+            const arrow = document.getElementById(`docArrow-${id}`);
+            const btn = document.getElementById(`btnDocAction-${id}`) || document.getElementById(`btnDocQueue-${id}`);
+            const isCurrentlyOpen = menu && menu.style.display === 'block';
+
+            closeAllDoctorDropdowns();
+
+            if (!isCurrentlyOpen && menu && btn) {
+                btn.classList.add('active');
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+
+                menu.style.visibility = 'hidden';
+                menu.style.display = 'block';
+                menu.style.position = 'fixed';
+                menu.style.zIndex = '99999';
+
+                const btnRect = btn.getBoundingClientRect();
+                const menuWidth = menu.offsetWidth || 220;
+                const menuHeight = menu.offsetHeight || 190;
+                const vh = window.innerHeight || document.documentElement.clientHeight;
+                const vw = window.innerWidth || document.documentElement.clientWidth;
+
+                let left = btnRect.right - menuWidth;
+                if (left < 10) left = 10;
+                if (left + menuWidth > vw - 10) left = vw - menuWidth - 10;
+                menu.style.left = `${left}px`;
+                menu.style.right = 'auto';
+
+                const spaceBelow = vh - btnRect.bottom;
+                if (spaceBelow < menuHeight + 15 && btnRect.top > menuHeight + 15) {
+                    menu.style.top = `${btnRect.top - menuHeight - 4}px`;
+                } else {
+                    menu.style.top = `${btnRect.bottom + 4}px`;
+                }
+                menu.style.visibility = 'visible';
+            }
+        }
+
+        function closeAllDoctorDropdowns() {
+            document.querySelectorAll('.appt-dropdown-menu').forEach(m => {
+                m.style.display = 'none';
+                m.style.visibility = 'hidden';
+            });
+            document.querySelectorAll('[id^="docArrow-"]').forEach(a => {
+                a.style.transform = 'rotate(0deg)';
+            });
+            document.querySelectorAll('.btn-action-trigger').forEach(b => {
+                b.classList.remove('active');
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.doctor-action-dropdown') && !e.target.closest('.appt-dropdown-menu')) {
+                closeAllDoctorDropdowns();
+            }
+        });
+        window.addEventListener('scroll', closeAllDoctorDropdowns, true);
+        window.addEventListener('resize', closeAllDoctorDropdowns);
+
         async function emailDoctorTodaySchedule() {
             const btn = document.getElementById('btnEmailTodaySchedule');
             const origHtml = btn ? btn.innerHTML : '';
@@ -3259,12 +3436,30 @@
                 } else if (isOngoing) {
                     actionButtons = `
                         <div style="display: inline-flex; align-items: center; gap: 6px;">
-                            <button class="btn-primary" style="white-space: nowrap; padding: 7px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;" onclick="openChartingModal('${apt._id}')">
-                                <i class='bx bx-check-double'></i> Complete &amp; Chart
+                            <button class="btn-primary" style="white-space: nowrap; padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;" onclick="openChartingModal('${apt._id}')">
+                                <i class='bx bx-check-double'></i> Chart
                             </button>
-                            <button type="button" class="btn-outline" style="white-space: nowrap; padding: 7px 10px; font-size: 12px; font-weight: 600; border-radius: 8px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="cancelAppointmentDoctor('${apt._id}')" title="Cancel Consultation">
-                                <i class='bx bx-x-circle'></i> Cancel
-                            </button>
+                            <div class="doctor-action-dropdown">
+                                <button type="button" class="btn-action-trigger" id="btnDocQueue-${apt._id}" onclick="toggleDoctorActionDropdown(event, 'queue-${apt._id}')" title="More Actions">
+                                    <span>Actions</span>
+                                    <i class='bx bx-chevron-down' id="docArrow-queue-${apt._id}"></i>
+                                </button>
+                                <div id="docDropdown-queue-${apt._id}" class="appt-dropdown-menu" style="display: none;">
+                                    <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); addDoctorApptToGoogleCal('${apt._id}')">
+                                        <i class='bx bxl-google' style="color: #2563EB; font-size: 16px;"></i>
+                                        <span>Add to Google Calendar</span>
+                                    </button>
+                                    <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); openPatientHistoryModal('${escapeHtml(apt.patient_name)}')">
+                                        <i class='bx bx-history' style="color: #0284C7; font-size: 16px;"></i>
+                                        <span>Dental History</span>
+                                    </button>
+                                    <div class="appt-dropdown-divider"></div>
+                                    <button type="button" class="appt-dropdown-item text-danger" onclick="closeAllDoctorDropdowns(); cancelAppointmentDoctor('${apt._id}')">
+                                        <i class='bx bx-x-circle' style="color: #DC2626; font-size: 16px;"></i>
+                                        <span>Cancel Consultation</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     `;
                 } else if (isCompleted) {
@@ -3282,18 +3477,34 @@
                 } else {
                     actionButtons = `
                         <div style="display: inline-flex; align-items: center; gap: 6px;">
-                            <button class="btn-secondary" style="white-space: nowrap; padding: 7px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; background: var(--doctor-primary-light); color: var(--doctor-primary-dark); border: 1px solid rgba(14, 177, 177, 0.3);" onclick="startConsultation('${apt._id}')">
-                                <i class='bx bx-play-circle'></i> Start Consultation
+                            <button class="btn-secondary" style="white-space: nowrap; padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; background: var(--doctor-primary-light); color: var(--doctor-primary-dark); border: 1px solid rgba(14, 177, 177, 0.3);" onclick="startConsultation('${apt._id}')">
+                                <i class='bx bx-play-circle'></i> Start
                             </button>
-                            <button type="button" class="btn-outline" style="white-space: nowrap; padding: 7px 10px; font-size: 12px; font-weight: 600; border-radius: 8px; color: #0284c7; border-color: rgba(2, 132, 199, 0.3);" onclick="addDoctorApptToGoogleCal('${apt._id}')" title="Add to My Google Calendar">
-                                <i class='bx bxl-google'></i>
-                            </button>
-                            <button type="button" class="btn-primary" style="white-space: nowrap; padding: 7px 10px; font-size: 12px; font-weight: 700; border-radius: 8px;" onclick="openChartingModal('${apt._id}')" title="Complete & Chart Direct">
-                                <i class='bx bx-check-double'></i>
-                            </button>
-                            <button type="button" class="btn-outline" style="white-space: nowrap; padding: 7px 10px; font-size: 12px; font-weight: 600; border-radius: 8px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="cancelAppointmentDoctor('${apt._id}')" title="Cancel Consultation">
-                                <i class='bx bx-x-circle'></i>
-                            </button>
+                            <div class="doctor-action-dropdown">
+                                <button type="button" class="btn-action-trigger" id="btnDocQueue-${apt._id}" onclick="toggleDoctorActionDropdown(event, 'queue-${apt._id}')" title="Appointment Actions">
+                                    <span>Actions</span>
+                                    <i class='bx bx-chevron-down' id="docArrow-queue-${apt._id}"></i>
+                                </button>
+                                <div id="docDropdown-queue-${apt._id}" class="appt-dropdown-menu" style="display: none;">
+                                    <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); addDoctorApptToGoogleCal('${apt._id}')">
+                                        <i class='bx bxl-google' style="color: #2563EB; font-size: 16px;"></i>
+                                        <span>Add to Google Calendar</span>
+                                    </button>
+                                    <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); openChartingModal('${apt._id}')">
+                                        <i class='bx bx-check-double' style="color: #059669; font-size: 16px;"></i>
+                                        <span>Complete &amp; Chart Direct</span>
+                                    </button>
+                                    <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); openPatientHistoryModal('${escapeHtml(apt.patient_name)}')">
+                                        <i class='bx bx-history' style="color: #0284C7; font-size: 16px;"></i>
+                                        <span>Dental History</span>
+                                    </button>
+                                    <div class="appt-dropdown-divider"></div>
+                                    <button type="button" class="appt-dropdown-item text-danger" onclick="closeAllDoctorDropdowns(); cancelAppointmentDoctor('${apt._id}')">
+                                        <i class='bx bx-x-circle' style="color: #DC2626; font-size: 16px;"></i>
+                                        <span>Cancel Consultation</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     `;
                 }
@@ -3372,49 +3583,107 @@
                 let actions = '';
                 if (isPending) {
                     actions = `
-                        <div style="display: inline-flex; align-items: center; gap: 4px; justify-content: flex-end;">
-                            <button type="button" class="btn-primary" style="padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;" onclick="openApproveModal('${apt._id}')">
-                                <i class='bx bx-check'></i> Approve
+                        <div class="doctor-action-dropdown">
+                            <button type="button" class="btn-action-trigger" id="btnDocAction-${apt._id}" onclick="toggleDoctorActionDropdown(event, '${apt._id}')" title="Appointment Actions">
+                                <span>Actions</span>
+                                <i class='bx bx-chevron-down' id="docArrow-${apt._id}"></i>
                             </button>
-                            <button type="button" class="btn-outline" style="padding: 4px 8px; font-size: 11px; border-radius: 6px; color: #ef4444; border-color: rgba(239,68,68,0.3);" onclick="openDeclineModal('${apt._id}')">
-                                <i class='bx bx-x'></i> Decline
-                            </button>
+                            <div id="docDropdown-${apt._id}" class="appt-dropdown-menu" style="display: none;">
+                                <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); openApproveModal('${apt._id}')">
+                                    <i class='bx bx-check' style="color: #10B981; font-size: 16px;"></i>
+                                    <span>Approve Request</span>
+                                </button>
+                                <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); openPatientHistoryModal('${escapeHtml(apt.patient_name)}')">
+                                    <i class='bx bx-history' style="color: #0284C7; font-size: 16px;"></i>
+                                    <span>Dental History</span>
+                                </button>
+                                <div class="appt-dropdown-divider"></div>
+                                <button type="button" class="appt-dropdown-item text-danger" onclick="closeAllDoctorDropdowns(); openDeclineModal('${apt._id}')">
+                                    <i class='bx bx-x' style="color: #DC2626; font-size: 16px;"></i>
+                                    <span>Decline Request</span>
+                                </button>
+                            </div>
                         </div>
                     `;
                 } else if (isCompleted) {
                     actions = `
-                        <button type="button" class="btn-outline" style="padding: 4px 10px; font-size: 11px; border-radius: 6px;" onclick="viewCompletedRecord('${apt._id}')">
-                            <i class='bx bx-file'></i> Record
-                        </button>
+                        <div class="doctor-action-dropdown">
+                            <button type="button" class="btn-action-trigger" id="btnDocAction-${apt._id}" onclick="toggleDoctorActionDropdown(event, '${apt._id}')" title="Record Actions">
+                                <span>Actions</span>
+                                <i class='bx bx-chevron-down' id="docArrow-${apt._id}"></i>
+                            </button>
+                            <div id="docDropdown-${apt._id}" class="appt-dropdown-menu" style="display: none;">
+                                <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); viewCompletedRecord('${apt._id}')">
+                                    <i class='bx bx-file' style="color: #0EB1B1; font-size: 16px;"></i>
+                                    <span>View Chart / Record</span>
+                                </button>
+                                <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); openPatientHistoryModal('${escapeHtml(apt.patient_name)}')">
+                                    <i class='bx bx-history' style="color: #0284C7; font-size: 16px;"></i>
+                                    <span>Dental History</span>
+                                </button>
+                            </div>
+                        </div>
                     `;
                 } else if (isCancelled) {
                     actions = `<span class="text-xs text-dim" style="font-style: italic;">Cancelled</span>`;
                 } else if (isOngoing) {
                     actions = `
-                        <div style="display: inline-flex; align-items: center; gap: 4px; justify-content: flex-end;">
-                            <button type="button" class="btn-primary" style="padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 6px;" onclick="openChartingModal('${apt._id}')" title="Complete & Chart">
-                                <i class='bx bx-check-double'></i> Chart
+                        <div class="doctor-action-dropdown">
+                            <button type="button" class="btn-action-trigger active" id="btnDocAction-${apt._id}" onclick="toggleDoctorActionDropdown(event, '${apt._id}')" style="border-color: #0EB1B1; color: #0d9488; background: #f0fdfa;" title="Consultation Actions">
+                                <span>Actions</span>
+                                <i class='bx bx-chevron-down' id="docArrow-${apt._id}"></i>
                             </button>
-                            <button type="button" class="btn-outline" style="padding: 4px 7px; font-size: 11px; border-radius: 6px; color: #ef4444; border-color: rgba(239,68,68,0.3);" onclick="cancelAppointmentDoctor('${apt._id}')" title="Cancel">
-                                <i class='bx bx-x'></i>
-                            </button>
+                            <div id="docDropdown-${apt._id}" class="appt-dropdown-menu" style="display: none;">
+                                <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); openChartingModal('${apt._id}')">
+                                    <i class='bx bx-check-double' style="color: #0EB1B1; font-size: 16px;"></i>
+                                    <span>Complete &amp; Chart</span>
+                                </button>
+                                <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); addDoctorApptToGoogleCal('${apt._id}')">
+                                    <i class='bx bxl-google' style="color: #2563EB; font-size: 16px;"></i>
+                                    <span>Add to Google Calendar</span>
+                                </button>
+                                <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); openPatientHistoryModal('${escapeHtml(apt.patient_name)}')">
+                                    <i class='bx bx-history' style="color: #0284C7; font-size: 16px;"></i>
+                                    <span>Dental History</span>
+                                </button>
+                                <div class="appt-dropdown-divider"></div>
+                                <button type="button" class="appt-dropdown-item text-danger" onclick="closeAllDoctorDropdowns(); cancelAppointmentDoctor('${apt._id}')">
+                                    <i class='bx bx-x-circle' style="color: #DC2626; font-size: 16px;"></i>
+                                    <span>Cancel Consultation</span>
+                                </button>
+                            </div>
                         </div>
                     `;
                 } else {
                     actions = `
-                        <div style="display: inline-flex; align-items: center; gap: 4px; justify-content: flex-end;">
-                            <button type="button" class="btn-secondary" style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; background: var(--doctor-primary-light); color: var(--doctor-primary-dark); border: 1px solid rgba(14,177,177,0.3);" onclick="startConsultation('${apt._id}')" title="Start Consultation">
-                                <i class='bx bx-play'></i> Start
+                        <div class="doctor-action-dropdown">
+                            <button type="button" class="btn-action-trigger" id="btnDocAction-${apt._id}" onclick="toggleDoctorActionDropdown(event, '${apt._id}')" title="Appointment Actions">
+                                <span>Actions</span>
+                                <i class='bx bx-chevron-down' id="docArrow-${apt._id}"></i>
                             </button>
-                            <button type="button" class="btn-outline" style="padding: 4px 7px; font-size: 11px; border-radius: 6px; color: #0284c7; border-color: rgba(2,132,199,0.3);" onclick="addDoctorApptToGoogleCal('${apt._id}')" title="Add to My Google Calendar">
-                                <i class='bx bxl-google'></i>
-                            </button>
-                            <button type="button" class="btn-primary" style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px;" onclick="openChartingModal('${apt._id}')" title="Complete & Chart Direct">
-                                <i class='bx bx-check-double'></i>
-                            </button>
-                            <button type="button" class="btn-outline" style="padding: 4px 7px; font-size: 11px; border-radius: 6px; color: #ef4444; border-color: rgba(239,68,68,0.3);" onclick="cancelAppointmentDoctor('${apt._id}')" title="Cancel">
-                                <i class='bx bx-x'></i>
-                            </button>
+                            <div id="docDropdown-${apt._id}" class="appt-dropdown-menu" style="display: none;">
+                                <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); startConsultation('${apt._id}')">
+                                    <i class='bx bx-play-circle' style="color: #0EB1B1; font-size: 16px;"></i>
+                                    <span>Start Consultation</span>
+                                </button>
+                                <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); addDoctorApptToGoogleCal('${apt._id}')">
+                                    <i class='bx bxl-google' style="color: #2563EB; font-size: 16px;"></i>
+                                    <span>Add to Google Calendar</span>
+                                </button>
+                                <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); openChartingModal('${apt._id}')">
+                                    <i class='bx bx-check-double' style="color: #059669; font-size: 16px;"></i>
+                                    <span>Complete &amp; Chart Direct</span>
+                                </button>
+                                <button type="button" class="appt-dropdown-item" onclick="closeAllDoctorDropdowns(); openPatientHistoryModal('${escapeHtml(apt.patient_name)}')">
+                                    <i class='bx bx-history' style="color: #0284C7; font-size: 16px;"></i>
+                                    <span>Dental History</span>
+                                </button>
+                                <div class="appt-dropdown-divider"></div>
+                                <button type="button" class="appt-dropdown-item text-danger" onclick="closeAllDoctorDropdowns(); cancelAppointmentDoctor('${apt._id}')">
+                                    <i class='bx bx-x-circle' style="color: #DC2626; font-size: 16px;"></i>
+                                    <span>Cancel Appointment</span>
+                                </button>
+                            </div>
                         </div>
                     `;
                 }
