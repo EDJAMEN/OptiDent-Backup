@@ -3843,13 +3843,14 @@
                 if (m[3] && m[3].toUpperCase() === 'AM' && h === 12) h = 0;
             }
             const pad = n => String(n).padStart(2, '0');
+            const endH = Math.min(h + 1, 23);
             const startIso = `${cleanDate}T${pad(h)}${pad(min)}00`;
-            const endIso = `${cleanDate}T${pad(h + 1)}${pad(min)}00`;
+            const endIso = `${cleanDate}T${pad(endH)}${pad(min)}00`;
 
             const title = `OptiDent: ${service}`;
             const details = `Confirmed Dental Appointment with ${doctor} at OptiDent Dental Clinic.\nPlease present your Digital QR Pass upon arrival.\nLocation: Fortich St., Malaybalay City.`;
             const loc = `OptiDent Dental Clinic, Fortich St., Malaybalay City`;
-            return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startIso}/${endIso}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(loc)}&add=optidentt@gmail.com`;
+            return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startIso}/${endIso}&ctz=Asia/Manila&details=${encodeURIComponent(details)}&location=${encodeURIComponent(loc)}&add=optidentt@gmail.com`;
         }
 
         function addApptToGoogleCalendar(aptId) {

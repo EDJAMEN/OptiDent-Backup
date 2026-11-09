@@ -298,13 +298,16 @@ router.post('/book_appointment', async (req, res) => {
                 .catch(e => console.warn('[Email Warning] Booking email notification:', e.message));
 
             // Direct Server-to-Server Google Calendar API Creation (Zero Clicks)
-            autoCreateGoogleCalendarEvent(apptDetails).then(gRes => {
+            try {
+                const gRes = await autoCreateGoogleCalendarEvent(apptDetails);
                 if (gRes && gRes.success && gRes.eventId) {
-                    dbClient.updateOne('appointments', { _id: result.insertedId }, {
+                    await dbClient.updateOne('appointments', { _id: result.insertedId }, {
                         $set: { google_calendar_event_id: gRes.eventId, google_calendar_html_link: gRes.htmlLink }
-                    }).catch(() => {});
+                    });
                 }
-            }).catch(e => console.warn('[Google Calendar API Warning]:', e.message));
+            } catch (gErr) {
+                console.warn('[Google Calendar API Warning]:', gErr.message);
+            }
         } catch (notifErr) {
             console.warn('[Notification Warning] Booking notification record failed:', notifErr.message);
         }
@@ -423,10 +426,8 @@ router.post('/cancel_appointment', async (req, res) => {
 
         await logAudit(req, 'CANCEL_APPOINTMENT', 'CLIENT', { appointment_id: apptId, reason }, 'success');
 
-        // Automatically delete from Google Calendar via API if present
-        if (appt.google_calendar_event_id) {
-            autoDeleteGoogleCalendarEvent(appt.google_calendar_event_id).catch(() => {});
-        }
+        // Automatically delete from Google Calendar via API
+        autoDeleteGoogleCalendarEvent(appt).catch(() => {});
 
         // C-009: Record in-app notification & dispatch email update
         try {

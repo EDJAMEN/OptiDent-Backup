@@ -90,10 +90,11 @@ export async function autoCreateGoogleCalendarEvent(apptDetails) {
         const dateStr = (apptDetails.date || apptDetails.appointment_date || new Date().toISOString().slice(0, 10)).trim();
         const timeStr = (apptDetails.time || apptDetails.time_slot || apptDetails.appointment_time || '09:00 AM').trim();
 
-        // Convert date & Manila time (UTC+8) into ISO string
+        // Parse date and Manila time (UTC+8) cleanly
+        const cleanDateStr = dateStr.split(' ')[0].split('T')[0];
         let year = 2026, month = 11, day = 10;
-        if (dateStr.includes('-')) {
-            const parts = dateStr.split('-');
+        if (cleanDateStr.includes('-')) {
+            const parts = cleanDateStr.split('-');
             if (parts.length >= 3) {
                 year = parseInt(parts[0], 10);
                 month = parseInt(parts[1], 10);
@@ -102,7 +103,7 @@ export async function autoCreateGoogleCalendarEvent(apptDetails) {
         }
 
         let h = 9, min = 0;
-        const m = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        const m = timeStr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i) || timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
         if (m) {
             h = parseInt(m[1], 10);
             min = parseInt(m[2], 10);
@@ -112,8 +113,9 @@ export async function autoCreateGoogleCalendarEvent(apptDetails) {
         }
 
         const pad = n => String(n).padStart(2, '0');
+        const endH = Math.min(h + 1, 23);
         const startDateTime = `${year}-${pad(month)}-${pad(day)}T${pad(h)}:${pad(min)}:00+08:00`;
-        const endDateTime = `${year}-${pad(month)}-${pad(day)}T${pad(Math.min(h + 1, 23))}:${pad(min)}:00+08:00`;
+        const endDateTime = `${year}-${pad(month)}-${pad(day)}T${pad(endH)}:${pad(min)}:00+08:00`;
 
         const attendees = [
             { email: 'optidentt@gmail.com', displayName: 'OptiDent Super Admin', responseStatus: 'accepted' }
@@ -189,9 +191,10 @@ export async function autoCreateGoogleCalendarEvent(apptDetails) {
 
 /**
  * Automatically cancels/deletes an event from Google Calendar
+ * Supports direct eventId or appointment search fallback
  */
-export async function autoDeleteGoogleCalendarEvent(eventId) {
-    if (!eventId) return;
+export async function autoDeleteGoogleCalendarEvent(eventIdOrAppt) {
+    if (!eventIdOrAppt) return;
     const calendar = getGoogleCalendarClient();
     if (!calendar) return;
 
@@ -207,13 +210,42 @@ export async function autoDeleteGoogleCalendarEvent(eventId) {
             }
         } catch (_) {}
 
-        await calendar.events.delete({
-            calendarId: targetCalId,
-            eventId: eventId
-        });
-        console.log(`[Google Calendar API] Deleted event ${eventId} on calendar ${targetCalId}`);
+        const eventId = typeof eventIdOrAppt === 'string' ? eventIdOrAppt : (eventIdOrAppt.google_calendar_event_id || '');
+        if (eventId) {
+            try {
+                await calendar.events.delete({
+                    calendarId: targetCalId,
+                    eventId: eventId
+                });
+                console.log(`[Google Calendar API] Deleted event ${eventId} on calendar ${targetCalId}`);
+                return;
+            } catch (delErr) {
+                console.warn(`[Google Calendar API Warning] Direct delete failed: ${delErr.message}. Attempting query search...`);
+            }
+        }
+
+        // Fallback: search for event by patient name / query if object provided
+        if (typeof eventIdOrAppt === 'object') {
+            const q = eventIdOrAppt.patient_name || eventIdOrAppt.service_name || '';
+            if (q) {
+                const searchRes = await calendar.events.list({
+                    calendarId: targetCalId,
+                    q,
+                    maxResults: 10
+                });
+                const items = searchRes?.data?.items || [];
+                const targetDate = eventIdOrAppt.appointment_date || eventIdOrAppt.date || '';
+                for (const item of items) {
+                    const itemDate = (item.start?.dateTime || item.start?.date || '').slice(0, 10);
+                    if (!targetDate || itemDate === targetDate) {
+                        await calendar.events.delete({ calendarId: targetCalId, eventId: item.id }).catch(() => {});
+                        console.log(`[Google Calendar API] Deleted matched event ${item.id} (${item.summary}) on calendar ${targetCalId}`);
+                    }
+                }
+            }
+        }
     } catch (err) {
-        console.warn(`[Google Calendar API Warning] Could not delete event ${eventId}:`, err.message);
+        console.warn(`[Google Calendar API Warning] Could not delete event:`, err.message);
     }
 }
 

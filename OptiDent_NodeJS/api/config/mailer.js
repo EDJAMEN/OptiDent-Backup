@@ -350,13 +350,10 @@ export function generateGoogleCalendarUrl(apptDetails) {
         if (ampm === 'AM' && h === 12) h = 0;
     }
 
-    // Convert local Manila time (UTC+8) to UTC ISO string
-    const localMs = Date.UTC(year, month - 1, day, h, min, 0) - (8 * 60 * 60 * 1000);
-    const startUtc = new Date(localMs);
-    const endUtc = new Date(localMs + 60 * 60 * 1000);
-
-    const formatUtc = d => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    const dates = `${formatUtc(startUtc)}/${formatUtc(endUtc)}`;
+    const pad = n => String(n).padStart(2, '0');
+    const cleanDate = `${year}${pad(month)}${pad(day)}`;
+    const endH = Math.min(h + 1, 23);
+    const dates = `${cleanDate}T${pad(h)}${pad(min)}00/${cleanDate}T${pad(endH)}${pad(min)}00`;
 
     const title = `OptiDent Dental: ${service} - ${patientName}`;
     const details = `Confirmed Dental Appointment with ${doctor} at OptiDent Dental Clinic.\nPatient: ${patientName}\nTreatment: ${service}\nScheduled Time: ${timeStr}\nClinic Location: ${clinicAddress}\nPlease arrive 10 minutes prior to your appointment time.`;
@@ -369,13 +366,13 @@ export function generateGoogleCalendarUrl(apptDetails) {
         guests.push(apptDetails.doctor_email.trim());
     }
 
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${dates}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(clinicAddress)}&add=${encodeURIComponent(guests.join(','))}`;
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${dates}&ctz=Asia/Manila&details=${encodeURIComponent(details)}&location=${encodeURIComponent(clinicAddress)}&add=${encodeURIComponent(guests.join(','))}`;
 }
 
 /**
  * Builds RFC 5545 iCalendar stream for Google Calendar Auto-Add and Auto-Remove
- * Formatted with UTC timestamps (Z) and full guest participant metadata
- * for instant 1-click addition across Gmail, Google Calendar, and mobile apps.
+ * Formatted with explicit VTIMEZONE Asia/Manila for guaranteed time accuracy
+ * and seamless cancellation processing across Gmail, Google Calendar, and mobile apps.
  */
 export function buildAppointmentIcs(apptDetails, eventType, toEmail, displayName) {
     const aptId = String(apptDetails.id || apptDetails._id || `${apptDetails.date || ''}_${apptDetails.time || ''}`.replace(/[^a-zA-Z0-9]/g, ''));
@@ -422,14 +419,11 @@ export function buildAppointmentIcs(apptDetails, eventType, toEmail, displayName
         if (ampm === 'AM' && h === 12) h = 0;
     }
 
-    // Convert local Manila time (UTC+8) to UTC ISO string
-    const localMs = Date.UTC(year, month - 1, day, h, min, 0) - (8 * 60 * 60 * 1000);
-    const startUtc = new Date(localMs);
-    const endUtc = new Date(localMs + 60 * 60 * 1000);
-
-    const formatUtc = d => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    const startIso = formatUtc(startUtc);
-    const endIso = formatUtc(endUtc);
+    const pad = n => String(n).padStart(2, '0');
+    const cleanDate = `${year}${pad(month)}${pad(day)}`;
+    const endH = Math.min(h + 1, 23);
+    const startIso = `${cleanDate}T${pad(h)}${pad(min)}00`;
+    const endIso = `${cleanDate}T${pad(endH)}${pad(min)}00`;
     const nowIso = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 
     const method = isCancelled ? 'CANCEL' : 'REQUEST';
@@ -445,25 +439,31 @@ export function buildAppointmentIcs(apptDetails, eventType, toEmail, displayName
         'VERSION:2.0',
         'CALSCALE:GREGORIAN',
         `METHOD:${method}`,
+        'BEGIN:VTIMEZONE',
+        'TZID:Asia/Manila',
+        'BEGIN:STANDARD',
+        'DTSTART:19700101T000000',
+        'TZOFFSETFROM:+0800',
+        'TZOFFSETTO:+0800',
+        'TZNAME:PST',
+        'END:STANDARD',
+        'END:VTIMEZONE',
         'BEGIN:VEVENT',
         `UID:${uid}`,
         `SEQUENCE:${sequence}`,
         `STATUS:${status}`,
         `DTSTAMP:${nowIso}`,
-        `DTSTART:${startIso}`,
-        `DTEND:${endIso}`,
+        `DTSTART;TZID=Asia/Manila:${startIso}`,
+        `DTEND;TZID=Asia/Manila:${endIso}`,
         `SUMMARY:${summary}`,
         `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
         'LOCATION:OptiDent Dental Clinic\\, Fortich St.\\, Malaybalay City',
         'ORGANIZER;CN="OptiDent Dental Clinic":mailto:optidentt@gmail.com',
-        `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${isCancelled ? 'DECLINED' : 'NEEDS-ACTION'};RSVP=TRUE;CN="${displayName || 'Patient'}":mailto:${toEmail}`,
+        isCancelled
+            ? `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;CN="${displayName || 'Patient'}":mailto:${toEmail}`
+            : `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN="${displayName || 'Patient'}":mailto:${toEmail}`,
         'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="OptiDent Super Admin":mailto:optidentt@gmail.com',
         `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="${doctor}":mailto:${doctorEmail}`,
-        'BEGIN:VALARM',
-        'ACTION:DISPLAY',
-        `DESCRIPTION:Reminder: Dental appointment for ${service} at OptiDent`,
-        'TRIGGER:-PT2H',
-        'END:VALARM',
         'END:VEVENT',
         'END:VCALENDAR'
     ];
@@ -600,13 +600,6 @@ export async function sendAppointmentNotificationEmail(toEmail, toName, apptDeta
                 {
                     contentType: 'text/calendar; charset="utf-8"; method=' + (isCancelled ? 'CANCEL' : 'REQUEST'),
                     content: icsContent
-                }
-            ],
-            attachments: [
-                {
-                    filename: isCancelled ? 'cancel_appointment.ics' : 'appointment.ics',
-                    content: icsContent,
-                    contentType: 'text/calendar; charset=utf-8'
                 }
             ]
         };
