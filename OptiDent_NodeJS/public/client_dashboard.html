@@ -1591,63 +1591,7 @@
         </div>
     </div>
 
-    <!-- ── MODAL: BOOKING SUCCESS & GOOGLE CALENDAR SYNC (C-009, C-010) ──── -->
-    <div id="bookingSuccessGoogleCalModal" class="modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 10000;">
-        <div class="modal-dialog" style="max-width: 500px; text-align: center; padding: 24px; border-radius: 16px; background: #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.12); border: 1.5px solid #e2e8f0;">
-            <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(14, 177, 177, 0.12); color: #0EB1B1; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 12px;">
-                <i class='bx bx-check-double'></i>
-            </div>
-            <h3 style="margin: 0 0 6px 0; font-size: 19px; font-weight: 800; color: #0f172a;">
-                Appointment Booked Successfully!
-            </h3>
-            <p style="font-size: 13px; color: #64748b; margin: 0 0 16px 0; line-height: 1.45;">
-                Your appointment schedule has been reserved. A confirmation email and calendar invitation have been sent to your email.
-            </p>
-
-            <!-- Appointment Details Card -->
-            <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; text-align: left; font-size: 13px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: #64748b; font-weight: 600;">Dental Service:</span>
-                    <strong style="color: #0f172a;" id="successApptService">--</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: #64748b; font-weight: 600;">Attending Doctor:</span>
-                    <strong style="color: #0f172a;" id="successApptDoctor">--</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: #64748b; font-weight: 600;">Date &amp; Time:</span>
-                    <strong style="color: #0EB1B1;" id="successApptDateTime">--</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span style="color: #64748b; font-weight: 600;">Clinic Location:</span>
-                    <span style="color: #0f172a;">OptiDent Clinic, Fortich St.</span>
-                </div>
-            </div>
-
-            <!-- Primary 1-Click Google Calendar Action -->
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
-                <button type="button" class="btn-pat-primary" id="btnAutoAddGoogleCal" onclick="openSuccessGoogleCalendar()"
-                    style="background: linear-gradient(135deg, #0EB1B1, #0284C7); border: none; padding: 12px 18px; font-size: 14px; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(14, 177, 177, 0.35); cursor: pointer; color: #ffffff;">
-                    <i class='bx bxl-google' style="font-size: 18px;"></i> Add to Google Calendar Now (1-Click)
-                </button>
-                <div style="display: flex; gap: 8px;">
-                    <button type="button" class="btn-pat-secondary" onclick="downloadSuccessIcs()"
-                        style="flex: 1; padding: 9px 12px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 8px; color: #334155; font-weight: 600;">
-                        <i class='bx bx-calendar-event'></i> Download .ics File
-                    </button>
-                    <button type="button" class="btn-pat-secondary" onclick="viewSuccessQRPass()"
-                        style="flex: 1; padding: 9px 12px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 8px; color: #334155; font-weight: 600;">
-                        <i class='bx bx-qr-scan'></i> View QR Pass
-                    </button>
-                </div>
-            </div>
-
-            <button type="button" onclick="closeSuccessGoogleCalModal()"
-                style="width: 100%; border: none; background: transparent; color: #94a3b8; font-size: 12px; cursor: pointer; padding: 6px 0; text-decoration: underline;">
-                Dismiss &amp; Back to Dashboard
-            </button>
-        </div>
-    </div>
+    <!-- (Redundant manual Google Calendar popup removed - sync is now 100% automatic via Google Calendar API) -->
 
     <!-- ── MODAL: RESCHEDULE APPOINTMENT (CLIENT SELF-SERVICE) ─────── -->
     <div id="clientReschedModal" class="modal-overlay">
@@ -3446,12 +3390,10 @@
                 const data = await res.json();
 
                 if (res.status === 201 && data.status === 'success') {
-                    showToast('success', data.message || 'Appointment confirmed!');
+                    showToast('success', 'Appointment confirmed & automatically added to Google Calendar!');
                     closeBookModal();
                     document.getElementById('form-client-book').reset();
                     loadClientDashboard();
-                    // Open Google Calendar & Booking Confirmation Modal (C-009, C-010)
-                    openSuccessGoogleCalModal(data);
                 } else {
                     showToast('error', data.message || 'Booking failed.');
                     // Refresh slots in real time to show newly occupied slot
@@ -3850,25 +3792,11 @@
         let lastBookedAppointmentData = null;
 
         function openSuccessGoogleCalModal(data) {
-            lastBookedAppointmentData = data;
-            const modal = document.getElementById('bookingSuccessGoogleCalModal');
-            if (!modal) return;
-
-            const apt = data.appointment || {};
-            const servEl = document.getElementById('successApptService');
-            const docEl = document.getElementById('successApptDoctor');
-            const dtEl = document.getElementById('successApptDateTime');
-
-            if (servEl) servEl.textContent = apt.service_name || '--';
-            if (docEl) docEl.textContent = apt.doctor_name || '--';
-            if (dtEl) dtEl.textContent = `${apt.date || '--'} at ${apt.time || '--'}`;
-
-            modal.style.display = 'flex';
+            // Manual Google Calendar modal removed - sync is now 100% automated server-to-server!
         }
 
         function closeSuccessGoogleCalModal() {
-            const modal = document.getElementById('bookingSuccessGoogleCalModal');
-            if (modal) modal.style.display = 'none';
+            // No-op
         }
 
         function openSuccessGoogleCalendar() {
