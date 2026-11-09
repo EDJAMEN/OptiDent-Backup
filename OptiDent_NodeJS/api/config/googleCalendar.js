@@ -147,13 +147,25 @@ export async function autoCreateGoogleCalendarEvent(apptDetails) {
             }
         };
 
+        // Dynamically discover shared calendar if available
+        let targetCalId = TARGET_CALENDAR_ID;
+        try {
+            const listRes = await calendar.calendarList.list();
+            const items = listRes?.data?.items || [];
+            const matched = items.find(c => c.id.toLowerCase() === TARGET_CALENDAR_ID.toLowerCase())
+                         || items.find(c => c.accessRole === 'owner' || c.accessRole === 'writer');
+            if (matched) {
+                targetCalId = matched.id;
+            }
+        } catch (_) {}
+
         const res = await calendar.events.insert({
-            calendarId: TARGET_CALENDAR_ID,
+            calendarId: targetCalId,
             requestBody: event,
             sendUpdates: 'all' // Automatically sends Google Calendar notification to patient and doctor!
         });
 
-        console.log(`[Google Calendar API] Successfully created event ${res.data.id} on calendar ${TARGET_CALENDAR_ID}`);
+        console.log(`[Google Calendar API] Successfully created event ${res.data.id} on calendar ${targetCalId}`);
         return {
             success: true,
             configured: true,
@@ -179,12 +191,23 @@ export async function autoDeleteGoogleCalendarEvent(eventId) {
     if (!calendar) return;
 
     try {
+        let targetCalId = TARGET_CALENDAR_ID;
+        try {
+            const listRes = await calendar.calendarList.list();
+            const items = listRes?.data?.items || [];
+            const matched = items.find(c => c.id.toLowerCase() === TARGET_CALENDAR_ID.toLowerCase())
+                         || items.find(c => c.accessRole === 'owner' || c.accessRole === 'writer');
+            if (matched) {
+                targetCalId = matched.id;
+            }
+        } catch (_) {}
+
         await calendar.events.delete({
-            calendarId: TARGET_CALENDAR_ID,
+            calendarId: targetCalId,
             eventId: eventId,
             sendUpdates: 'all'
         });
-        console.log(`[Google Calendar API] Deleted event ${eventId}`);
+        console.log(`[Google Calendar API] Deleted event ${eventId} on calendar ${targetCalId}`);
     } catch (err) {
         console.warn(`[Google Calendar API Warning] Could not delete event ${eventId}:`, err.message);
     }
