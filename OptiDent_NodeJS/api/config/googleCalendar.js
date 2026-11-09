@@ -127,7 +127,14 @@ export async function autoCreateGoogleCalendarEvent(apptDetails) {
 
         const event = {
             summary: `OptiDent: ${service} - ${patientName}`,
-            description: `Confirmed Dental Appointment with ${doctor} at OptiDent Dental Clinic.\n\nPatient: ${patientName}\nTreatment: ${service}\nTime: ${timeStr}\nOperatory Chair: ${apptDetails.operatory_chair || 'Operatory Chair 1'}\nNotes: ${apptDetails.notes || 'None'}\n\nPlease arrive 10 minutes prior to scheduled time.`,
+            description: `Confirmed Dental Appointment with ${doctor} at OptiDent Dental Clinic.\n\n` +
+                         `Patient: ${patientName} (${apptDetails.patient_email || 'No email'})\n` +
+                         `Doctor: ${doctor}\n` +
+                         `Treatment: ${service}\n` +
+                         `Time: ${timeStr}\n` +
+                         `Operatory Chair: ${apptDetails.operatory_chair || 'Operatory Chair 1'}\n` +
+                         `Notes: ${apptDetails.notes || 'None'}\n\n` +
+                         `Please arrive 10 minutes prior to scheduled time.`,
             location: 'OptiDent Dental Clinic, Fortich St., Malaybalay City',
             start: {
                 dateTime: startDateTime,
@@ -137,7 +144,6 @@ export async function autoCreateGoogleCalendarEvent(apptDetails) {
                 dateTime: endDateTime,
                 timeZone: 'Asia/Manila'
             },
-            attendees,
             reminders: {
                 useDefault: false,
                 overrides: [
@@ -161,8 +167,7 @@ export async function autoCreateGoogleCalendarEvent(apptDetails) {
 
         const res = await calendar.events.insert({
             calendarId: targetCalId,
-            requestBody: event,
-            sendUpdates: 'all' // Automatically sends Google Calendar notification to patient and doctor!
+            requestBody: event
         });
 
         console.log(`[Google Calendar API] Successfully created event ${res.data.id} on calendar ${targetCalId}`);
@@ -204,8 +209,7 @@ export async function autoDeleteGoogleCalendarEvent(eventId) {
 
         await calendar.events.delete({
             calendarId: targetCalId,
-            eventId: eventId,
-            sendUpdates: 'all'
+            eventId: eventId
         });
         console.log(`[Google Calendar API] Deleted event ${eventId} on calendar ${targetCalId}`);
     } catch (err) {
