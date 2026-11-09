@@ -459,15 +459,13 @@
         }
 
         .appt-dropdown-menu {
-            position: absolute;
-            right: 0;
-            top: calc(100% + 4px);
+            position: fixed;
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.16), 0 4px 10px -2px rgba(15, 23, 42, 0.08);
+            box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.18), 0 4px 10px -2px rgba(15, 23, 42, 0.08);
             min-width: 215px;
-            z-index: 1000 !important;
+            z-index: 99999 !important;
             padding: 6px 0;
             animation: apptDropdownFade 0.15s ease-out;
         }
@@ -1272,7 +1270,7 @@
                 </div>
 
                 <!-- 1. Table List View -->
-                <div id="upcomingListView" class="table-responsive" style="min-height: 260px;">
+                <div id="upcomingListView" class="table-responsive">
                     <table class="pat-table">
                         <thead>
                             <tr>
@@ -3938,7 +3936,7 @@
             showToast('success', 'Opening Google Calendar...');
         }
 
-        // ── Appointment Action Dropdown Handlers ─────────────────────────
+        // ── Appointment Action Dropdown Handlers (Fixed Viewport Floating) ──
         function toggleApptActionDropdown(event, id) {
             if (event) {
                 event.stopPropagation();
@@ -3951,45 +3949,50 @@
 
             closeAllApptDropdowns();
 
-            if (!isCurrentlyOpen && menu) {
-                menu.style.display = 'block';
-                menu.style.zIndex = '1000';
+            if (!isCurrentlyOpen && menu && btn) {
+                btn.classList.add('active');
                 if (arrow) arrow.style.transform = 'rotate(180deg)';
-                if (btn) btn.classList.add('active');
 
-                const wrap = menu.closest('.appt-action-dropdown');
-                if (wrap) {
-                    wrap.classList.add('active-open');
-                    wrap.style.position = 'relative';
-                    wrap.style.zIndex = '1000';
-                }
-                const row = menu.closest('tr');
-                if (row) {
-                    row.classList.add('active-row-open');
-                    row.style.position = 'relative';
-                    row.style.zIndex = '1000';
-                }
-                const cell = menu.closest('td');
-                if (cell) {
-                    cell.style.position = 'relative';
-                    cell.style.zIndex = '1000';
-                }
+                // Render momentarily to grab exact rendered dimensions
+                menu.style.visibility = 'hidden';
+                menu.style.display = 'block';
+                menu.style.position = 'fixed';
+                menu.style.zIndex = '99999';
 
-                // Smart dropup detection
-                const rect = menu.getBoundingClientRect();
+                const btnRect = btn.getBoundingClientRect();
+                const menuWidth = menu.offsetWidth || 215;
+                const menuHeight = menu.offsetHeight || 185;
                 const vh = window.innerHeight || document.documentElement.clientHeight;
-                if (rect.bottom > vh - 20) {
-                    menu.classList.add('dropup');
+                const vw = window.innerWidth || document.documentElement.clientWidth;
+
+                // Horizontal positioning: align right edge of menu to right edge of button
+                let left = btnRect.right - menuWidth;
+                if (left < 10) left = 10;
+                if (left + menuWidth > vw - 10) left = vw - menuWidth - 10;
+                menu.style.left = `${left}px`;
+                menu.style.right = 'auto';
+
+                // Vertical positioning: check available space below
+                // If opening downwards would touch viewport bottom or if table row is near bottom, open UPWARDS
+                const spaceBelow = vh - btnRect.bottom;
+                if (spaceBelow < menuHeight + 15 && btnRect.top > menuHeight + 15) {
+                    // Open upwards (Dropup)
+                    menu.style.top = `${btnRect.top - menuHeight - 4}px`;
+                    menu.style.bottom = 'auto';
                 } else {
-                    menu.classList.remove('dropup');
+                    // Open downwards
+                    menu.style.top = `${btnRect.bottom + 4}px`;
+                    menu.style.bottom = 'auto';
                 }
+
+                menu.style.visibility = 'visible';
             }
         }
 
         function closeAllApptDropdowns() {
             document.querySelectorAll('.appt-dropdown-menu').forEach(m => {
                 m.style.display = 'none';
-                m.classList.remove('dropup');
+                m.style.visibility = 'hidden';
             });
             document.querySelectorAll('[id^="arrow-"]').forEach(a => {
                 a.style.transform = 'rotate(0deg)';
@@ -3997,28 +4000,17 @@
             document.querySelectorAll('.btn-action-trigger').forEach(b => {
                 b.classList.remove('active');
             });
-            document.querySelectorAll('.appt-action-dropdown').forEach(w => {
-                w.classList.remove('active-open');
-                w.style.zIndex = '';
-            });
-            document.querySelectorAll('tr.active-row-open').forEach(r => {
-                r.classList.remove('active-row-open');
-                r.style.position = '';
-                r.style.zIndex = '';
-            });
-            document.querySelectorAll('#upcomingTableBody td').forEach(c => {
-                if (c.style.zIndex === '1000') {
-                    c.style.position = '';
-                    c.style.zIndex = '';
-                }
-            });
         }
 
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.appt-action-dropdown')) {
+            if (!e.target.closest('.appt-action-dropdown') && !e.target.closest('.appt-dropdown-menu')) {
                 closeAllApptDropdowns();
             }
         });
+
+        // Close on scroll or resize so floating menu never detaches
+        window.addEventListener('scroll', closeAllApptDropdowns, true);
+        window.addEventListener('resize', closeAllApptDropdowns);
 
         // ── Digital QR Pass Handlers (C-010) ─────────────────────────
         async function openAppointmentQRModal(apptId) {
