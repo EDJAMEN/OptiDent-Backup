@@ -640,6 +640,7 @@ export async function sendDoctorDailyAgendaEmail(doctorEmail, doctorName, todayA
             const status = (a.status || 'scheduled').toUpperCase();
             const notes = a.notes || '';
             const statusColor = status === 'COMPLETED' ? '#059669' : (status === 'IN_PROGRESS' || status === 'IN_CHAIR' ? '#0284C7' : '#D97706');
+            const gCalUrl = generateGoogleCalendarUrl({ ...a, date, time, doctor_name: docName, doctor_email: doctorEmail });
 
             return `
                 <tr style="border-bottom: 1px solid #e2e8f0; background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
@@ -662,6 +663,11 @@ export async function sendDoctorDailyAgendaEmail(doctorEmail, doctorName, todayA
                     <td style="padding: 12px 14px; font-size: 11.5px; color: #475569;">
                         ${notes ? `<em>${notes}</em>` : '<span style="color: #94a3b8;">None</span>'}
                     </td>
+                    <td style="padding: 12px 14px; text-align: center;">
+                        <a href="${gCalUrl}" target="_blank" style="background: #0284C7; color: #ffffff; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block; white-space: nowrap;">
+                            📅 Google Cal
+                        </a>
+                    </td>
                 </tr>
             `;
         }).join('');
@@ -669,7 +675,7 @@ export async function sendDoctorDailyAgendaEmail(doctorEmail, doctorName, todayA
 
     const html = `
     <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 25px 12px; color: #1e293b;">
-        <div style="max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 14px; padding: 28px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
+        <div style="max-width: 680px; margin: 0 auto; background: #ffffff; border-radius: 14px; padding: 28px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
             <div style="border-bottom: 2px solid #0EB1B1; padding-bottom: 14px; margin-bottom: 20px;">
                 <h2 style="color: #0EB1B1; margin: 0; font-size: 22px; font-weight: 800;">OptiDent Dental Clinic</h2>
                 <p style="color: #64748b; font-size: 12px; margin: 4px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Doctor Daily Clinical Briefing &bull; 📅 ${date}</p>
@@ -706,6 +712,7 @@ export async function sendDoctorDailyAgendaEmail(doctorEmail, doctorName, todayA
                             <th style="padding: 10px 14px;">Procedure / Chair</th>
                             <th style="padding: 10px 14px; text-align: center;">Status</th>
                             <th style="padding: 10px 14px;">Clinical Notes</th>
+                            <th style="padding: 10px 14px; text-align: center;">Google Cal</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -173,6 +173,20 @@ export async function autoCreateGoogleCalendarEvent(apptDetails) {
         });
 
         console.log(`[Google Calendar API] Successfully created event ${res.data.id} on calendar ${targetCalId}`);
+
+        // If an attending doctor has an assigned email different from clinic admin, also sync to doctor's calendar if shared
+        if (apptDetails.doctor_email && apptDetails.doctor_email.includes('@') && apptDetails.doctor_email.toLowerCase() !== targetCalId.toLowerCase()) {
+            try {
+                await calendar.events.insert({
+                    calendarId: apptDetails.doctor_email.trim(),
+                    requestBody: event
+                });
+                console.log(`[Google Calendar API] Also synced appointment directly to doctor calendar (${apptDetails.doctor_email})`);
+            } catch (docErr) {
+                console.log(`[Google Calendar API Notice] Doctor calendar ${apptDetails.doctor_email} not yet shared with service account (notified via email invite instead).`);
+            }
+        }
+
         return {
             success: true,
             configured: true,
