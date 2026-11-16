@@ -10,8 +10,11 @@ OptiDentImplementation/cookie.txt
 .DS_Store
 Thumbs.db
 
-# Experimental Next.js app
-optident-next/
+# Framework-Free Architecture Refactor (Local only - do not push)
+OptiDent_FrameworkFree_API/
+OptiDent_System_Final/
+
+
 
 # Node dependencies
 node_modules/

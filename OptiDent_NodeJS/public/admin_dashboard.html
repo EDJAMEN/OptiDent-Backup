@@ -671,6 +671,197 @@
             font-size: 18px;
             flex-shrink: 0;
         }
+
+        /* ==========================================================================
+           RESPONSIVE STYLES: SYSTEM INTEGRATIONS & CRITICAL SWITCHES (SA-008)
+           ========================================================================== */
+        #systemIntegrationsModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.7);
+            z-index: 1050;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            padding: 24px;
+            overflow-y: auto;
+        }
+        #systemIntegrationsModal .modal-container {
+            width: 100%;
+            max-width: 980px;
+            max-height: 88vh;
+            overflow-y: auto;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: #ffffff;
+            margin: auto;
+        }
+        #integrationsCardsCore {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+        .integration-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            transition: all 0.2s ease;
+        }
+        .integration-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .token-subtext-container {
+            margin-bottom: 14px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* How-To-Get-Key Collapsible Accordion Guide */
+        .key-guide-box {
+            margin-top: 10px;
+            margin-bottom: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: 12px;
+        }
+        .key-guide-header {
+            padding: 9px 12px;
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+            transition: background 0.15s ease;
+        }
+        .key-guide-header:hover {
+            background: #e2e8f0;
+        }
+        .key-guide-content {
+            padding: 12px 14px;
+            line-height: 1.6;
+            color: #475569;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+        }
+        .key-guide-content ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .key-guide-content li {
+            margin-bottom: 6px;
+        }
+        .key-guide-content strong {
+            color: #0f172a;
+        }
+        .key-guide-content code {
+            font-family: monospace;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #0f172a;
+            word-break: break-all;
+        }
+        .key-guide-pill {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+        .key-guide-pill:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+            border-color: #cbd5e1;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 992px) {
+            #systemIntegrationsModal {
+                padding: 16px;
+            }
+            #systemIntegrationsModal .modal-container {
+                padding: 24px;
+                max-height: 92vh;
+            }
+            #integrationsCardsCore {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+        }
+        @media (max-width: 640px) {
+            #systemIntegrationsModal {
+                padding: 8px;
+            }
+            #systemIntegrationsModal .modal-container {
+                padding: 16px;
+                border-radius: 14px;
+                max-height: 95vh;
+            }
+            .integrations-modal-header {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 12px !important;
+            }
+            .integrations-header-actions {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+                gap: 6px;
+            }
+            .integrations-header-actions button {
+                flex: 1;
+                font-size: 11px !important;
+                padding: 6px 8px !important;
+            }
+            #inputIntegrationTokenModal {
+                padding: 8px !important;
+            }
+            #inputIntegrationTokenModal .card {
+                padding: 16px !important;
+                border-radius: 14px !important;
+                max-height: 94vh !important;
+            }
+            #confirmIntegrationModal {
+                padding: 8px !important;
+            }
+            #confirmIntegrationModal .card {
+                padding: 16px !important;
+                border-radius: 14px !important;
+            }
+            .token-subtext-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+        }
     </style>
 </head>
 
@@ -2593,13 +2784,11 @@
     </div>
 
     <!-- System Integrations & Critical Switches Pop-up Card Modal (SA-008) -->
-    <div id="systemIntegrationsModal"
-        style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); z-index: 1050; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 24px;">
-        <div class="card bg-white"
-            style="width: 100%; max-width: 960px; max-height: 88vh; overflow-y: auto; border-radius: 20px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25); border: 1px solid rgba(226, 232, 240, 0.8);">
+    <div id="systemIntegrationsModal">
+        <div class="modal-container card bg-white">
             
             <!-- Modal Header -->
-            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;">
+            <div class="integrations-modal-header">
                 <div style="display: flex; align-items: flex-start; gap: 16px;">
                     <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(14, 177, 177, 0.12); color: #0eb1b1; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;">
                         <i class='bx bx-git-branch'></i>
@@ -2616,7 +2805,7 @@
                         </p>
                     </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                <div class="integrations-header-actions">
                     <button type="button" class="btn-outline sm" onclick="emergencyLockdownPrompt()" style="color: #dc2626; border-color: #fecaca; background: #fff5f5; font-size: 12px; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer;">
                         <i class='bx bxs-lock-alt mr-1'></i> Emergency Lock
                     </button>
@@ -2632,11 +2821,11 @@
 
             <!-- Modal Content Dock: Holds the 6 switch cards -->
             <div id="modalIntegrationsDock">
-                <div id="integrationsCardsCore" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;">
+                <div id="integrationsCardsCore">
                     <!-- 1. Google Auth & Non-Admin Logins Gate -->
-                    <div class="integration-card" style="border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div class="integration-card">
                         <div>
-                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(234, 67, 53, 0.1); display: flex; align-items: center; justify-content: center; color: #ea4335; font-size: 22px; flex-shrink: 0;">
                                         <i class='bx bxl-google'></i>
@@ -2646,13 +2835,27 @@
                                         <div style="font-size: 11px; color: #64748b; margin-top: 2px;">OAuth &amp; User Access Gate</div>
                                     </div>
                                 </div>
-                                <span id="badgeGoogleAuth" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700; flex-shrink: 0;">
-                                    ONLINE
-                                </span>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                    <button type="button" class="key-guide-pill" onclick="openKeyGuideDirectly('google_auth_enabled')" title="View step-by-step instructions to obtain Google Client ID">
+                                        <i class='bx bx-book-open'></i> Key Guide
+                                    </button>
+                                    <span id="badgeGoogleAuth" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700;">
+                                        ONLINE
+                                    </span>
+                                </div>
                             </div>
-                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 18px 0; min-height: 40px;">
+                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 14px 0; min-height: 38px;">
                                 When turned <strong>OFF</strong>, no login is allowed for Doctors, Receptionists, or Patients. <strong>Only Super Admin</strong> can log in.
                             </p>
+                            <!-- Encrypted Token Subtext -->
+                            <div id="tokenSubtext_google_auth_enabled" class="token-subtext-container" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                                <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <i class='bx bx-lock-alt' style="color: #059669; font-size: 14px; flex-shrink: 0;"></i>
+                                    <span style="color: #64748b; font-weight: 500;">OAuth Client:</span>
+                                    <span style="font-family: monospace; font-weight: 600; color: #0f172a; font-size: 11px;">9837••••••••••••••••.com</span>
+                                </div>
+                                <span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; flex-shrink: 0; letter-spacing: 0.3px;">ENCRYPTED (AES-256)</span>
+                            </div>
                         </div>
                         <div style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
                             <span style="font-size: 12px; font-weight: 700; color: #10b981;" id="labelGoogleAuthStatus">Logins Permitted</span>
@@ -2664,9 +2867,9 @@
                     </div>
 
                     <!-- 2. Gmail / SMTP Email Gateway -->
-                    <div class="integration-card" style="border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div class="integration-card">
                         <div>
-                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(245, 158, 11, 0.1); display: flex; align-items: center; justify-content: center; color: #f59e0b; font-size: 22px; flex-shrink: 0;">
                                         <i class='bx bxl-gmail'></i>
@@ -2676,13 +2879,27 @@
                                         <div style="font-size: 11px; color: #64748b; margin-top: 2px;">PHPMailer &amp; Staff Invites</div>
                                     </div>
                                 </div>
-                                <span id="badgeSmtpEmail" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700; flex-shrink: 0;">
-                                    ONLINE
-                                </span>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                    <button type="button" class="key-guide-pill" onclick="openKeyGuideDirectly('smtp_email_enabled')" title="View step-by-step instructions to obtain Gmail App Password">
+                                        <i class='bx bx-book-open'></i> Key Guide
+                                    </button>
+                                    <span id="badgeSmtpEmail" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700;">
+                                        ONLINE
+                                    </span>
+                                </div>
                             </div>
-                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 18px 0; min-height: 40px;">
+                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 14px 0; min-height: 38px;">
                                 Dispatches invitation emails and patient OTP codes. If paused, system safely mocks verification codes without failing.
                             </p>
+                            <!-- Encrypted Token Subtext -->
+                            <div id="tokenSubtext_smtp_email_enabled" class="token-subtext-container" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                                <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <i class='bx bx-lock-alt' style="color: #059669; font-size: 14px; flex-shrink: 0;"></i>
+                                    <span style="color: #64748b; font-weight: 500;">App Password:</span>
+                                    <span style="font-family: monospace; font-weight: 600; color: #0f172a; font-size: 11px;">em••••••••••fpku</span>
+                                </div>
+                                <span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; flex-shrink: 0; letter-spacing: 0.3px;">ENCRYPTED (AES-256)</span>
+                            </div>
                         </div>
                         <div style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
                             <span style="font-size: 12px; font-weight: 700; color: #10b981;" id="labelSmtpEmailStatus">Email Dispatch Active</span>
@@ -2694,9 +2911,9 @@
                     </div>
 
                     <!-- 3. SMS Mobile Notifications Gateway -->
-                    <div class="integration-card" style="border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div class="integration-card">
                         <div>
-                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(59, 130, 246, 0.1); display: flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 22px; flex-shrink: 0;">
                                         <i class='bx bx-message-rounded-dots'></i>
@@ -2706,13 +2923,26 @@
                                         <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Patient Text Reminders</div>
                                     </div>
                                 </div>
-                                <span id="badgeSmsGateway" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(100, 116, 139, 0.1); color: #64748b; font-weight: 700; flex-shrink: 0;">
-                                    STANDBY
-                                </span>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                    <button type="button" class="key-guide-pill" onclick="openKeyGuideDirectly('sms_gateway_enabled')" title="View step-by-step instructions to obtain SMS API Key">
+                                        <i class='bx bx-book-open'></i> Key Guide
+                                    </button>
+                                    <span id="badgeSmsGateway" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(100, 116, 139, 0.1); color: #64748b; font-weight: 700;">
+                                        STANDBY
+                                    </span>
+                                </div>
                             </div>
-                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 18px 0; min-height: 40px;">
+                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 14px 0; min-height: 38px;">
                                 Automated SMS text messages sent to patient mobile phones for appointment confirmations and schedule notifications.
                             </p>
+                            <!-- Encrypted Token Subtext -->
+                            <div id="tokenSubtext_sms_gateway_enabled" class="token-subtext-container" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <i class='bx bx-key' style="color: #94a3b8; font-size: 14px; flex-shrink: 0;"></i>
+                                    <span style="color: #94a3b8; font-weight: 500;">Key Cleared &amp; Reset</span>
+                                </div>
+                                <span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; flex-shrink: 0;">TURN ON TO ENTER</span>
+                            </div>
                         </div>
                         <div style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
                             <span style="font-size: 12px; font-weight: 700; color: #64748b;" id="labelSmsGatewayStatus">Standby / Inactive</span>
@@ -2724,9 +2954,9 @@
                     </div>
 
                     <!-- 4. Google Calendar API Live Sync (Registered Account: edjamenf@gmail.com) -->
-                    <div class="integration-card" style="border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div class="integration-card">
                         <div>
-                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(66, 133, 244, 0.12); display: flex; align-items: center; justify-content: center; color: #4285f4; font-size: 22px; flex-shrink: 0;">
                                         <i class='bx bx-calendar-event'></i>
@@ -2741,14 +2971,29 @@
                                         </div>
                                     </div>
                                 </div>
-                                <span id="badgeGoogleCalendarSync" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700; flex-shrink: 0;">
-                                    ACTIVE
-                                </span>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                    <button type="button" class="key-guide-pill" onclick="openKeyGuideDirectly('google_calendar_sync')" title="View step-by-step instructions to obtain Service Account JSON">
+                                        <i class='bx bx-book-open'></i> Key Guide
+                                    </button>
+                                    <span id="badgeGoogleCalendarSync" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700;">
+                                        ACTIVE
+                                    </span>
+                                </div>
                             </div>
-                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 14px 0;">
+                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 10px 0;">
                                 Automatically syncs incoming clinic appointments to your registered Google Calendar (<span style="color: #0f172a; font-weight: 600;">edjamenf@gmail.com</span>). View incoming patient appointments directly in your Google Calendar across all mobile and web devices.
                             </p>
                             
+                            <!-- Encrypted Token Subtext -->
+                            <div id="tokenSubtext_google_calendar_sync" class="token-subtext-container" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                                <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <i class='bx bx-lock-alt' style="color: #059669; font-size: 14px; flex-shrink: 0;"></i>
+                                    <span style="color: #64748b; font-weight: 500;">Service Account:</span>
+                                    <span style="font-family: monospace; font-weight: 600; color: #0f172a; font-size: 11px;">optident-calendar@master-host... ••••••23ad9c</span>
+                                </div>
+                                <span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; flex-shrink: 0; letter-spacing: 0.3px;">ENCRYPTED (AES-256)</span>
+                            </div>
+
                             <!-- Live status banner & action buttons -->
                             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
                                 <div style="font-size: 11.5px; color: #475569; display: flex; align-items: center; gap: 6px;">
@@ -2775,9 +3020,9 @@
                     </div>
 
                     <!-- 8. Google reCAPTCHA v2 Anti-Bot Defense Switch -->
-                    <div class="integration-card" style="border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div class="integration-card">
                         <div>
-                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(14, 177, 177, 0.12); display: flex; align-items: center; justify-content: center; color: #0eb1b1; font-size: 22px; flex-shrink: 0;">
                                         <i class='bx bx-shield-quarter'></i>
@@ -2787,13 +3032,27 @@
                                         <div style="font-size: 11px; color: #64748b; margin-top: 2px;">2nd Layer Bot Login Defense</div>
                                     </div>
                                 </div>
-                                <span id="badgeRecaptcha" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700; flex-shrink: 0;">
-                                    ACTIVE
-                                </span>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                    <button type="button" class="key-guide-pill" onclick="openKeyGuideDirectly('recaptcha_enabled')" title="View step-by-step instructions to obtain reCAPTCHA Secret Key">
+                                        <i class='bx bx-book-open'></i> Key Guide
+                                    </button>
+                                    <span id="badgeRecaptcha" class="badge" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 700;">
+                                        ACTIVE
+                                    </span>
+                                </div>
                             </div>
-                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 18px 0; min-height: 40px;">
+                            <p style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 14px 0; min-height: 38px;">
                                 Enforces the interactive Google reCAPTCHA "I'm not a robot" check on the login portal to block automated bots, credential stuffing, and brute force attacks.
                             </p>
+                            <!-- Encrypted Token Subtext -->
+                            <div id="tokenSubtext_recaptcha_enabled" class="token-subtext-container" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                                <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <i class='bx bx-lock-alt' style="color: #059669; font-size: 14px; flex-shrink: 0;"></i>
+                                    <span style="color: #64748b; font-weight: 500;">Secret Key:</span>
+                                    <span style="font-family: monospace; font-weight: 600; color: #0f172a; font-size: 11px;">6LeI••••••••••••••••fJWe</span>
+                                </div>
+                                <span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; flex-shrink: 0; letter-spacing: 0.3px;">ENCRYPTED (AES-256)</span>
+                            </div>
                         </div>
                         <div style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
                             <span style="font-size: 12px; font-weight: 700; color: #10b981;" id="labelRecaptchaStatus">Bot Defense Enabled</span>
@@ -2864,6 +3123,214 @@
                     <i class='bx bx-check-shield'></i> Confirm &amp; Apply
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Integration Token Input & Live Verification Modal (Vault Encryption & Verification) -->
+    <div id="inputIntegrationTokenModal"
+        style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 1150; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 20px;">
+        <div class="card bg-white"
+            style="width: 100%; max-width: 560px; border-radius: 20px; padding: 28px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1px solid rgba(226, 232, 240, 0.9); max-height: 90vh; overflow-y: auto;">
+            
+            <!-- Modal Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <div id="tokenModalIconWrap" style="width: 48px; height: 48px; border-radius: 12px; background: rgba(14, 177, 177, 0.12); color: #0eb1b1; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;">
+                        <i id="tokenModalIcon" class='bx bx-key'></i>
+                    </div>
+                    <div>
+                        <h3 id="tokenModalTitle" style="font-size: 17px; font-weight: 700; color: #0f172a; margin: 0;">Activate API Integration</h3>
+                        <div id="tokenModalSubtitle" style="font-size: 12px; color: #64748b; margin-top: 3px;">API Credential Input &amp; Live Server Verification</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeTokenModal()" style="border: none; background: transparent; font-size: 22px; color: #94a3b8; cursor: pointer; padding: 4px; border-radius: 6px;">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+
+            <!-- Security Notice Banner -->
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
+                <i class='bx bx-shield-quarter' style="color: #16a34a; font-size: 20px; flex-shrink: 0; margin-top: 2px;"></i>
+                <div style="font-size: 12px; color: #166534; line-height: 1.5;">
+                    <strong>Zero Plaintext Storage:</strong> Tokens entered are authenticated live with the target service, encrypted using <strong>AES-256-GCM</strong>, and safely stored in the database vault. Turning this integration OFF in the future permanently resets and clears this key.
+                </div>
+            </div>
+
+            <!-- Dynamic Form Area based on Integration -->
+            <form id="integrationTokenForm" onsubmit="submitIntegrationTokenVerification(event)">
+                <input type="hidden" id="tokenModalIntegrationKey" value="">
+
+                <!-- Field 1: Service Account JSON (Google Calendar) -->
+                <div id="fieldWrap_google_calendar_sync" style="display: none; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                        <label style="font-size: 12.5px; font-weight: 600; color: #1e293b;">Google Cloud Service Account JSON Key</label>
+                        <button type="button" onclick="loadClinicDefaultServiceAccount()" style="font-size: 11px; padding: 3px 8px; border-radius: 5px; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight: 600; cursor: pointer;">
+                            <i class='bx bx-file'></i> Load Clinic Service Account
+                        </button>
+                    </div>
+                    <textarea id="inputTokenCalendarJSON" rows="5" placeholder="Paste your Google Service Account JSON key (starts with { &quot;type&quot;: &quot;service_account&quot;... })" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 12px; font-family: monospace; resize: vertical; outline: none;"></textarea>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Service account must have access to <strong style="color: #0f172a;">edjamenf@gmail.com</strong> calendar.</div>
+
+                    <!-- Step-by-Step Guide for Google Calendar -->
+                    <div class="key-guide-box">
+                        <div class="key-guide-header" onclick="toggleKeyGuide('guide_gcal')">
+                            <span><i class='bx bx-help-circle' style="color: #4285f4; vertical-align: middle;"></i> <strong>Step-by-Step: How to get Google Service Account JSON</strong></span>
+                            <i class='bx bx-chevron-down' id="guide_gcal_chevron" style="transition: transform 0.2s ease;"></i>
+                        </div>
+                        <div id="guide_gcal" class="key-guide-content" style="display: none;">
+                            <ol>
+                                <li>Open <a href="https://console.cloud.google.com/" target="_blank" style="color: #0284c7; text-decoration: underline;">Google Cloud Console</a> and create or select your project.</li>
+                                <li>Navigate to <strong>APIs &amp; Services &gt; Library</strong> &rarr; search for <strong>Google Calendar API</strong> and click <strong>Enable</strong>.</li>
+                                <li>Go to <strong>APIs &amp; Services &gt; Credentials</strong> &rarr; click <strong>+ Create Credentials &gt; Service Account</strong>.</li>
+                                <li>Enter a name (e.g. <code>optident-calendar</code>), click <strong>Create and Continue</strong>, and assign role <strong>Project &gt; Editor</strong>.</li>
+                                <li>Click on the newly created Service Account &rarr; switch to the <strong>Keys</strong> tab &rarr; click <strong>Add Key &gt; Create new key &gt; JSON</strong>.</li>
+                                <li>A <code>.json</code> key file will download to your device. Open it in Notepad, copy the entire JSON text, and paste it into the box above.</li>
+                                <li><strong>Important:</strong> Open <a href="https://calendar.google.com" target="_blank" style="color: #0284c7; text-decoration: underline;">Google Calendar</a> with account <strong>edjamenf@gmail.com</strong> &rarr; Settings &rarr; Share calendar with the Service Account email address (e.g. <code>...iam.gserviceaccount.com</code>) with permission <strong>"Make changes to events"</strong>.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Field 2: SMTP Email (Gmail App Password) -->
+                <div id="fieldWrap_smtp_email_enabled" style="display: none; margin-bottom: 16px;">
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-size: 12.5px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 6px;">Gmail Dispatcher Address</label>
+                        <input type="email" id="inputTokenSmtpUser" value="optidentt@gmail.com" placeholder="clinic@gmail.com" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; outline: none;">
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                            <label style="font-size: 12.5px; font-weight: 600; color: #1e293b;">16-Character Google App Password</label>
+                            <button type="button" onclick="fillClinicDefaultSmtp()" style="font-size: 11px; padding: 3px 8px; border-radius: 5px; background: #fef3c7; color: #d97706; border: 1px solid #fde68a; font-weight: 600; cursor: pointer;">
+                                Use Default App Password
+                            </button>
+                        </div>
+                        <input type="password" id="inputTokenSmtpPass" placeholder="e.g. emuv fyqh uyya fpku" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: monospace; outline: none;">
+                        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Generate from: Google Account &rarr; Security &rarr; 2-Step Verification &rarr; App Passwords.</div>
+
+                        <!-- Step-by-Step Guide for Gmail App Password -->
+                        <div class="key-guide-box">
+                            <div class="key-guide-header" onclick="toggleKeyGuide('guide_smtp')">
+                                <span><i class='bx bx-help-circle' style="color: #f59e0b; vertical-align: middle;"></i> <strong>Step-by-Step: How to get 16-Char Gmail App Password</strong></span>
+                                <i class='bx bx-chevron-down' id="guide_smtp_chevron" style="transition: transform 0.2s ease;"></i>
+                            </div>
+                            <div id="guide_smtp" class="key-guide-content" style="display: none;">
+                                <ol>
+                                    <li>Log in to your clinic Google Account at <a href="https://myaccount.google.com/" target="_blank" style="color: #0284c7; text-decoration: underline;">myaccount.google.com</a>.</li>
+                                    <li>Click on <strong>Security</strong> on the left-side navigation menu.</li>
+                                    <li>Under <em>"How you sign in to Google"</em>, verify that <strong>2-Step Verification</strong> is switched <strong>ON</strong>.</li>
+                                    <li>Search for <strong>"App passwords"</strong> in the top search bar (or visit <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color: #0284c7; text-decoration: underline;">myaccount.google.com/apppasswords</a>).</li>
+                                    <li>Under <em>"App name"</em>, type <code>OptiDent System</code> and click <strong>Create</strong>.</li>
+                                    <li>Google will display a <strong>16-character password</strong> (e.g. <code>emuv fyqh uyya fpku</code>).</li>
+                                    <li>Copy the 16 characters and paste into the App Password box above (spaces are removed automatically).</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Field 3: Google reCAPTCHA v2 Secret Key -->
+                <div id="fieldWrap_recaptcha_enabled" style="display: none; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                        <label style="font-size: 12.5px; font-weight: 600; color: #1e293b;">Google reCAPTCHA v2 Secret Key</label>
+                        <button type="button" onclick="fillClinicDefaultRecaptcha()" style="font-size: 11px; padding: 3px 8px; border-radius: 5px; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight: 600; cursor: pointer;">
+                            Use Clinic Secret Key
+                        </button>
+                    </div>
+                    <input type="password" id="inputTokenRecaptchaSecret" placeholder="e.g. 6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: monospace; outline: none;">
+                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Obtain from Google reCAPTCHA v2 Admin Console (Secret Key for server-side verification).</div>
+
+                    <!-- Step-by-Step Guide for Google reCAPTCHA v2 -->
+                    <div class="key-guide-box">
+                        <div class="key-guide-header" onclick="toggleKeyGuide('guide_recaptcha')">
+                            <span><i class='bx bx-help-circle' style="color: #0eb1b1; vertical-align: middle;"></i> <strong>Step-by-Step: How to get Google reCAPTCHA v2 Secret Key</strong></span>
+                            <i class='bx bx-chevron-down' id="guide_recaptcha_chevron" style="transition: transform 0.2s ease;"></i>
+                        </div>
+                        <div id="guide_recaptcha" class="key-guide-content" style="display: none;">
+                            <ol>
+                                <li>Go to the <a href="https://www.google.com/recaptcha/admin/create" target="_blank" style="color: #0284c7; text-decoration: underline;">Google reCAPTCHA Admin Console</a>.</li>
+                                <li>Enter a Label such as <code>OptiDent Dental Clinic</code>.</li>
+                                <li>Under <strong>reCAPTCHA type</strong>, select <strong>reCAPTCHA v2</strong> &rarr; select <strong>"I'm not a robot" Checkbox</strong>.</li>
+                                <li>Under <strong>Domains</strong>, enter <code>localhost</code> and <code>127.0.0.1</code> (plus your server domain or IP).</li>
+                                <li>Accept the Terms of Service and click <strong>Submit</strong>.</li>
+                                <li>Copy the generated <strong>Secret Key</strong> (starts with <code>6L...</code>) and paste it into the field above.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Field 4: SMS Gateway API Key -->
+                <div id="fieldWrap_sms_gateway_enabled" style="display: none; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                        <label style="font-size: 12.5px; font-weight: 600; color: #1e293b;">SMS Gateway API Key</label>
+                        <button type="button" onclick="fillDemoSmsKey()" style="font-size: 11px; padding: 3px 8px; border-radius: 5px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer;">
+                            Demo Sandbox Key
+                        </button>
+                    </div>
+                    <input type="password" id="inputTokenSmsKey" placeholder="e.g. sem_live_9a7d3b5c1e8f2a4d6" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: monospace; outline: none;">
+                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Semaphore or Twilio live SMS gateway API credentials.</div>
+
+                    <!-- Step-by-Step Guide for SMS Gateway -->
+                    <div class="key-guide-box">
+                        <div class="key-guide-header" onclick="toggleKeyGuide('guide_sms')">
+                            <span><i class='bx bx-help-circle' style="color: #3b82f6; vertical-align: middle;"></i> <strong>Step-by-Step: How to get SMS Gateway API Key</strong></span>
+                            <i class='bx bx-chevron-down' id="guide_sms_chevron" style="transition: transform 0.2s ease;"></i>
+                        </div>
+                        <div id="guide_sms" class="key-guide-content" style="display: none;">
+                            <ol>
+                                <li><strong>For Semaphore (Philippines SMS):</strong> Sign up or log in at <a href="https://semaphore.co/" target="_blank" style="color: #0284c7; text-decoration: underline;">semaphore.co</a>.</li>
+                                <li>Navigate to <strong>Account &gt; API</strong> to view your 32-character <strong>API Key</strong>.</li>
+                                <li>Ensure you have active SMS credits and an approved Sender Name.</li>
+                                <li><strong>For Twilio:</strong> Go to <a href="https://console.twilio.com/" target="_blank" style="color: #0284c7; text-decoration: underline;">twilio.com/console</a> and copy your <strong>Auth Token</strong>.</li>
+                                <li>Paste your Semaphore API Key or Twilio Auth Token into the field above.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Field 5: Google Auth Client ID -->
+                <div id="fieldWrap_google_auth_enabled" style="display: none; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                        <label style="font-size: 12.5px; font-weight: 600; color: #1e293b;">Google OAuth 2.0 Web Client ID</label>
+                        <button type="button" onclick="fillClinicDefaultGoogleAuth()" style="font-size: 11px; padding: 3px 8px; border-radius: 5px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; font-weight: 600; cursor: pointer;">
+                            Use Clinic Client ID
+                        </button>
+                    </div>
+                    <input type="text" id="inputTokenGoogleAuthClientId" placeholder="e.g. 983742894723-masterauth2026.apps.googleusercontent.com" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: monospace; outline: none;">
+                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">OAuth 2.0 Client ID for Google Single Sign-On and user verification.</div>
+
+                    <!-- Step-by-Step Guide for Google OAuth Client ID -->
+                    <div class="key-guide-box">
+                        <div class="key-guide-header" onclick="toggleKeyGuide('guide_google_auth')">
+                            <span><i class='bx bx-help-circle' style="color: #ea4335; vertical-align: middle;"></i> <strong>Step-by-Step: How to get Google OAuth 2.0 Web Client ID</strong></span>
+                            <i class='bx bx-chevron-down' id="guide_google_auth_chevron" style="transition: transform 0.2s ease;"></i>
+                        </div>
+                        <div id="guide_google_auth" class="key-guide-content" style="display: none;">
+                            <ol>
+                                <li>Open <a href="https://console.cloud.google.com/" target="_blank" style="color: #0284c7; text-decoration: underline;">Google Cloud Console</a> &rarr; <strong>APIs &amp; Services &gt; Credentials</strong>.</li>
+                                <li>If not yet completed, configure your <strong>OAuth Consent Screen</strong> (choose <em>External</em>, set App Name to <code>OptiDent</code>).</li>
+                                <li>Click <strong>+ Create Credentials &gt; OAuth client ID</strong>.</li>
+                                <li>Select <strong>Web application</strong> as the Application type.</li>
+                                <li>Under <strong>Authorized JavaScript origins</strong>, add <code>http://localhost:3000</code> and <code>http://127.0.0.1:3000</code>.</li>
+                                <li>Under <strong>Authorized redirect URIs</strong>, add <code>http://localhost:3000</code> and <code>http://127.0.0.1:3000</code>.</li>
+                                <li>Click <strong>Create</strong> &rarr; copy the <strong>Client ID</strong> (ends with <code>.apps.googleusercontent.com</code>) and paste it above.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Verification Status / Error Container -->
+                <div id="tokenModalVerificationStatus" style="display: none; margin-bottom: 18px; padding: 12px; border-radius: 10px; font-size: 12.5px; line-height: 1.5;"></div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; align-items: center; gap: 12px; margin-top: 20px;">
+                    <button type="button" onclick="closeTokenModal()" style="flex: 1; height: 42px; border-radius: 10px; font-weight: 600; font-size: 13px; color: #475569; background: #f1f5f9; border: 1px solid #e2e8f0; cursor: pointer;">
+                        Cancel
+                    </button>
+                    <button type="submit" id="btnSubmitTokenVerify" style="flex: 1.5; height: 42px; border-radius: 10px; font-weight: 600; font-size: 13px; color: #ffffff; background: var(--primary); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(14, 177, 177, 0.3);">
+                        <i class='bx bx-check-shield'></i> Verify &amp; Encrypt Vault Key
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -3345,7 +3812,7 @@
         }
 
         function escapeHtml(str) {
-            if (!str) return '';
+            if (str === null || str === undefined) return '';
             return String(str).replace(/[&<>"']/g, function (m) {
                 return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
             });
@@ -3913,6 +4380,62 @@
             maintenance_mode: false
         };
 
+        let activeMaskedTokens = {};
+
+        /**
+         * Render subtext on integration cards showing encrypted / half-masked token
+         * Preserves the per-card label text (App Password, OAuth Client, etc.)
+         */
+        const TOKEN_SUBTEXT_LABELS = {
+            smtp_email_enabled:    'App Password:',
+            google_auth_enabled:   'OAuth Client:',
+            sms_gateway_enabled:   'SMS API Key:',
+            google_calendar_sync:  'Service Account:',
+            recaptcha_enabled:     'Secret Key:'
+        };
+
+        function renderTokenSubtext(key, isEnabled, maskedVal) {
+            const el = document.getElementById(`tokenSubtext_${key}`);
+            if (!el) return;
+
+            const label = TOKEN_SUBTEXT_LABELS[key] || 'Vault Key:';
+
+            if (isEnabled && maskedVal) {
+                el.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <i class='bx bx-lock-alt' style="color: #059669; font-size: 14px; flex-shrink: 0;"></i>
+                        <span style="color: #64748b; font-weight: 500;">${label}</span>
+                        <span style="font-family: monospace; font-weight: 600; color: #0f172a; font-size: 11px;">${maskedVal}</span>
+                    </div>
+                    <span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; flex-shrink: 0; letter-spacing: 0.3px;">ENCRYPTED (AES-256)</span>
+                `;
+                el.style.borderColor = '#bbf7d0';
+                el.style.background = '#f0fdf4';
+            } else if (isEnabled && !maskedVal) {
+                // Integration is ON but no vault key yet — prompt to enter key
+                el.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <i class='bx bx-key' style="color: #f59e0b; font-size: 14px; flex-shrink: 0;"></i>
+                        <span style="color: #92400e; font-weight: 500;">${label}</span>
+                        <span style="font-family: monospace; font-weight: 600; color: #92400e; font-size: 11px;">No key stored — click toggle to add</span>
+                    </div>
+                    <span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #fef3c7; color: #d97706; flex-shrink: 0;">NEEDS KEY</span>
+                `;
+                el.style.borderColor = '#fcd34d';
+                el.style.background = '#fffbeb';
+            } else {
+                el.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <i class='bx bx-key' style="color: #94a3b8; font-size: 14px; flex-shrink: 0;"></i>
+                        <span style="color: #94a3b8; font-weight: 500;">Key Cleared &amp; Reset</span>
+                    </div>
+                    <span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; flex-shrink: 0;">TURN ON TO ENTER</span>
+                `;
+                el.style.borderColor = '#e2e8f0';
+                el.style.background = '#f8fafc';
+            }
+        }
+
         function updateIntegrationBadges(integrations, maintenanceMode) {
             integrations = integrations || activeSystemIntegrations || {};
             const googleAuth = integrations.google_auth_enabled !== false && integrations.allow_non_admin_logins !== false;
@@ -3989,14 +4512,9 @@
             const lowMaint = document.getElementById('settingMaintenanceMode');
             if (lowMaint) lowMaint.checked = maint;
             updateMaintenanceBadge(maint);
+            const bMaint = document.getElementById('confirmModalMaintenance');
             if (bMaint) {
                 bMaint.textContent = maint ? 'MAINTENANCE ACTIVE' : 'NORMAL';
-                bMaint.style.background = maint ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.1)';
-                bMaint.style.color = maint ? '#ef4444' : '#10b981';
-            }
-            if (lMaint) {
-                lMaint.textContent = maint ? 'Under Maintenance (Restricted)' : 'System Operational';
-                lMaint.style.color = maint ? '#ef4444' : '#10b981';
             }
 
             // 8. Google reCAPTCHA Anti-Bot Layer
@@ -4013,6 +4531,13 @@
                 lRecaptcha.textContent = recaptcha ? 'Bot Defense Active' : 'Defense Paused (Direct Login)';
                 lRecaptcha.style.color = recaptcha ? '#10b981' : '#64748b';
             }
+
+            // Render Vault Key Subtexts on all 5 integration cards
+            renderTokenSubtext('google_auth_enabled', googleAuth, activeMaskedTokens.google_auth_enabled);
+            renderTokenSubtext('smtp_email_enabled', smtp, activeMaskedTokens.smtp_email_enabled);
+            renderTokenSubtext('sms_gateway_enabled', sms, activeMaskedTokens.sms_gateway_enabled);
+            renderTokenSubtext('google_calendar_sync', gCalSync, activeMaskedTokens.google_calendar_sync);
+            renderTokenSubtext('recaptcha_enabled', recaptcha, activeMaskedTokens.recaptcha_enabled);
 
             // Overall Status Banner
             const overall = document.getElementById('systemGateOverallBadge');
@@ -4099,9 +4624,54 @@
             }
         };
 
+        const CREDENTIAL_INTEGRATIONS_CONFIG = {
+            'google_calendar_sync': {
+                name: 'Google Calendar API Live Sync',
+                icon: 'bx-calendar-event',
+                iconColor: '#4285f4',
+                iconBg: 'rgba(66, 133, 244, 0.12)',
+                fieldId: 'fieldWrap_google_calendar_sync'
+            },
+            'smtp_email_enabled': {
+                name: 'Gmail / SMTP Email Gateway',
+                icon: 'bxl-gmail',
+                iconColor: '#f59e0b',
+                iconBg: 'rgba(245, 158, 11, 0.12)',
+                fieldId: 'fieldWrap_smtp_email_enabled'
+            },
+            'recaptcha_enabled': {
+                name: 'Google reCAPTCHA Anti-Bot Defense',
+                icon: 'bx-shield-quarter',
+                iconColor: '#0eb1b1',
+                iconBg: 'rgba(14, 177, 177, 0.12)',
+                fieldId: 'fieldWrap_recaptcha_enabled'
+            },
+            'sms_gateway_enabled': {
+                name: 'SMS Mobile Gateway',
+                icon: 'bx-message-rounded-dots',
+                iconColor: '#3b82f6',
+                iconBg: 'rgba(59, 130, 246, 0.12)',
+                fieldId: 'fieldWrap_sms_gateway_enabled'
+            },
+            'google_auth_enabled': {
+                name: 'Google Auth & Non-Admin Logins',
+                icon: 'bxl-google',
+                iconColor: '#ea4335',
+                iconBg: 'rgba(234, 67, 53, 0.12)',
+                fieldId: 'fieldWrap_google_auth_enabled'
+            }
+        };
+
         let pendingIntegrationChange = null;
 
         function requestIntegrationToggle(key, newState, checkboxEl) {
+            // 1. If turning ON an external API integration, intercept and require token verification modal
+            if (newState && CREDENTIAL_INTEGRATIONS_CONFIG[key]) {
+                if (checkboxEl) checkboxEl.checked = false;
+                openTokenModal(key);
+                return;
+            }
+
             const meta = INTEGRATION_METADATA[key] || {
                 name: key,
                 icon: 'bx-slider-alt',
@@ -4137,9 +4707,9 @@
                     iconWrap.style.color = '#ef4444';
                     icon.className = 'bx bx-error-alt';
                 } else if (!newState) {
-                    iconWrap.style.background = 'rgba(245, 158, 11, 0.12)';
-                    iconWrap.style.color = '#f59e0b';
-                    icon.className = 'bx bx-pause-circle';
+                    iconWrap.style.background = 'rgba(239, 68, 68, 0.12)';
+                    iconWrap.style.color = '#ef4444';
+                    icon.className = 'bx bx-reset';
                 } else {
                     iconWrap.style.background = 'rgba(16, 185, 129, 0.12)';
                     iconWrap.style.color = '#10b981';
@@ -4148,14 +4718,14 @@
             }
 
             if (title) {
-                title.textContent = isCritical ? 'Critical Security Confirmation' : 'Confirm Subsystem Switch';
+                title.textContent = isCritical ? 'Critical Security Confirmation' : (!newState && CREDENTIAL_INTEGRATIONS_CONFIG[key] ? 'Confirm Key Reset & Disable' : 'Confirm Subsystem Switch');
             }
 
             if (targetStatus) {
                 if (!newState) {
-                    targetStatus.style.background = isCritical ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)';
-                    targetStatus.style.color = isCritical ? '#dc2626' : '#d97706';
-                    targetStatus.innerHTML = "<i class='bx bx-block'></i> DISABLE / PAUSE";
+                    targetStatus.style.background = 'rgba(239, 68, 68, 0.15)';
+                    targetStatus.style.color = '#dc2626';
+                    targetStatus.innerHTML = "<i class='bx bx-block'></i> DISABLE &amp; RESET TOKEN";
                 } else {
                     targetStatus.style.background = 'rgba(16, 185, 129, 0.15)';
                     targetStatus.style.color = '#059669';
@@ -4164,7 +4734,11 @@
             }
 
             if (impactText) {
-                impactText.innerHTML = (newState ? meta.descOn : meta.descOff) + "<br><br><span style='color: #64748b; font-size: 11px;'>This change takes effect immediately and logs to the immutable Super Admin audit trail.</span>";
+                if (!newState && CREDENTIAL_INTEGRATIONS_CONFIG[key]) {
+                    impactText.innerHTML = `${meta.descOff}<br><br><div style="padding: 10px 12px; border-radius: 8px; background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; font-size: 12px; line-height: 1.5;"><i class='bx bx-error-circle' style='vertical-align: middle;'></i> <strong>Database Key Reset:</strong> Disabling this integration will <strong>permanently purge and reset its encrypted API key</strong> from the database vault. Next time you enable it, a new API token must be inputted and verified.</div>`;
+                } else {
+                    impactText.innerHTML = (newState ? meta.descOn : meta.descOff) + "<br><br><span style='color: #64748b; font-size: 11px;'>This change takes effect immediately and logs to the immutable Super Admin audit trail.</span>";
+                }
             }
 
             if (proceedBtn) {
@@ -4173,9 +4747,9 @@
                     proceedBtn.style.borderColor = '#dc2626';
                     proceedBtn.innerHTML = "<i class='bx bx-shield-quarter'></i> Confirm &amp; Apply Lockdown";
                 } else if (!newState) {
-                    proceedBtn.style.background = '#d97706';
-                    proceedBtn.style.borderColor = '#d97706';
-                    proceedBtn.innerHTML = "<i class='bx bx-pause'></i> Confirm &amp; Disable";
+                    proceedBtn.style.background = '#dc2626';
+                    proceedBtn.style.borderColor = '#dc2626';
+                    proceedBtn.innerHTML = "<i class='bx bx-reset'></i> Confirm &amp; Reset Token";
                 } else {
                     proceedBtn.style.background = 'var(--primary)';
                     proceedBtn.style.borderColor = 'var(--primary)';
@@ -4216,6 +4790,254 @@
                 await toggleIntegrationSwitch('google_calendar_sync', true);
                 await toggleIntegrationSwitch('recaptcha_enabled', true);
                 await toggleIntegrationSwitch('maintenance_mode', false);
+            }
+        }
+
+        // ==========================================
+        // TOKEN MODAL & LIVE VERIFICATION WORKFLOW
+        // ==========================================
+        function openTokenModal(key) {
+            const config = CREDENTIAL_INTEGRATIONS_CONFIG[key];
+            if (!config) return;
+
+            document.getElementById('tokenModalIntegrationKey').value = key;
+            document.getElementById('tokenModalTitle').textContent = `Activate & Verify ${config.name}`;
+            
+            const iconWrap = document.getElementById('tokenModalIconWrap');
+            const icon = document.getElementById('tokenModalIcon');
+            if (iconWrap && icon) {
+                iconWrap.style.background = config.iconBg;
+                iconWrap.style.color = config.iconColor;
+                icon.className = `bx ${config.icon}`;
+            }
+
+            // Hide all field wraps then show the one for this key
+            ['fieldWrap_google_calendar_sync', 'fieldWrap_smtp_email_enabled', 'fieldWrap_recaptcha_enabled', 'fieldWrap_sms_gateway_enabled', 'fieldWrap_google_auth_enabled'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+
+            const activeField = document.getElementById(config.fieldId);
+            if (activeField) activeField.style.display = 'block';
+
+            // Clear status
+            const statusEl = document.getElementById('tokenModalVerificationStatus');
+            if (statusEl) {
+                statusEl.style.display = 'none';
+                statusEl.innerHTML = '';
+            }
+
+            const btn = document.getElementById('btnSubmitTokenVerify');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = "<i class='bx bx-check-shield'></i> Verify &amp; Encrypt Vault Key";
+            }
+
+            const modal = document.getElementById('inputIntegrationTokenModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeTokenModal() {
+            const modal = document.getElementById('inputIntegrationTokenModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function toggleKeyGuide(id) {
+            const el = document.getElementById(id);
+            const chevron = document.getElementById(id + '_chevron');
+            if (!el) return;
+            const isShown = el.style.display === 'block';
+            el.style.display = isShown ? 'none' : 'block';
+            if (chevron) chevron.style.transform = isShown ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        function openKeyGuideDirectly(key) {
+            openTokenModal(key);
+            const guideMap = {
+                google_calendar_sync: 'guide_gcal',
+                smtp_email_enabled: 'guide_smtp',
+                recaptcha_enabled: 'guide_recaptcha',
+                sms_gateway_enabled: 'guide_sms',
+                google_auth_enabled: 'guide_google_auth'
+            };
+            const guideId = guideMap[key];
+            if (guideId) {
+                const el = document.getElementById(guideId);
+                const chevron = document.getElementById(guideId + '_chevron');
+                if (el) el.style.display = 'block';
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // Quick Helpers for Testing & Defaults
+        async function loadClinicDefaultServiceAccount() {
+            try {
+                const res = await fetch('/api/admin/get_default_service_account');
+                const data = await res.json();
+                if (data.status === 'success' && data.content) {
+                    const txt = document.getElementById('inputTokenCalendarJSON');
+                    if (txt) txt.value = data.content;
+                    showToast('success', 'Loaded clinic service account file.');
+                } else {
+                    showToast('error', data.message || 'Service account file not found.');
+                }
+            } catch (e) {
+                showToast('error', 'Error reading service account file.');
+            }
+        }
+
+        function fillClinicDefaultSmtp() {
+            const el = document.getElementById('inputTokenSmtpPass');
+            if (el) el.value = 'emuvfyqhuyyafpku';
+            showToast('info', 'Loaded default Gmail App Password.');
+        }
+
+        function fillClinicDefaultRecaptcha() {
+            const el = document.getElementById('inputTokenRecaptchaSecret');
+            if (el) el.value = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe';
+            showToast('info', 'Loaded clinic reCAPTCHA v2 Secret Key.');
+        }
+
+        function fillDemoSmsKey() {
+            const el = document.getElementById('inputTokenSmsKey');
+            if (el) el.value = 'sem_live_optident983427189a7';
+            showToast('info', 'Loaded demo SMS Gateway Key.');
+        }
+
+        function fillClinicDefaultGoogleAuth() {
+            const el = document.getElementById('inputTokenGoogleAuthClientId');
+            if (el) el.value = '983742894723-masterauth2026.apps.googleusercontent.com';
+            showToast('info', 'Loaded default Google Client ID.');
+        }
+
+        async function submitIntegrationTokenVerification(e) {
+            e.preventDefault();
+            const key = document.getElementById('tokenModalIntegrationKey').value;
+            const btn = document.getElementById('btnSubmitTokenVerify');
+            const statusEl = document.getElementById('tokenModalVerificationStatus');
+
+            let token = '';
+            let extra = {};
+
+            if (key === 'google_calendar_sync') {
+                token = (document.getElementById('inputTokenCalendarJSON')?.value || '').trim();
+                if (!token) {
+                    showTokenModalError('Please paste your Google Service Account JSON or click "Load Clinic Service Account".');
+                    return;
+                }
+            } else if (key === 'smtp_email_enabled') {
+                token = (document.getElementById('inputTokenSmtpPass')?.value || '').trim();
+                extra.smtp_user = (document.getElementById('inputTokenSmtpUser')?.value || '').trim();
+                if (!token) {
+                    showTokenModalError('Please enter your 16-character Google App Password.');
+                    return;
+                }
+            } else if (key === 'recaptcha_enabled') {
+                token = (document.getElementById('inputTokenRecaptchaSecret')?.value || '').trim();
+                if (!token) {
+                    showTokenModalError('Please enter your Google reCAPTCHA v2 Secret Key.');
+                    return;
+                }
+            } else if (key === 'sms_gateway_enabled') {
+                token = (document.getElementById('inputTokenSmsKey')?.value || '').trim();
+                if (!token) {
+                    showTokenModalError('Please enter an SMS Gateway API Key.');
+                    return;
+                }
+            } else if (key === 'google_auth_enabled') {
+                token = (document.getElementById('inputTokenGoogleAuthClientId')?.value || '').trim();
+                if (!token) {
+                    showTokenModalError('Please enter a Google OAuth 2.0 Web Client ID.');
+                    return;
+                }
+            }
+
+            // Show verifying progress
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Verifying with API Server...";
+            }
+            if (statusEl) {
+                statusEl.style.display = 'block';
+                statusEl.style.background = '#f0fdf4';
+                statusEl.style.border = '1px solid #bbf7d0';
+                statusEl.style.color = '#15803d';
+                statusEl.innerHTML = "<i class='bx bx-loader-alt bx-spin' style='margin-right: 6px;'></i> Probing external API credentials live. Please wait...";
+            }
+
+            try {
+                const res = await fetch('api/admin/toggle_integration.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        integration: key,
+                        enabled: true,
+                        token: token,
+                        extra: extra
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    showToast('success', data.message || 'Token verified and encrypted into vault!');
+                    activeSystemIntegrations = data.integrations || activeSystemIntegrations;
+                    activeMaskedTokens = data.masked_tokens || activeMaskedTokens;
+                    updateIntegrationBadges(activeSystemIntegrations, activeSystemIntegrations.maintenance_mode);
+                    closeTokenModal();
+                    if (typeof loadAuditLogs === 'function') loadAuditLogs();
+                } else {
+                    showTokenModalError(data.message || 'Verification rejected by API service. Key not accepted.');
+                }
+            } catch (err) {
+                showTokenModalError(`Connection failed: ${err.message || 'Network error verifying key.'}`);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-check-shield'></i> Verify &amp; Encrypt Vault Key";
+                }
+            }
+        }
+
+        function showTokenModalError(msg) {
+            const statusEl = document.getElementById('tokenModalVerificationStatus');
+            if (statusEl) {
+                statusEl.style.display = 'block';
+                statusEl.style.background = '#fef2f2';
+                statusEl.style.border = '1px solid #fecaca';
+                statusEl.style.color = '#b91c1c';
+                statusEl.innerHTML = `<i class='bx bx-error-circle' style='margin-right: 6px; font-size: 16px; vertical-align: middle;'></i> <strong>Verification Rejected:</strong> ${msg}`;
+            }
+        }
+
+        async function toggleIntegrationSwitch(key, state) {
+            try {
+                const res = await fetch('api/admin/toggle_integration.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ integration: key, enabled: state })
+                });
+                const data = await res.json();
+                if (res.ok && data.status === 'success') {
+                    showToast('success', data.message);
+                    activeSystemIntegrations = data.integrations || {};
+                    activeMaskedTokens = data.masked_tokens || activeMaskedTokens;
+                    updateIntegrationBadges(activeSystemIntegrations, activeSystemIntegrations.maintenance_mode);
+                    
+                    // If toggling maintenance mode, also sync the lower checkbox
+                    if (key === 'maintenance_mode') {
+                        const lowMaint = document.getElementById('settingMaintenanceMode');
+                        if (lowMaint) lowMaint.checked = state;
+                        updateMaintenanceBadge(state);
+                    }
+                    if (typeof loadAuditLogs === 'function') loadAuditLogs();
+                } else {
+                    showToast('error', data.message || 'Failed to update switch.');
+                    loadSystemSettings(); // Revert UI
+                }
+            } catch (err) {
+                showToast('error', 'Network error changing integration state.');
+                loadSystemSettings(); // Revert UI
             }
         }
 
@@ -4293,36 +5115,6 @@
 
             const modal = document.getElementById('confirmIntegrationModal');
             if (modal) modal.style.display = 'flex';
-        }
-
-        async function toggleIntegrationSwitch(key, state) {
-            try {
-                const res = await fetch('api/admin/toggle_integration.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ integration: key, enabled: state })
-                });
-                const data = await res.json();
-                if (res.ok && data.status === 'success') {
-                    showToast('success', data.message);
-                    activeSystemIntegrations = data.integrations || {};
-                    updateIntegrationBadges(activeSystemIntegrations, activeSystemIntegrations.maintenance_mode);
-                    
-                    // If toggling maintenance mode, also sync the lower checkbox
-                    if (key === 'maintenance_mode') {
-                        const lowMaint = document.getElementById('settingMaintenanceMode');
-                        if (lowMaint) lowMaint.checked = state;
-                        updateMaintenanceBadge(state);
-                    }
-                    if (typeof loadAuditLogs === 'function') loadAuditLogs();
-                } else {
-                    showToast('error', data.message || 'Failed to update switch.');
-                    loadSystemSettings(); // Revert UI
-                }
-            } catch (err) {
-                showToast('error', 'Network error changing integration state.');
-                loadSystemSettings(); // Revert UI
-            }
         }
 
         // Settings & Controls Dropdown Navigation Handlers
@@ -4438,6 +5230,11 @@
                 cancelIntegrationToggle();
                 return;
             }
+            const tokenModal = document.getElementById('inputIntegrationTokenModal');
+            if (tokenModal && e.target === tokenModal) {
+                closeTokenModal();
+                return;
+            }
             const modal = document.getElementById('systemIntegrationsModal');
             if (modal && e.target === modal) {
                 closeIntegrationsModal();
@@ -4453,6 +5250,11 @@
                 const confirmModal = document.getElementById('confirmIntegrationModal');
                 if (confirmModal && confirmModal.style.display === 'flex') {
                     cancelIntegrationToggle();
+                    return;
+                }
+                const tokenModal = document.getElementById('inputIntegrationTokenModal');
+                if (tokenModal && tokenModal.style.display === 'flex') {
+                    closeTokenModal();
                     return;
                 }
                 const modal = document.getElementById('systemIntegrationsModal');
@@ -4963,9 +5765,12 @@
                         updateMaintenanceBadge(isMaint);
                     }
 
-                    // Process Integrations
+                    // Process Integrations & Vault Masked Tokens
                     if (s.integrations && typeof s.integrations === 'object') {
                         activeSystemIntegrations = s.integrations;
+                    }
+                    if (s.masked_tokens && typeof s.masked_tokens === 'object') {
+                        activeMaskedTokens = s.masked_tokens;
                     }
                     updateIntegrationBadges(activeSystemIntegrations, s.maintenance_mode);
 
@@ -5962,15 +6767,6 @@
         // ============================================================================
         // SA-009: OPERATIONS & GOVERNANCE REPORTS CONTROLLER
         // ============================================================================
-        function escapeHtml(str) {
-            if (str === null || str === undefined) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
 
         const reportsState = {
             category: 'earnings',

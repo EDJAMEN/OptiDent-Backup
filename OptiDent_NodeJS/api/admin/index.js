@@ -1,11 +1,15 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import dbClient from '../config/db.js';
 import requireAuth from '../middleware/authGuard.js';
 import logAudit from '../config/auditLogger.js';
 import { sendStaffInvitationEmail, sendAppointmentNotificationEmail } from '../config/mailer.js';
 import { getServicePrice, formatPhp } from '../config/servicePricing.js';
+import { encryptToken, decryptToken, maskToken } from '../config/encryptionHelper.js';
+import { verifyIntegrationCredentials } from '../config/integrationVerifier.js';
 
 const router = express.Router();
 
@@ -475,7 +479,70 @@ router.get('/get_system_settings', async (req, res) => {
             }
         }
 
-        return res.status(200).json({ status: 'success', settings });
+        if (!settings.integration_credentials) settings.integration_credentials = {};
+        if (!settings.masked_tokens) settings.masked_tokens = {};
+
+        // Auto-seed active masked tokens if integration is currently true but token not yet recorded in vault
+        let needsDbSave = false;
+
+        // 1. SMTP Email
+        if (settings.integrations.smtp_email_enabled && !settings.masked_tokens.smtp_email_enabled) {
+            const pass = process.env.SMTP_PASS || 'emuvfyqhuyyafpku';
+            settings.integration_credentials.smtp_email_enabled = encryptToken(pass);
+            settings.masked_tokens.smtp_email_enabled = maskToken(pass);
+            needsDbSave = true;
+        }
+
+        // 2. Google Calendar
+        if (settings.integrations.google_calendar_sync && !settings.masked_tokens.google_calendar_sync) {
+            const saCandidates = ['google-service-account.json', 'master-host-514202-g2-5a4a6823ad9c.json'];
+            for (const cand of saCandidates) {
+                const p = path.resolve(cand);
+                if (fs.existsSync(p)) {
+                    try {
+                        const content = fs.readFileSync(p, 'utf8');
+                        settings.integration_credentials.google_calendar_sync = encryptToken(content);
+                        settings.masked_tokens.google_calendar_sync = maskToken(content);
+                        needsDbSave = true;
+                        break;
+                    } catch (e) {}
+                }
+            }
+        }
+
+        // 3. reCAPTCHA
+        if (settings.integrations.recaptcha_enabled && !settings.masked_tokens.recaptcha_enabled) {
+            const secret = process.env.RECAPTCHA_SECRET_KEY || '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe';
+            settings.integration_credentials.recaptcha_enabled = encryptToken(secret);
+            settings.masked_tokens.recaptcha_enabled = maskToken(secret);
+            needsDbSave = true;
+        }
+
+        // 4. Google Auth
+        if (settings.integrations.google_auth_enabled && !settings.masked_tokens.google_auth_enabled) {
+            const clientId = process.env.GOOGLE_CLIENT_ID || '983742894723-masterauth2026.apps.googleusercontent.com';
+            settings.integration_credentials.google_auth_enabled = encryptToken(clientId);
+            settings.masked_tokens.google_auth_enabled = maskToken(clientId);
+            needsDbSave = true;
+        }
+
+        if (needsDbSave) {
+            await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
+                $set: {
+                    integration_credentials: settings.integration_credentials,
+                    masked_tokens: settings.masked_tokens
+                }
+            });
+        }
+
+        // Return sanitized settings to client (never send raw encrypted tokens)
+        const clientSettings = {
+            ...settings,
+            integration_credentials: undefined, // Strip raw encrypted strings from client response
+            masked_tokens: settings.masked_tokens || {}
+        };
+
+        return res.status(200).json({ status: 'success', settings: clientSettings });
     } catch (err) {
         console.error('Settings error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to load settings.' });
@@ -514,46 +581,211 @@ router.post('/update_system_settings', async (req, res) => {
 
 /**
  * Toggle Integration (Self-service, Maintenance, etc.)
+ * With AES-256-GCM Token Encryption, Live API Verification, and Auto-Reset on OFF
  */
 router.post('/toggle_integration', async (req, res) => {
     try {
         const key = req.body.key || req.body.integration;
-        const enabled = req.body.enabled;
+        const enabled = req.body.enabled === true || req.body.enabled === 'true';
+        const rawToken = req.body.token;
+        const extra = req.body.extra || {};
+
         if (!key) return res.status(400).json({ status: 'error', message: 'Integration key is required.' });
 
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' }) || {};
         const integrations = settings.integrations || {};
-        integrations[key] = !!enabled;
+        const integrationCredentials = settings.integration_credentials || {};
+        const maskedTokens = settings.masked_tokens || {};
 
-        const updateFields = {
-            integrations,
-            updated_at: new Date().toISOString()
-        };
+        // Subsystems requiring live external API credentials
+        const isCredentialedIntegration = [
+            'google_calendar_sync',
+            'smtp_email_enabled',
+            'recaptcha_enabled',
+            'sms_gateway_enabled',
+            'google_auth_enabled'
+        ].includes(key);
 
-        if (key === 'maintenance_mode') {
-            updateFields.maintenance_mode = !!enabled;
+        if (!enabled) {
+            // ============================================
+            // 1. TURNING OFF: RESET & PURGE TOKEN / KEY
+            // ============================================
+            integrations[key] = false;
+
+            if (isCredentialedIntegration) {
+                // Wipe encrypted token and masked preview
+                delete integrationCredentials[key];
+                delete maskedTokens[key];
+            }
+
+            if (key === 'maintenance_mode') {
+                settings.maintenance_mode = false;
+            }
+
+            if (key === 'recaptcha_enabled') {
+                process.env.ENABLE_RECAPTCHA = 'false';
+            }
+
+            const updateFields = {
+                integrations,
+                integration_credentials: integrationCredentials,
+                masked_tokens: maskedTokens,
+                maintenance_mode: settings.maintenance_mode,
+                updated_at: new Date().toISOString()
+            };
+
+            await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
+                $set: updateFields
+            });
+
+            await logAudit(req, 'RESET_INTEGRATION_KEY', 'ADMIN', {
+                integration: key,
+                action: 'DISABLED_AND_RESET_TOKEN',
+                timestamp: new Date().toISOString()
+            }, 'success');
+
+            return res.status(200).json({
+                status: 'success',
+                message: `Integration '${key}' has been disabled and its encrypted token/key has been safely reset and cleared from the database vault.`,
+                integrations,
+                masked_tokens: maskedTokens,
+                maintenance_mode: !!settings.maintenance_mode
+            });
         }
 
-        // Synchronize process.env for recaptcha
-        if (key === 'recaptcha_enabled') {
-            process.env.ENABLE_RECAPTCHA = enabled ? 'true' : 'false';
+        // ============================================
+        // 2. TURNING ON: LIVE VERIFICATION & ENCRYPTION
+        // ============================================
+        if (isCredentialedIntegration) {
+            let tokenToVerify = rawToken;
+
+            // Allow quick-load of clinic service account file if requested for Google Calendar
+            if (key === 'google_calendar_sync' && (!tokenToVerify || tokenToVerify === 'DEFAULT_FILE')) {
+                const saCandidates = ['google-service-account.json', 'master-host-514202-g2-5a4a6823ad9c.json'];
+                for (const cand of saCandidates) {
+                    const p = path.resolve(cand);
+                    if (fs.existsSync(p)) {
+                        tokenToVerify = fs.readFileSync(p, 'utf8');
+                        break;
+                    }
+                }
+            }
+
+            if (!tokenToVerify) {
+                return res.status(400).json({
+                    status: 'error',
+                    message: `To turn ON this integration, a valid API token or credential key is required.`
+                });
+            }
+
+            // Live verify against external API
+            let verifyResult;
+            try {
+                verifyResult = await verifyIntegrationCredentials(key, tokenToVerify, extra);
+            } catch (verifyErr) {
+                console.error(`[Integration Verification Failed for ${key}]:`, verifyErr.message);
+                await logAudit(req, 'VERIFY_INTEGRATION_FAILED', 'ADMIN', {
+                    integration: key,
+                    error: verifyErr.message
+                }, 'failure');
+
+                return res.status(422).json({
+                    status: 'error',
+                    message: `Verification Failed: ${verifyErr.message}`
+                });
+            }
+
+            // Verification succeeded! Now encrypt with AES-256-GCM
+            const encryptedData = encryptToken(tokenToVerify);
+            const maskedPreview = maskToken(tokenToVerify);
+
+            integrationCredentials[key] = encryptedData;
+            maskedTokens[key] = maskedPreview;
+            integrations[key] = true;
+
+            // Sync runtime environment variables
+            if (key === 'recaptcha_enabled') {
+                process.env.ENABLE_RECAPTCHA = 'true';
+                if (typeof tokenToVerify === 'string') process.env.RECAPTCHA_SECRET_KEY = tokenToVerify;
+            }
+            if (key === 'smtp_email_enabled') {
+                if (typeof tokenToVerify === 'string') process.env.SMTP_PASS = tokenToVerify.trim();
+                if (extra.smtp_user) process.env.SMTP_USER = extra.smtp_user.trim();
+            }
+            if (key === 'google_auth_enabled') {
+                if (typeof tokenToVerify === 'string') process.env.GOOGLE_CLIENT_ID = tokenToVerify.trim();
+            }
+
+            const updateFields = {
+                integrations,
+                integration_credentials: integrationCredentials,
+                masked_tokens: maskedTokens,
+                updated_at: new Date().toISOString()
+            };
+
+            await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
+                $set: updateFields
+            });
+
+            await logAudit(req, 'VERIFY_AND_STORE_INTEGRATION_KEY', 'ADMIN', {
+                integration: key,
+                verified: true,
+                identifier: verifyResult?.identifier || 'Verified Service',
+                masked_token: maskedPreview
+            }, 'success');
+
+            return res.status(200).json({
+                status: 'success',
+                message: verifyResult?.message || `Integration '${key}' verified and activated! Token encrypted in vault.`,
+                integrations,
+                masked_tokens: maskedTokens,
+                verification: verifyResult
+            });
+        } else {
+            // General switch (like maintenance_mode)
+            integrations[key] = true;
+            if (key === 'maintenance_mode') settings.maintenance_mode = true;
+
+            await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
+                $set: {
+                    integrations,
+                    maintenance_mode: settings.maintenance_mode,
+                    updated_at: new Date().toISOString()
+                }
+            });
+
+            await logAudit(req, 'TOGGLE_INTEGRATION', 'ADMIN', { key, enabled: true }, 'success');
+
+            return res.status(200).json({
+                status: 'success',
+                message: `Subsystem '${key}' enabled.`,
+                integrations,
+                masked_tokens: maskedTokens,
+                maintenance_mode: !!settings.maintenance_mode
+            });
         }
-
-        await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
-            $set: updateFields
-        });
-
-        await logAudit(req, 'TOGGLE_INTEGRATION', 'ADMIN', { key, enabled: !!enabled }, 'success');
-
-        return res.status(200).json({ 
-            status: 'success', 
-            message: `Integration switch '${key}' set to ${enabled ? 'ENABLED' : 'DISABLED'}.`, 
-            integrations,
-            maintenance_mode: key === 'maintenance_mode' ? !!enabled : !!settings.maintenance_mode
-        });
     } catch (err) {
         console.error('Toggle integration error:', err);
-        return res.status(500).json({ status: 'error', message: 'Failed to toggle integration.' });
+        return res.status(500).json({ status: 'error', message: err.message || 'Failed to toggle integration.' });
+    }
+});
+
+/**
+ * Helper: Retrieve clinic default service account JSON for Google Calendar
+ */
+router.get('/get_default_service_account', (req, res) => {
+    try {
+        const saCandidates = ['google-service-account.json', 'master-host-514202-g2-5a4a6823ad9c.json'];
+        for (const cand of saCandidates) {
+            const p = path.resolve(cand);
+            if (fs.existsSync(p)) {
+                const content = fs.readFileSync(p, 'utf8');
+                return res.status(200).json({ status: 'success', content });
+            }
+        }
+        return res.status(404).json({ status: 'error', message: 'Clinic service account file not found on server.' });
+    } catch (err) {
+        return res.status(500).json({ status: 'error', message: err.message });
     }
 });
 
