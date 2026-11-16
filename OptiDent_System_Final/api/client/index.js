@@ -1,5 +1,6 @@
 import express from 'express';
 import dbClient from '../config/db.js';
+import { makeQrCode, qrCheckinEnabled, goqrEnabled } from '../config/qrPass.js';
 import requireAuth from '../middleware/authGuard.js';
 import logAudit from '../config/auditLogger.js';
 import { getServicePrice, formatPhp } from '../config/servicePricing.js';
@@ -954,30 +955,29 @@ router.get('/get_appointment_qr', async (req, res) => {
     try {
         const apptId = req.query.appointment_id || req.query.id;
         if (!apptId) return res.status(400).json({ status: 'error', message: 'Appointment ID required.' });
+        if (!(await qrCheckinEnabled())) return res.status(403).json({ status: 'error', message: 'QR check-in passes are turned off by the clinic. Please give your name at the front desk.' });
 
         const appt = await dbClient.findOne('appointments', { _id: apptId });
-        if (!appt) return res.status(404).json({ status: 'error', message: 'Appointment not found.' });
+        if (!appt || appt.is_deleted || appt.is_archived) return res.status(404).json({ status: 'error', message: 'Appointment not found.' });
 
-        const refCode = `OPT-APT-${String(appt._id).slice(-6).toUpperCase()}`;
-        const checkinPayload = {
-            clinic: 'OptiDent Dental Clinic',
-            ref: refCode,
-            appointment_id: String(appt._id),
-            patient_name: appt.patient_name || req.user.full_name || 'Patient',
-            doctor_name: appt.doctor_name || 'Assigned Dental Specialist',
-            service_name: appt.service_name || 'Dental Consultation',
-            date: appt.appointment_date || appt.date,
-            time: appt.time_slot || appt.appointment_time,
-            operatory: appt.operatory_chair || 'Operatory Chair 1',
-            status: appt.status || 'scheduled',
-            token: Buffer.from(`${refCode}:${appt.appointment_date || appt.date}`).toString('base64')
-        };
+        // Patients may only get passes for their own appointments (staff/admin roles may view any)
+        if (['patient', 'client'].includes(req.user.role)) {
+            const me = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email }) || {};
+            const mine = (appt.patient_id && String(appt.patient_id) === String(me._id || req.user.id)) ||
+                (appt.patient_email && me.email && appt.patient_email.toLowerCase() === me.email.toLowerCase()) ||
+                (appt.patient_phone && me.phone && appt.patient_phone === me.phone);
+            if (!mine) return res.status(404).json({ status: 'error', message: 'Appointment not found.' });
+        }
 
+        const qrCode = makeQrCode(appt._id);
         return res.status(200).json({
             status: 'success',
-            ref_code: refCode,
-            pass: checkinPayload,
-            qr_string: JSON.stringify(checkinPayload)
+            ref_code: `OPT-APT-${String(appt._id).slice(-6).toUpperCase()}`,
+            qr_code: qrCode,
+            // goQR.me integration (Gateway Center): image drawn by api.qrserver.com; the page falls back to the built-in generator
+            qr_image_url: (await goqrEnabled())
+                ? `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&ecc=M&data=${encodeURIComponent(qrCode)}`
+                : null
         });
     } catch (err) {
         console.error('QR Pass fetch error:', err);

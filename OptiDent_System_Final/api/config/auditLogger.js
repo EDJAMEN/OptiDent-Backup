@@ -2,6 +2,14 @@ import dbClient from './db.js';
 
 export async function logAudit(req, action, category, details = {}, status = 'success') {
     try {
+        await dbClient.insertOne('audit_logs', buildAuditRecord(req, action, category, details, status));
+    } catch (err) {
+        console.error('[AuditLog Error]', err.message);
+    }
+}
+
+/** Builds the audit document without writing it (use inside a transaction). */
+export function buildAuditRecord(req, action, category, details = {}, status = 'success') {
         const user = req.user || req.session || {};
         const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
         const userAgent = req.headers['user-agent'] || 'OptiDent-Client';
@@ -22,7 +30,7 @@ export async function logAudit(req, action, category, details = {}, status = 'su
         const actorRole = (user.role || (actorEmail.includes('admin') ? 'super_admin' : 'system')).toLowerCase();
         const actorName = user.full_name || user.name || actorEmail;
 
-        const record = {
+        return {
             user_id: user.user_id || user.id || 'system',
             user_email: actorEmail,
             actor_name: actorName,
@@ -37,11 +45,6 @@ export async function logAudit(req, action, category, details = {}, status = 'su
             created_at: manilaTime,
             timestamp: manilaTime
         };
-
-        await dbClient.insertOne('audit_logs', record);
-    } catch (err) {
-        console.error('[AuditLog Error]', err.message);
-    }
 }
 
 export default logAudit;

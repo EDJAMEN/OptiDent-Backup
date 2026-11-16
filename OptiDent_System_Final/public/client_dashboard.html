@@ -3966,30 +3966,41 @@
             // Generate QR Code via qrcodejs
             const qrContainer = document.getElementById('qrCodeContainer');
             if (qrContainer) {
-                qrContainer.innerHTML = '';
-                const qrPayload = JSON.stringify({
-                    clinic: "OptiDent Dental Clinic",
-                    ref: refCode,
-                    apt_id: String(apt._id || apt.id),
-                    patient: apt.patient_name || clientData?.patient?.full_name,
-                    date: apt.date || apt.appointment_date,
-                    time: apt.time || apt.time_slot,
-                    doctor: apt.doctor_name,
-                    service: apt.service_name
-                });
-
-                if (typeof QRCode !== 'undefined') {
-                    new QRCode(qrContainer, {
-                        text: qrPayload,
-                        width: 160,
-                        height: 160,
-                        colorDark: "#0f172a",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
-                } else {
-                    qrContainer.innerHTML = `<div style="font-family: monospace; font-size: 11px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0;">[QR Pass: ${refCode}]</div>`;
-                }
+                qrContainer.innerHTML = '<div style="font-size: 12px; color: #64748b; padding: 60px 0;">Loading pass…</div>';
+                // The QR holds a server-signed code (no personal data); the front desk verifies it on scan
+                fetch(`api/client/get_appointment_qr.php?id=${encodeURIComponent(String(apt._id || apt.id))}`)
+                    .then(r => r.json())
+                    .then(j => {
+                        qrContainer.innerHTML = '';
+                        const drawBuiltIn = () => {
+                            qrContainer.innerHTML = '';
+                            if (typeof QRCode !== 'undefined') {
+                                new QRCode(qrContainer, {
+                                    text: j.qr_code,
+                                    width: 160,
+                                    height: 160,
+                                    colorDark: "#0f172a",
+                                    colorLight: "#ffffff",
+                                    correctLevel: QRCode.CorrectLevel.M
+                                });
+                            } else {
+                                qrContainer.innerHTML = `<div style="font-family: monospace; font-size: 11px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0;">[QR Pass: ${refCode}]</div>`;
+                            }
+                        };
+                        if (j.status !== 'success' || !j.qr_code) {
+                            qrContainer.textContent = j.message || 'QR pass unavailable.';
+                        } else if (j.qr_image_url) {
+                            // goQR.me integration is on; if their service is unreachable, draw it locally instead
+                            const img = new Image(160, 160);
+                            img.alt = `QR pass ${refCode}`;
+                            img.onerror = drawBuiltIn;
+                            img.src = j.qr_image_url;
+                            qrContainer.appendChild(img);
+                        } else {
+                            drawBuiltIn();
+                        }
+                    })
+                    .catch(() => { qrContainer.textContent = 'QR pass unavailable. Check your connection.'; });
             }
 
             document.getElementById('appointmentQRModal').style.display = 'flex';

@@ -6,6 +6,8 @@ import logAudit from '../config/auditLogger.js';
 import { getServicePrice, formatPhp } from '../config/servicePricing.js';
 import { ClinicHoursHelper } from '../config/clinicHoursHelper.js';
 import { sendAppointmentNotificationEmail } from '../config/mailer.js';
+import { dailyTraffic } from '../config/trafficStats.js';
+import { readQrCode, qrCheckinEnabled } from '../config/qrPass.js';
 
 const router = express.Router();
 
@@ -1354,6 +1356,62 @@ router.get('/get_reports_data', async (req, res) => {
     } catch (err) {
         console.error('Receptionist reports error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to generate operational reports.' });
+    }
+});
+
+/** Weekly Patient Traffic for the front desk: clinic-wide per-day counts. */
+router.get('/weekly_traffic', async (req, res) => {
+    try {
+        return res.status(200).json(await dailyTraffic({ days: req.query.days }));
+    } catch (err) {
+        console.error('Receptionist weekly traffic error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to load weekly traffic.' });
+    }
+});
+
+/**
+ * Verify a patient's appointment QR pass at the front desk.
+ * Always 200 with a `result`: valid | not_today | past | completed | cancelled | not_found | invalid.
+ */
+router.post('/verify_qr', async (req, res) => {
+    try {
+        if (!(await qrCheckinEnabled())) return res.status(403).json({ status: 'error', message: 'QR check-in is turned off by the Super Admin (Gateway Center). Check the patient in from the queue instead.' });
+        const id = readQrCode(req.body.code);
+        const reply = (result, message, appointment = null) => {
+            logAudit(req, 'QR_PASS_SCANNED', 'RECEPTION', { result, appointment_id: appointment ? appointment.id : id || null }, result === 'valid' ? 'success' : 'failure');
+            return res.status(200).json({ status: 'success', result, message, appointment });
+        };
+        if (!id) return reply('invalid', 'Not a genuine OptiDent pass. This QR code was not issued by the clinic or has been altered.');
+
+        const appt = await dbClient.findOne('appointments', { _id: id });
+        if (!appt || appt.is_deleted || appt.is_archived) return reply('not_found', 'Genuine pass, but this appointment no longer exists in the system.');
+
+        const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date());
+        const date = String(appt.appointment_date || appt.date || '').slice(0, 10);
+        const status = String(appt.status || 'scheduled').toLowerCase();
+        const appointment = {
+            id: String(appt._id),
+            ref_code: `OPT-APT-${String(appt._id).slice(-6).toUpperCase()}`,
+            patient_name: appt.patient_name || 'Patient',
+            patient_phone: appt.patient_phone || '',
+            patient_email: appt.patient_email || '',
+            doctor_name: appt.doctor_name || appt.attending_doctor || 'Assigned Doctor',
+            service_name: appt.service_name || 'Dental Consultation',
+            date,
+            time: appt.time_slot || appt.appointment_time || '',
+            status,
+            queue_number: appt.queue_number || null,
+            is_walkin: !!appt.is_walkin
+        };
+
+        if (['cancelled', 'canceled', 'no_show', 'rejected'].includes(status)) return reply('cancelled', 'This appointment was cancelled.', appointment);
+        if (status === 'completed') return reply('completed', 'This visit is already completed.', appointment);
+        if (date < today) return reply('past', `This appointment was for ${date}; it has passed.`, appointment);
+        if (date > today) return reply('not_today', `Genuine appointment, but it is scheduled for ${date}, not today.`, appointment);
+        return reply('valid', 'Genuine appointment for today.', appointment);
+    } catch (err) {
+        console.error('QR verify error:', err);
+        return res.status(500).json({ status: 'error', message: 'Could not verify the QR pass.' });
     }
 });
 

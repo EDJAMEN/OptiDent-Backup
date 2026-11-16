@@ -780,6 +780,10 @@
             color: #92400E;
         }
     </style>
+    <link rel="stylesheet" href="css/weeklyTraffic.css">
+    <link rel="stylesheet" href="css/roleHome.css">
+    <script src="js/weeklyTraffic.js"></script>
+    <script src="js/roleHome.js"></script>
 </head>
 
 <body data-theme="light">
@@ -823,7 +827,11 @@
 
             <!-- Nav Items (Governed by Super Admin Role Permissions) -->
             <nav class="nav-menu" id="sidebarNavMenu">
-                <a href="javascript:void(0)" class="nav-item active" data-tab="queue" data-perm="queue.view" onclick="switchTab('queue', this); return false;">
+                <a href="javascript:void(0)" class="nav-item active" data-tab="home" onclick="switchTab('home', this); return false;">
+                    <i class='bx bx-grid-alt'></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="javascript:void(0)" class="nav-item" data-tab="queue" data-perm="queue.view" onclick="switchTab('queue', this); return false;">
                     <i class='bx bx-list-check'></i>
                     <span>Today's Queue</span>
                 </a>
@@ -891,11 +899,14 @@
             <!-- Top Header Banner -->
             <header class="top-banner">
                 <div>
-                    <h2 id="viewHeading" style="margin: 0; font-size: 22px; font-weight: 800; color: var(--rec-text);">Front Desk Reception Workspace</h2>
+                    <h2 id="viewHeading" style="margin: 0; font-size: 22px; font-weight: 800; color: var(--rec-text);">Dashboard</h2>
                     <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--rec-text-muted);" id="currentDateTime">Loading Philippine Standard Time...</p>
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="btn-rec btn-rec-primary" onclick="openQrScanner()" title="Verify a patient's appointment QR pass">
+                        <i class='bx bx-qr-scan'></i> Scan QR
+                    </button>
                     <button class="btn-rec btn-rec-secondary" onclick="loadDashboardData()">
                         <i class='bx bx-refresh'></i> Refresh
                     </button>
@@ -944,7 +955,12 @@
             </section>
 
             <!-- ── TAB 1: TODAY'S QUEUE & CHECK-IN ──────────────────── -->
-            <section id="tab-queue" class="tab-section active">
+            <!-- Dashboard (overview) — rendered by renderFrontDeskHome() -->
+            <section id="tab-home" class="tab-section active">
+                <div id="frontDeskHome"></div>
+            </section>
+
+            <section id="tab-queue" class="tab-section">
                 <div class="content-card">
                     <div class="card-header-bar" style="margin-bottom: 0.75rem;">
                         <div>
@@ -1025,13 +1041,13 @@
                                 <i class='bx bx-user-pin text-primary'></i> Patient Master Directory & Search
                             </h3>
                             <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--rec-text-muted);">
-                                Instant lookup for returning and walk-in patients, medical alert verification, and rapid queue check-in.
+                                Instant lookup for returning and walk-in patients, visit history, and rapid queue check-in.
                             </p>
                         </div>
                         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                             <div class="search-box-wrapper">
                                 <i class='bx bx-search search-icon'></i>
-                                <input type="text" id="patientSearchInput" class="form-control" style="width: 280px;" placeholder="Search name, phone, email, allergy..." oninput="handlePatientSearchInput(this.value)">
+                                <input type="text" id="patientSearchInput" class="form-control" style="width: 280px;" placeholder="Search name, phone, email..." oninput="handlePatientSearchInput(this.value)">
                                 <i class='bx bx-x clear-icon' id="patientSearchClear" onclick="clearPatientSearch()" title="Clear search"></i>
                             </div>
                             <button class="btn-rec btn-rec-primary" onclick="openRegisterPatientModal(false)">
@@ -1068,13 +1084,12 @@
                                     <th>Patient Profile</th>
                                     <th>Contact & Location</th>
                                     <th>Demographics & Blood</th>
-                                    <th>Medical Alerts & Safety</th>
                                     <th>Visit History</th>
                                     <th style="text-align: right;">Front-Desk Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="patientsTableBody">
-                                <tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--rec-text-muted);">Loading patient directory...</td></tr>
+                                <tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--rec-text-muted);">Loading patient directory...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -2265,6 +2280,32 @@
     </div>
 
     <!-- ── MODAL: FAST CHECK-IN RETURNING PATIENT (R-004) ────────── -->
+    <!-- QR Pass Scanner: verifies a patient's signed appointment QR (api/receptionist/verify_qr) -->
+    <div id="qrScanModal" class="rec-modal-overlay">
+        <div class="rec-modal-content" style="max-width: 460px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-qr-scan text-primary' style="font-size: 20px;"></i> Scan Appointment QR
+                    </h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--rec-text-muted);">Point the camera at the patient's QR pass, or use a barcode scanner.</p>
+                </div>
+                <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="closeQrScanner()" aria-label="Close"><i class='bx bx-x' style="font-size: 18px;"></i></button>
+            </div>
+            <div style="position: relative; border-radius: 12px; overflow: hidden; background: #0f172a; aspect-ratio: 4 / 3;">
+                <video id="qrScanVideo" playsinline muted style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
+                <div style="position: absolute; inset: 18%; border: 2px solid rgba(255,255,255,0.85); border-radius: 14px; box-shadow: 0 0 0 999px rgba(15,23,42,0.35); pointer-events: none;"></div>
+                <div id="qrScanCameraMsg" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #e2e8f0; font-size: 12px;">Starting camera…</div>
+            </div>
+            <canvas id="qrScanCanvas" hidden></canvas>
+            <form onsubmit="event.preventDefault(); verifyQrCode(document.getElementById('qrScanInput').value);" style="display: flex; gap: 8px; margin-top: 12px;">
+                <input id="qrScanInput" class="form-control" autocomplete="off" placeholder="Barcode scanner or paste code (OPTIDENT-QR:…)" aria-label="QR pass code" style="flex: 1;">
+                <button type="submit" class="btn-rec btn-rec-secondary">Verify</button>
+            </form>
+            <div id="qrScanResult" aria-live="polite" style="margin-top: 12px;"></div>
+        </div>
+    </div>
+
     <div id="checkInReturningModal" class="rec-modal-overlay">
         <div class="rec-modal-content" style="max-width: 580px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
@@ -3027,6 +3068,7 @@
                     renderSidebarUser(data.receptionist);
                     renderMetrics(data.metrics);
                     renderQueue(data.queue_today);
+                    renderFrontDeskHome(data);
                     renderAppointments(data.all_appointments || data.upcoming_appointments, data.queue_today);
                     renderAppointmentManagement(data.all_appointments || data.upcoming_appointments, data.queue_today);
                     renderDoctors(data.doctors);
@@ -3135,6 +3177,28 @@
             } else {
                 openModal('rolePermissionsModal');
             }
+        }
+
+        // Dashboard tab: minimal clinic-wide overview for the front desk (shared RoleHome + WeeklyTraffic components)
+        function renderFrontDeskHome(data) {
+            const m = data.metrics || {};
+            const toArrive = Math.max((m.today_total || 0) - (m.checked_in || 0) - (m.in_progress || 0) - (m.completed_today || 0), 0);
+            const goTo = tab => () => switchTab(tab);
+            RoleHome.render(document.getElementById('frontDeskHome'), {
+                name: (data.receptionist?.full_name || '').split(' ')[0],
+                nextLabel: 'Next up',
+                nextEmpty: 'Everyone booked today has been seen',
+                appointments: data.queue_today || [],
+                attention: [
+                    { label: 'Checked in, waiting', value: m.checked_in || 0, action: goTo('queue') },
+                    { label: 'In the chair', value: m.in_progress || 0, action: goTo('queue') },
+                    { label: 'Still to arrive today', value: toArrive, action: goTo('queue') }
+                ],
+                listTitle: 'Today at the clinic',
+                listEmpty: 'No appointments booked today',
+                listAction: { label: 'Open queue', action: goTo('queue') },
+                traffic: { endpoint: 'api/receptionist/weekly_traffic.php?days=14', title: 'Clinic patient traffic' }
+            });
         }
 
         function renderSidebarUser(rec) {
@@ -3420,7 +3484,7 @@
             if (!patients || patients.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 2.5rem 1rem; color: var(--rec-text-muted);">
+                        <td colspan="5" style="text-align: center; padding: 2.5rem 1rem; color: var(--rec-text-muted);">
                             <i class='bx bx-user-x' style="font-size: 32px; display: block; margin-bottom: 6px; opacity: 0.5;"></i>
                             No patient records matched your search or active filter.
                             <div style="margin-top: 8px;">
@@ -3493,9 +3557,6 @@
                             <div style="font-size: 10px; color: var(--rec-text-muted); margin-top: 2px;">
                                 Blood: <span style="background: rgba(14,177,177,0.12); color: #0a8f8f; padding: 1px 5px; border-radius: 4px; font-weight: 700;">${escapeHtml(p.blood_type || 'Unknown')}</span>
                             </div>
-                        </td>
-                        <td>
-                            ${alertTag}
                         </td>
                         <td>
                             <div style="font-weight: 700; font-size: 12px; color: var(--rec-text);">
@@ -4866,6 +4927,7 @@
             if (navEl) navEl.classList.add('active');
 
             const headings = {
+                'home': "Dashboard",
                 'queue': "Front Desk Reception Workspace",
                 'patients': "Patient Master Directory",
                 'appointment-management': "R-007.3: Appointment Management — View & Update Details",
@@ -5170,11 +5232,11 @@
 
                     renderPatients(data.patients);
                 } else {
-                    if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #DC2626;">${escapeHtml(data.message || 'Error searching patients.')}</td></tr>`;
+                    if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #DC2626;">${escapeHtml(data.message || 'Error searching patients.')}</td></tr>`;
                 }
             } catch (err) {
                 console.error("Patient search error:", err);
-                if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #DC2626;">Error loading patients: ${escapeHtml(err.message || 'Network error during search.')}</td></tr>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #DC2626;">Error loading patients: ${escapeHtml(err.message || 'Network error during search.')}</td></tr>`;
             }
         }
 
@@ -6958,6 +7020,135 @@
         }
 
         // UI Modals
+        // ── QR Pass Scanner ─────────────────────────────────────────────
+        const qrScan = { stream: null, raf: 0, last: '', busy: false };
+        const qrEsc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        function loadJsQr() {
+            if (window.jsQR) return Promise.resolve();
+            return new Promise((resolve, reject) => {
+                const sc = document.createElement('script');
+                sc.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+                sc.onload = resolve;
+                sc.onerror = () => reject(new Error('scanner library could not load'));
+                document.head.appendChild(sc);
+            });
+        }
+
+        async function openQrScanner() {
+            qrScan.last = '';
+            document.getElementById('qrScanResult').innerHTML = '';
+            document.getElementById('qrScanInput').value = '';
+            openModal('qrScanModal');
+            document.getElementById('qrScanInput').focus(); // USB scanners type into the focused field
+            const msg = document.getElementById('qrScanCameraMsg');
+            msg.style.display = 'flex';
+            msg.textContent = 'Starting camera…';
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('the camera needs https or localhost');
+                await loadJsQr();
+                qrScan.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                const video = document.getElementById('qrScanVideo');
+                video.srcObject = qrScan.stream;
+                await video.play();
+                msg.style.display = 'none';
+                scanQrFrame();
+            } catch (err) {
+                msg.textContent = 'Camera unavailable (' + (err.message || err.name || 'blocked') + '). Use a barcode scanner or paste the code below.';
+            }
+        }
+
+        function scanQrFrame() {
+            if (!qrScan.stream) return;
+            const video = document.getElementById('qrScanVideo');
+            const canvas = document.getElementById('qrScanCanvas');
+            if (video.readyState >= 2 && video.videoWidth) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                ctx.drawImage(video, 0, 0);
+                const hit = jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height, { inversionAttempts: 'dontInvert' });
+                if (hit && hit.data && hit.data !== qrScan.last) verifyQrCode(hit.data);
+            }
+            qrScan.raf = requestAnimationFrame(scanQrFrame);
+        }
+
+        function closeQrScanner() {
+            cancelAnimationFrame(qrScan.raf);
+            if (qrScan.stream) qrScan.stream.getTracks().forEach(t => t.stop());
+            qrScan.stream = null;
+            closeModal('qrScanModal');
+        }
+
+        async function verifyQrCode(code) {
+            code = String(code || '').trim();
+            if (!code || qrScan.busy) return;
+            qrScan.busy = true;
+            qrScan.last = code;
+            const box = document.getElementById('qrScanResult');
+            box.innerHTML = '<div style="font-size: 12px; color: var(--rec-text-muted);">Verifying…</div>';
+            try {
+                const res = await fetch('api/receptionist/verify_qr.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code })
+                });
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message || 'Verification failed.');
+                renderQrResult(data);
+            } catch (err) {
+                box.innerHTML = '<div style="padding: 12px; border-radius: 10px; background: #fef2f2; color: #b91c1c; font-size: 13px;">' + qrEsc(err.message) + '</div>';
+            } finally {
+                qrScan.busy = false;
+                document.getElementById('qrScanInput').value = '';
+            }
+        }
+
+        function renderQrResult(data) {
+            const tones = {
+                valid:     ['#f0fdf4', '#15803d', 'bx-check-shield', 'Genuine appointment'],
+                not_today: ['#fffbeb', '#b45309', 'bx-calendar-exclamation', 'Not scheduled for today'],
+                past:      ['#fffbeb', '#b45309', 'bx-history', 'Appointment date has passed'],
+                completed: ['#fffbeb', '#b45309', 'bx-check-double', 'Visit already completed'],
+                cancelled: ['#fef2f2', '#b91c1c', 'bx-x-circle', 'Appointment cancelled'],
+                not_found: ['#fef2f2', '#b91c1c', 'bx-search-alt', 'Appointment not found'],
+                invalid:   ['#fef2f2', '#b91c1c', 'bx-error', 'Not a genuine OptiDent pass']
+            };
+            const [bg, fg, icon, title] = tones[data.result] || ['#f8fafc', '#334155', 'bx-info-circle', data.result];
+            const a = data.appointment;
+            const row = (k, v) => v ? '<div style="display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; padding: 3px 0;"><span style="color: var(--rec-text-muted);">' + k + '</span><b style="text-align: right;">' + qrEsc(v) + '</b></div>' : '';
+            const canCheckIn = data.result === 'valid' && a && ['scheduled', 'pending', 'confirmed'].includes(a.status);
+            document.getElementById('qrScanResult').innerHTML =
+                '<div style="border-radius: 12px; background: ' + bg + '; padding: 12px 14px;">' +
+                    '<div style="display: flex; align-items: center; gap: 8px; color: ' + fg + '; font-weight: 800; font-size: 14px;"><i class="bx ' + icon + '" style="font-size: 20px;"></i>' + qrEsc(title) + '</div>' +
+                    '<div style="font-size: 12px; color: ' + fg + '; margin-top: 2px;">' + qrEsc(data.message || '') + '</div>' +
+                '</div>' +
+                (a ? '<div style="margin-top: 10px; padding: 4px 2px;">' +
+                    row('Patient', a.patient_name) + row('Phone', a.patient_phone) + row('Service', a.service_name) +
+                    row('Doctor', a.doctor_name) + row('Date & time', [a.date, a.time].filter(Boolean).join(' · ')) +
+                    row('Status', String(a.status || '').replace(/_/g, ' ')) + row('Reference', a.ref_code) +
+                '</div>' : '') +
+                (canCheckIn ? '<button type="button" class="btn-rec btn-rec-primary" style="width: 100%; margin-top: 10px;" data-qr-checkin="' + qrEsc(a.id) + '"><i class="bx bx-log-in-circle"></i> Check in now</button>' : '');
+            const btn = document.querySelector('[data-qr-checkin]');
+            if (btn) btn.addEventListener('click', () => checkInFromQr(btn.dataset.qrCheckin, btn));
+        }
+
+        async function checkInFromQr(id, btn) {
+            btn.disabled = true;
+            try {
+                const res = await fetch('api/receptionist/update_appointment_status.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ appointment_id: id, status: 'checked_in' })
+                });
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message || 'Check-in failed.');
+                showToast('success', 'Patient checked in.');
+                btn.outerHTML = '<div style="margin-top: 10px; text-align: center; font-size: 12.5px; font-weight: 700; color: #15803d;">✓ Checked in</div>';
+                loadDashboardData();
+            } catch (err) {
+                btn.disabled = false;
+                showToast('error', err.message);
+            }
+        }
+
         function openModal(id) {
             document.getElementById(id).style.display = 'flex';
         }

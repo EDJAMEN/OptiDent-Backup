@@ -5,11 +5,14 @@ import fs from 'fs';
 import path from 'path';
 import dbClient from '../config/db.js';
 import requireAuth from '../middleware/authGuard.js';
-import logAudit from '../config/auditLogger.js';
+import logAudit, { buildAuditRecord } from '../config/auditLogger.js';
 import { sendStaffInvitationEmail, sendAppointmentNotificationEmail } from '../config/mailer.js';
 import { getServicePrice, formatPhp } from '../config/servicePricing.js';
-import { encryptToken, decryptToken, maskToken } from '../config/encryptionHelper.js';
-import { verifyIntegrationCredentials } from '../config/integrationVerifier.js';
+import { encryptToken, getEncryptionKey, hintOf } from '../config/encryptionHelper.js';
+import { testIntegration } from '../config/integrationVerifier.js';
+import { dailyTraffic } from '../config/trafficStats.js';
+import { reloadIntegrations } from '../config/integrationStore.js';
+import { INTEGRATION_FIELDS, cleanIntegrationInput } from '../../public/js/integrationFields.js';
 
 const router = express.Router();
 
@@ -273,7 +276,7 @@ router.get('/get_rbac_matrix', async (req, res) => {
 
             // Clinic Pricing & Settings
             { module: "Clinic Administration", key: "pricing_manage", permission_key: "pricing_manage", name: "Manage Procedure Pricing", label: "Manage Procedure Pricing", description: "Edit dental service fees, pricing guides, and discounts.", roles: ["super_admin"] },
-            { module: "Clinic Administration", key: "integrations_manage", permission_key: "integrations_manage", name: "Manage System Integrations", label: "Manage System Integrations", description: "Configure Google Calendar API, Google Auth, and SMTP notifications.", roles: ["super_admin"] },
+            { module: "Clinic Administration", key: "integrations.write", permission_key: "integrations.write", name: "Manage System Integrations", label: "Manage System Integrations", description: "Save, test, and erase integration keys (Google, Email, reCAPTCHA, SMS, ImgBB, Google Forms).", roles: ["super_admin"] },
             { module: "Clinic Administration", key: "audit_logs_view", permission_key: "audit_logs_view", name: "Inspect Security & Audit Trail", label: "Inspect Security & Audit Trail", description: "View authentication logs, IP addresses, and user activity history.", roles: ["super_admin"] },
 
             // Reports & Intelligence Governance (Granular Report Control for Super Admin)
@@ -482,59 +485,6 @@ router.get('/get_system_settings', async (req, res) => {
         if (!settings.integration_credentials) settings.integration_credentials = {};
         if (!settings.masked_tokens) settings.masked_tokens = {};
 
-        // Auto-seed active masked tokens if integration is currently true but token not yet recorded in vault
-        let needsDbSave = false;
-
-        // 1. SMTP Email
-        if (settings.integrations.smtp_email_enabled && !settings.masked_tokens.smtp_email_enabled) {
-            const pass = process.env.SMTP_PASS || 'emuvfyqhuyyafpku';
-            settings.integration_credentials.smtp_email_enabled = encryptToken(pass);
-            settings.masked_tokens.smtp_email_enabled = maskToken(pass);
-            needsDbSave = true;
-        }
-
-        // 2. Google Calendar
-        if (settings.integrations.google_calendar_sync && !settings.masked_tokens.google_calendar_sync) {
-            const saCandidates = ['google-service-account.json', 'master-host-514202-g2-5a4a6823ad9c.json'];
-            for (const cand of saCandidates) {
-                const p = path.resolve(cand);
-                if (fs.existsSync(p)) {
-                    try {
-                        const content = fs.readFileSync(p, 'utf8');
-                        settings.integration_credentials.google_calendar_sync = encryptToken(content);
-                        settings.masked_tokens.google_calendar_sync = maskToken(content);
-                        needsDbSave = true;
-                        break;
-                    } catch (e) {}
-                }
-            }
-        }
-
-        // 3. reCAPTCHA
-        if (settings.integrations.recaptcha_enabled && !settings.masked_tokens.recaptcha_enabled) {
-            const secret = process.env.RECAPTCHA_SECRET_KEY || '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe';
-            settings.integration_credentials.recaptcha_enabled = encryptToken(secret);
-            settings.masked_tokens.recaptcha_enabled = maskToken(secret);
-            needsDbSave = true;
-        }
-
-        // 4. Google Auth
-        if (settings.integrations.google_auth_enabled && !settings.masked_tokens.google_auth_enabled) {
-            const clientId = process.env.GOOGLE_CLIENT_ID || '983742894723-masterauth2026.apps.googleusercontent.com';
-            settings.integration_credentials.google_auth_enabled = encryptToken(clientId);
-            settings.masked_tokens.google_auth_enabled = maskToken(clientId);
-            needsDbSave = true;
-        }
-
-        if (needsDbSave) {
-            await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
-                $set: {
-                    integration_credentials: settings.integration_credentials,
-                    masked_tokens: settings.masked_tokens
-                }
-            });
-        }
-
         // Return sanitized settings to client (never send raw encrypted tokens)
         const clientSettings = {
             ...settings,
@@ -580,193 +530,108 @@ router.post('/update_system_settings', async (req, res) => {
 });
 
 /**
- * Toggle Integration (Self-service, Maintenance, etc.)
- * With AES-256-GCM Token Encryption, Live API Verification, and Auto-Reset on OFF
+ * Only a Super Admin may change integration keys, and only while the integrations.write
+ * permission still grants super_admin (granted by default until the matrix is seeded).
+ */
+async function canWriteIntegrations(req) {
+    if (req.user?.role !== 'super_admin') return false;
+    const perm = await dbClient.findOne('roles_permissions', { key: 'integrations.write' });
+    return (perm ? perm.roles || [] : ['super_admin']).map(r => String(r).toLowerCase()).includes('super_admin');
+}
+
+/**
+ * Toggle Integration
+ * Credentialed integrations: permission → encryption key present → clean input → live test →
+ * encrypt + save + audit in one transaction → reload cache → respond with hints only.
+ * Plain switches (maintenance_mode, self-registration, ...) just flip a flag.
  */
 router.post('/toggle_integration', async (req, res) => {
     try {
         const key = req.body.key || req.body.integration;
         const enabled = req.body.enabled === true || req.body.enabled === 'true';
-        const rawToken = req.body.token;
-        const extra = req.body.extra || {};
-
         if (!key) return res.status(400).json({ status: 'error', message: 'Integration key is required.' });
 
-        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' }) || {};
-        const integrations = settings.integrations || {};
-        const integrationCredentials = settings.integration_credentials || {};
-        const maskedTokens = settings.masked_tokens || {};
+        const filter = { setting_type: 'clinic_profile' };
+        const loadSettings = async () => {
+            const s = await dbClient.findOne('system_settings', filter) || {};
+            return { s, integrations: s.integrations || {}, credentials: s.integration_credentials || {}, hints: s.masked_tokens || {} };
+        };
 
-        // Subsystems requiring live external API credentials
-        const isCredentialedIntegration = [
-            'google_calendar_sync',
-            'smtp_email_enabled',
-            'recaptcha_enabled',
-            'sms_gateway_enabled',
-            'google_auth_enabled'
-        ].includes(key);
+        // ── Plain switch ────────────────────────────────────────────────
+        if (!INTEGRATION_FIELDS[key]) {
+            const { s, integrations, hints } = await loadSettings();
+            integrations[key] = enabled;
+            const maintenance_mode = key === 'maintenance_mode' ? enabled : !!s.maintenance_mode;
+            await dbClient.updateOne('system_settings', filter, { $set: { integrations, maintenance_mode, updated_at: new Date().toISOString() } });
+            await logAudit(req, 'TOGGLE_INTEGRATION', 'ADMIN', { key, enabled }, 'success');
+            return res.status(200).json({ status: 'success', message: `Subsystem '${key}' ${enabled ? 'enabled' : 'disabled'}.`, integrations, masked_tokens: hints, maintenance_mode });
+        }
+
+        // ── Credentialed integration ────────────────────────────────────
+        if (!(await canWriteIntegrations(req))) {
+            return res.status(403).json({ status: 'forbidden', message: 'Only a Super Admin with the integrations.write permission can change integration keys.' });
+        }
 
         if (!enabled) {
-            // ============================================
-            // 1. TURNING OFF: RESET & PURGE TOKEN / KEY
-            // ============================================
+            const { integrations, credentials, hints } = await loadSettings();
             integrations[key] = false;
-
-            if (isCredentialedIntegration) {
-                // Wipe encrypted token and masked preview
-                delete integrationCredentials[key];
-                delete maskedTokens[key];
-            }
-
-            if (key === 'maintenance_mode') {
-                settings.maintenance_mode = false;
-            }
-
-            if (key === 'recaptcha_enabled') {
-                process.env.ENABLE_RECAPTCHA = 'false';
-            }
-
-            const updateFields = {
-                integrations,
-                integration_credentials: integrationCredentials,
-                masked_tokens: maskedTokens,
-                maintenance_mode: settings.maintenance_mode,
-                updated_at: new Date().toISOString()
-            };
-
-            await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
-                $set: updateFields
+            delete credentials[key];
+            delete hints[key];
+            await dbClient.transaction(async (opts) => {
+                await dbClient.updateOne('system_settings', filter, { $set: { integrations, integration_credentials: credentials, masked_tokens: hints, updated_at: new Date().toISOString() } }, opts);
+                await dbClient.insertOne('audit_logs', buildAuditRecord(req, 'RESET_INTEGRATION_KEY', 'ADMIN', { integration: key }), opts);
             });
-
-            await logAudit(req, 'RESET_INTEGRATION_KEY', 'ADMIN', {
-                integration: key,
-                action: 'DISABLED_AND_RESET_TOKEN',
-                timestamp: new Date().toISOString()
-            }, 'success');
-
-            return res.status(200).json({
-                status: 'success',
-                message: `Integration '${key}' has been disabled and its encrypted token/key has been safely reset and cleared from the database vault.`,
-                integrations,
-                masked_tokens: maskedTokens,
-                maintenance_mode: !!settings.maintenance_mode
-            });
+            if (key === 'recaptcha_enabled') process.env.ENABLE_RECAPTCHA = 'false';
+            await reloadIntegrations();
+            return res.status(200).json({ status: 'success', message: `Integration '${key}' disabled and its stored keys erased.`, integrations, masked_tokens: hints });
         }
 
-        // ============================================
-        // 2. TURNING ON: LIVE VERIFICATION & ENCRYPTION
-        // ============================================
-        if (isCredentialedIntegration) {
-            let tokenToVerify = rawToken;
+        if (!getEncryptionKey()) {
+            return res.status(500).json({ status: 'error', message: 'Save refused: the server has no valid INTEGRATION_ENCRYPTION_KEY (64 hex characters) configured.' });
+        }
 
-            // Allow quick-load of clinic service account file if requested for Google Calendar
-            if (key === 'google_calendar_sync' && (!tokenToVerify || tokenToVerify === 'DEFAULT_FILE')) {
-                const saCandidates = ['google-service-account.json', 'master-host-514202-g2-5a4a6823ad9c.json'];
-                for (const cand of saCandidates) {
-                    const p = path.resolve(cand);
-                    if (fs.existsSync(p)) {
-                        tokenToVerify = fs.readFileSync(p, 'utf8');
-                        break;
-                    }
-                }
-            }
-
-            if (!tokenToVerify) {
-                return res.status(400).json({
-                    status: 'error',
-                    message: `To turn ON this integration, a valid API token or credential key is required.`
-                });
-            }
-
-            // Live verify against external API
-            let verifyResult;
-            try {
-                verifyResult = await verifyIntegrationCredentials(key, tokenToVerify, extra);
-            } catch (verifyErr) {
-                console.error(`[Integration Verification Failed for ${key}]:`, verifyErr.message);
-                await logAudit(req, 'VERIFY_INTEGRATION_FAILED', 'ADMIN', {
-                    integration: key,
-                    error: verifyErr.message
-                }, 'failure');
-
-                return res.status(422).json({
-                    status: 'error',
-                    message: `Verification Failed: ${verifyErr.message}`
-                });
-            }
-
-            // Verification succeeded! Now encrypt with AES-256-GCM
-            const encryptedData = encryptToken(tokenToVerify);
-            const maskedPreview = maskToken(tokenToVerify);
-
-            integrationCredentials[key] = encryptedData;
-            maskedTokens[key] = maskedPreview;
-            integrations[key] = true;
-
-            // Sync runtime environment variables
-            if (key === 'recaptcha_enabled') {
-                process.env.ENABLE_RECAPTCHA = 'true';
-                if (typeof tokenToVerify === 'string') process.env.RECAPTCHA_SECRET_KEY = tokenToVerify;
-            }
-            if (key === 'smtp_email_enabled') {
-                if (typeof tokenToVerify === 'string') process.env.SMTP_PASS = tokenToVerify.trim();
-                if (extra.smtp_user) process.env.SMTP_USER = extra.smtp_user.trim();
-            }
-            if (key === 'google_auth_enabled') {
-                if (typeof tokenToVerify === 'string') process.env.GOOGLE_CLIENT_ID = tokenToVerify.trim();
-            }
-
-            const updateFields = {
-                integrations,
-                integration_credentials: integrationCredentials,
-                masked_tokens: maskedTokens,
-                updated_at: new Date().toISOString()
-            };
-
-            await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
-                $set: updateFields
-            });
-
-            await logAudit(req, 'VERIFY_AND_STORE_INTEGRATION_KEY', 'ADMIN', {
-                integration: key,
-                verified: true,
-                identifier: verifyResult?.identifier || 'Verified Service',
-                masked_token: maskedPreview
-            }, 'success');
-
-            return res.status(200).json({
-                status: 'success',
-                message: verifyResult?.message || `Integration '${key}' verified and activated! Token encrypted in vault.`,
-                integrations,
-                masked_tokens: maskedTokens,
-                verification: verifyResult
-            });
+        let fields, message, webhookSecret;
+        if (key === 'google_forms_enabled') {
+            // No outside service to test against: the server generates the secret and shows it once.
+            webhookSecret = crypto.randomBytes(32).toString('hex');
+            fields = { webhook_secret: webhookSecret };
+            message = 'Webhook secret generated. Copy it now; it will not be shown again.';
         } else {
-            // General switch (like maintenance_mode)
-            integrations[key] = true;
-            if (key === 'maintenance_mode') settings.maintenance_mode = true;
-
-            await dbClient.updateOne('system_settings', { setting_type: 'clinic_profile' }, {
-                $set: {
-                    integrations,
-                    maintenance_mode: settings.maintenance_mode,
-                    updated_at: new Date().toISOString()
-                }
-            });
-
-            await logAudit(req, 'TOGGLE_INTEGRATION', 'ADMIN', { key, enabled: true }, 'success');
-
-            return res.status(200).json({
-                status: 'success',
-                message: `Subsystem '${key}' enabled.`,
-                integrations,
-                masked_tokens: maskedTokens,
-                maintenance_mode: !!settings.maintenance_mode
-            });
+            try {
+                fields = cleanIntegrationInput(key, req.body.fields);
+                message = await testIntegration(key, fields, { adminEmail: req.user.email });
+            } catch (err) {
+                await logAudit(req, 'VERIFY_INTEGRATION_FAILED', 'ADMIN', { integration: key, error: err.message }, 'failure');
+                return res.status(422).json({ status: 'error', message: `Verification failed: ${err.message}` });
+            }
         }
+
+        // Test passed: re-read so a slow live test never overwrites newer settings.
+        const { integrations, credentials, hints } = await loadSettings();
+        const secretName = key === 'google_forms_enabled' ? 'webhook_secret' : INTEGRATION_FIELDS[key].find(f => f.secret).name;
+        // A JSON key's last 4 chars are just "}\n"; hint the private_key_id instead.
+        const hintSource = key === 'google_calendar_sync' ? JSON.parse(fields[secretName]).private_key_id : fields[secretName];
+        credentials[key] = Object.fromEntries(Object.entries(fields).map(([name, value]) => [name, encryptToken(value)]));
+        hints[key] = hintOf(hintSource);
+        integrations[key] = true;
+
+        await dbClient.transaction(async (opts) => {
+            await dbClient.updateOne('system_settings', filter, { $set: { integrations, integration_credentials: credentials, masked_tokens: hints, updated_at: new Date().toISOString() } }, opts);
+            await dbClient.insertOne('audit_logs', buildAuditRecord(req, 'VERIFY_AND_STORE_INTEGRATION_KEY', 'ADMIN', { integration: key, hint: hints[key] }), opts);
+        });
+        if (key === 'recaptcha_enabled') process.env.ENABLE_RECAPTCHA = 'true';
+        await reloadIntegrations();
+
+        return res.status(200).json({
+            status: 'success',
+            message,
+            integrations,
+            masked_tokens: hints,
+            ...(webhookSecret && { webhook_secret: webhookSecret })
+        });
     } catch (err) {
         console.error('Toggle integration error:', err);
-        return res.status(500).json({ status: 'error', message: err.message || 'Failed to toggle integration.' });
+        return res.status(500).json({ status: 'error', message: 'Failed to update integration.' });
     }
 });
 
@@ -1142,6 +1007,16 @@ router.post('/unarchive_record', async (req, res) => {
         return res.status(200).json({ status: 'success', message: 'Record restored from archive.' });
     } catch (err) {
         return res.status(500).json({ status: 'error', message: 'Failed to unarchive record.' });
+    }
+});
+
+/** Weekly Patient Traffic (dashboard chart): clinic-wide per-day counts. */
+router.get('/weekly_traffic', async (req, res) => {
+    try {
+        return res.status(200).json(await dailyTraffic({ days: req.query.days }));
+    } catch (err) {
+        console.error('Weekly traffic error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to load weekly traffic.' });
     }
 });
 
@@ -1926,6 +1801,7 @@ router.post('/cancel_invite', async (req, res) => {
     try {
         const email = (req.body.email || '').trim().toLowerCase();
         const id = req.body.id || req.body.invitation_id;
+        const reason = (req.body.reason || '').trim() || 'Cancelled by Super Admin';
 
         const filter = email ? { email } : { _id: id };
         const invitation = await dbClient.findOne('invitations', filter);
@@ -1938,13 +1814,15 @@ router.post('/cancel_invite', async (req, res) => {
                 is_deleted: true,
                 status: 'cancelled',
                 deleted_at: new Date().toISOString().replace('T', ' ').slice(0, 19),
-                deleted_by: req.user?.email || 'superadmin@optident.com'
+                deleted_by: req.user?.email || 'superadmin@optident.com',
+                delete_reason: reason
             }
         });
 
         await logAudit(req, 'SOFT_DELETE_INVITATION', 'invitation:' + (invitation.email || email), {
             email: invitation.email,
-            role: invitation.role
+            role: invitation.role,
+            reason: reason
         }, 'success');
 
         return res.status(200).json({

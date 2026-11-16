@@ -4,6 +4,8 @@ import dbClient from '../config/db.js';
 import logAudit from '../config/auditLogger.js';
 import { sendPatientVerificationEmail, sendPasswordResetEmail } from '../config/mailer.js';
 import verifyRecaptcha from '../config/recaptcha.js';
+import { getIntegration } from '../config/integrationStore.js';
+import { google } from 'googleapis';
 
 const router = express.Router();
 
@@ -20,14 +22,14 @@ router.get('/recaptcha_config', async (req, res) => {
 
         return res.json({
             enabled: isEnabled,
-            site_key: process.env.RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+            site_key: getIntegration('recaptcha_enabled')?.site_key || process.env.RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
             maintenance_mode: isMaintenance,
             clinic_name: settings?.clinic_name || 'OptiDent Dental Clinic'
         });
     } catch (_) {
         return res.json({
             enabled: process.env.ENABLE_RECAPTCHA === 'true',
-            site_key: process.env.RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+            site_key: getIntegration('recaptcha_enabled')?.site_key || process.env.RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
             maintenance_mode: false
         });
     }
@@ -222,7 +224,7 @@ router.get('/google_config', async (req, res) => {
     try {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
         const integrations = settings?.integrations || {};
-        const clientId = process.env.GOOGLE_CLIENT_ID || settings?.google_client_id || integrations?.google_client_id || '';
+        const clientId = googleClientId(settings);
         return res.status(200).json({
             status: 'success',
             enabled: integrations.google_auth_enabled !== false,
@@ -234,8 +236,15 @@ router.get('/google_config', async (req, res) => {
     }
 });
 
+/** One source for the OAuth client ID, so the button and the token check always agree. */
+function googleClientId(settings) {
+    return getIntegration('google_auth_enabled')?.client_id || process.env.GOOGLE_CLIENT_ID
+        || settings?.google_client_id || settings?.integrations?.google_client_id || '';
+}
+
 /**
- * Google Sign-In Authentication (OAuth / Credential token or Google Account email)
+ * Google Sign-In (Google Identity Services).
+ * Trusts ONLY a Google-signed ID token issued for our client ID — never an email sent by the browser.
  */
 router.post('/google_login', async (req, res) => {
     try {
@@ -253,13 +262,31 @@ router.post('/google_login', async (req, res) => {
         // 2. Check System Maintenance Mode
         const isMaintenance = !!(settings?.maintenance_mode || integrations?.maintenance_mode);
 
-        const email = (req.body.email || '').trim().toLowerCase();
-        const fullName = (req.body.name || req.body.full_name || 'Google User').trim();
-        const googleId = req.body.sub || req.body.google_id || '';
-
-        if (!email) {
-            return res.status(400).json({ status: 'error', message: 'Google account email is required.' });
+        const clientId = googleClientId(settings);
+        if (!clientId) {
+            return res.status(503).json({ status: 'error', message: 'Google sign-in is not configured. Ask the Super Admin to add the Google OAuth client.' });
         }
+        const idToken = String(req.body.credential || '');
+        if (!idToken) {
+            return res.status(400).json({ status: 'error', message: 'Missing Google credential.' });
+        }
+
+        let payload;
+        try {
+            // Checks Google's signature, expiry, issuer, and that the token was issued for OUR client ID
+            const ticket = await new google.auth.OAuth2(clientId).verifyIdToken({ idToken, audience: clientId });
+            payload = ticket.getPayload();
+        } catch (verifyErr) {
+            await logAudit(req, 'LOGIN_GOOGLE_FAILED', 'AUTH', { reason: 'Invalid Google ID token' }, 'failed');
+            return res.status(401).json({ status: 'error', message: 'Google sign-in could not be verified. Please try again.' });
+        }
+        if (!payload?.email || !payload.email_verified) {
+            return res.status(401).json({ status: 'error', message: 'Your Google account email is not verified.' });
+        }
+
+        const email = payload.email.toLowerCase();
+        const fullName = (payload.name || 'Google User').trim();
+        const googleId = payload.sub;
 
         // Query user in MongoDB
         let user = await dbClient.findOne('users', { email });

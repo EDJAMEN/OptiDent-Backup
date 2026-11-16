@@ -6,6 +6,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { connectDB } from './api/config/db.js';
+import { reloadIntegrations } from './api/config/integrationStore.js';
+import DbSessionStore from './api/config/sessionStore.js';
 import normalizePhp from './api/middleware/normalizePhp.js';
 
 import authRoutes from './api/auth/index.js';
@@ -27,6 +29,7 @@ app.set('trust proxy', 1);
 
 // Connect to MongoDB
 await connectDB();
+await reloadIntegrations().catch(err => console.warn('[Integrations] Cache load failed:', err.message));
 
 // Core Middleware
 app.use(cors({
@@ -38,6 +41,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.use(session({
+    store: new DbSessionStore(), // persists logins across server restarts
     secret: process.env.SESSION_SECRET || 'optident_session_secret_2026',
     resave: false,
     saveUninitialized: false,

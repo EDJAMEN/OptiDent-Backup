@@ -179,6 +179,22 @@ export const dbClient = {
     isNative: () => useNative,
     getNativeDb: () => db,
 
+    /** Runs fn({ session }) in one MongoDB transaction; pass that options object to updateOne/insertOne. */
+    async transaction(fn) {
+        if (!(useNative && client)) return fn({});
+        const session = client.startSession();
+        try {
+            await session.withTransaction(() => fn({ session }));
+        } catch (err) {
+            // shortcut: a standalone mongod (no replica set) cannot run transactions, so writes run unbundled. Run MongoDB as a replica set / Atlas for atomic saves.
+            if (err.code !== 20 && !/replica set|Transaction numbers/i.test(err.message)) throw err;
+            console.warn('[MongoDB] Transactions unsupported on a standalone server; writing without a transaction.');
+            await fn({});
+        } finally {
+            await session.endSession();
+        }
+    },
+
     async find(collectionName, filter = {}, options = {}) {
         if (useNative && db) {
             try {
@@ -218,7 +234,7 @@ export const dbClient = {
         return formatDoc(match) || null;
     },
 
-    async insertOne(collectionName, document) {
+    async insertOne(collectionName, document, options = {}) {
         const toInsert = { ...document };
         if (!toInsert._id) {
             toInsert._id = new ObjectId().toString();
@@ -229,9 +245,10 @@ export const dbClient = {
 
         if (useNative && db) {
             try {
-                const res = await db.collection(collectionName).insertOne(toInsert);
+                const res = await db.collection(collectionName).insertOne(toInsert, options);
                 return { insertedId: toInsert._id, acknowledged: true };
             } catch (err) {
+                if (options.session) throw err; // never fall back to the JSON file mid-transaction
                 console.error(`Native insertOne error on ${collectionName}:`, err.message);
             }
         }
@@ -246,17 +263,19 @@ export const dbClient = {
         return { insertedId: toInsert._id, acknowledged: true };
     },
 
-    async updateOne(collectionName, filter = {}, update = {}) {
+    async updateOne(collectionName, filter = {}, update = {}, options = {}) {
         const setFields = update.$set ? update.$set : update;
 
         if (useNative && db) {
             try {
                 const res = await db.collection(collectionName).updateOne(
                     prepareFilter(filter),
-                    update.$set ? update : { $set: setFields }
+                    update.$set ? update : { $set: setFields },
+                    options
                 );
                 return { modifiedCount: res.modifiedCount, acknowledged: true };
             } catch (err) {
+                if (options.session) throw err; // never fall back to the JSON file mid-transaction
                 console.error(`Native updateOne error on ${collectionName}:`, err.message);
             }
         }

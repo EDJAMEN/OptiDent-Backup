@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import dbClient from './db.js';
+import { getIntegration } from './integrationStore.js';
 
 // Fallback verified relay credentials (ensures zero downtime for outgoing invites/OTPs)
 const VERIFIED_GATEWAY_USER = 'jamgamer1014@gmail.com';
@@ -51,7 +52,8 @@ async function sendMailWithFallback(mailOptionsBuilder, customUser = '', customP
     let storedUser = null;
     let storedPass = null;
     try {
-        const configDoc = await dbClient.findOne('system_settings', { setting_type: 'email_config' });
+        const vault = getIntegration('smtp_email_enabled');
+        const configDoc = vault ? { smtp_user: vault.smtp_user, smtp_pass: vault.smtp_pass } : await dbClient.findOne('system_settings', { setting_type: 'email_config' });
         if (configDoc && configDoc.smtp_user && configDoc.smtp_pass) {
             storedUser = configDoc.smtp_user.trim();
             storedPass = configDoc.smtp_pass.trim().replace(/\s+/g, '');

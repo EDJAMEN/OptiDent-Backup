@@ -1,266 +1,97 @@
 /**
- * OptiDent Live Integration Verifier
- *
- * Verifies incoming tokens and API credentials live against target services
- * before allowing Super Admin to turn an integration ON.
- *
- * All live network calls are wrapped with a hard timeout so the UI never
- * hangs — if the network is slow/offline we fall back to format validation.
+ * Live, harmless test calls that prove integration credentials work.
+ * A test must actually pass — there is no "format looks fine" fallback.
+ * Each function throws Error(user-facing message) on failure.
  */
-
 import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 
-// ─── Global timeout budgets (ms) ────────────────────────────────────────────
-const SMTP_TIMEOUT_MS     = 5000;   // Gmail STARTTLS handshake
-const GCAL_TIMEOUT_MS     = 5000;   // Google OAuth token exchange
-const RECAPTCHA_TIMEOUT_MS = 2500;  // Google siteverify probe
-const SMS_TIMEOUT_MS      = 2500;   // Semaphore account endpoint
+const TIMEOUT_MS = 8000;
+// 1×1 transparent PNG
+const PIXEL_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
-/**
- * Run any async fn with a hard wall-clock timeout.
- * Rejects with the given fallback error message when time runs out.
- */
-function withTimeout(promise, ms, timeoutMsg) {
+function withTimeout(promise, what) {
     return Promise.race([
         promise,
-        new Promise((_, reject) =>
-            setTimeout(() => reject(new Error(timeoutMsg)), ms)
-        )
+        new Promise((_, reject) => setTimeout(() => reject(new Error(`${what} did not respond within ${TIMEOUT_MS / 1000}s.`)), TIMEOUT_MS))
     ]);
 }
 
-/**
- * Verify credentials for a specific integration
- * @param {string} integrationKey e.g. 'google_calendar_sync', 'smtp_email_enabled', 'recaptcha_enabled'
- * @param {string|object} token The raw token, app password, or credentials JSON
- * @param {object} extra Additional fields (e.g. { smtp_user, client_id })
- * @returns {Promise<{ verified: boolean, message: string, identifier: string }>}
- */
-export async function verifyIntegrationCredentials(integrationKey, token, extra = {}) {
-    if (!token && !extra.use_existing_file) {
-        throw new Error('API token or credentials must be provided to activate this integration.');
-    }
-
-    switch (integrationKey) {
-        case 'google_calendar_sync':
-            return await verifyGoogleCalendar(token);
-        
-        case 'smtp_email_enabled':
-            return await verifySmtp(token, extra);
-
-        case 'recaptcha_enabled':
-            return await verifyRecaptcha(token);
-
-        case 'sms_gateway_enabled':
-            return await verifySmsGateway(token);
-
-        case 'google_auth_enabled':
-            return await verifyGoogleAuth(token, extra);
-
-        default:
-            // Generic verification for other switches
-            if (typeof token === 'string' && token.trim().length >= 8) {
-                return { verified: true, message: 'Token format validated.', identifier: 'System Subsystem' };
-            }
-            throw new Error(`Invalid token format for integration: ${integrationKey}`);
-    }
+async function postForm(url, params) {
+    const res = await fetch(url, { method: 'POST', body: new URLSearchParams(params), signal: AbortSignal.timeout(TIMEOUT_MS) });
+    const data = await res.json().catch(() => ({}));
+    return { res, data };
 }
 
-/**
- * 1. Verify Google Calendar API Credentials
- */
-async function verifyGoogleCalendar(token) {
-    let credentials = null;
-
-    if (typeof token === 'object') {
-        credentials = token;
-    } else if (typeof token === 'string') {
-        const trimmed = token.trim();
-        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-            try {
-                credentials = JSON.parse(trimmed);
-            } catch (err) {
-                throw new Error('Invalid JSON format. Please paste a valid Google Cloud Service Account JSON file.');
-            }
-        } else {
-            throw new Error('Google Calendar live sync requires a Google Service Account JSON key.');
-        }
-    }
-
-    if (!credentials || !credentials.client_email || !credentials.private_key) {
-        throw new Error('Service Account JSON is missing required "client_email" or "private_key" fields.');
-    }
-
-    if (!credentials.private_key.includes('BEGIN PRIVATE KEY')) {
-        throw new Error('Malformed private_key in Service Account JSON. RSA header is missing.');
-    }
-
-    try {
-        const auth = new google.auth.GoogleAuth({
-            credentials,
-            scopes: ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.com/auth/calendar.events']
+const TESTS = {
+    // Google only answers invalid_grant to a dummy code after the client ID + secret check out.
+    async google_auth_enabled({ client_id, client_secret }) {
+        const { data } = await postForm('https://oauth2.googleapis.com/token', {
+            code: 'optident-credential-probe', client_id, client_secret,
+            redirect_uri: 'postmessage', grant_type: 'authorization_code'
         });
+        if (data.error !== 'invalid_grant') {
+            throw new Error(`Google rejected the client ID/secret (${data.error || 'unexpected response'}).`);
+        }
+        return 'Google accepted the OAuth client ID and secret.';
+    },
 
-        // Test authentication token generation — capped to avoid long hangs
+    // Sends a real test message to the admin who is saving.
+    async smtp_email_enabled({ smtp_user, smtp_pass }, { adminEmail }) {
+        const t = { connectionTimeout: TIMEOUT_MS, greetingTimeout: TIMEOUT_MS, socketTimeout: TIMEOUT_MS };
+        const transporter = nodemailer.createTransport({ host: 'smtp.gmail.com', port: 587, secure: false, auth: { user: smtp_user, pass: smtp_pass }, ...t });
+        await withTimeout(transporter.sendMail({
+            from: `"OptiDent" <${smtp_user}>`,
+            to: adminEmail,
+            subject: 'OptiDent email integration test',
+            text: 'This test message confirms the email integration credentials work. No action needed.'
+        }), 'Gmail SMTP');
+        return `Test email sent to ${adminEmail}.`;
+    },
+
+    // Google returns invalid-input-secret for a bad secret; anything else means the secret is real.
+    async recaptcha_enabled({ secret_key }) {
+        const { res, data } = await postForm('https://www.google.com/recaptcha/api/siteverify', { secret: secret_key, response: 'optident-probe' });
+        if (!res.ok || (data['error-codes'] || []).includes('invalid-input-secret')) {
+            throw new Error('Google rejected the reCAPTCHA secret key.');
+        }
+        return 'Google accepted the reCAPTCHA secret key.';
+    },
+
+    async sms_gateway_enabled({ api_key }) {
+        const res = await fetch(`https://api.semaphore.co/api/v4/account?apikey=${encodeURIComponent(api_key)}`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+        if (!res.ok) throw new Error(`Semaphore rejected the API key (HTTP ${res.status}).`);
+        return 'Semaphore accepted the API key.';
+    },
+
+    async google_calendar_sync({ service_account_json }) {
+        const credentials = JSON.parse(service_account_json);
+        const auth = new google.auth.GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/calendar.events'] });
         const client = await auth.getClient();
-        await withTimeout(
-            client.getAccessToken(),
-            GCAL_TIMEOUT_MS,
-            `Google OAuth server did not respond within ${GCAL_TIMEOUT_MS / 1000}s. Check your network connection.`
-        );
+        await withTimeout(client.getAccessToken(), 'Google OAuth');
+        return `Google issued a token for ${credentials.client_email}.`;
+    },
 
-        return {
-            verified: true,
-            message: `Google Calendar Service Account verified successfully for ${credentials.client_email}.`,
-            identifier: credentials.client_email
-        };
-    } catch (err) {
-        console.error('[Google Calendar Verification Error]:', err.message);
-        throw new Error(`Google Calendar API rejected credentials: ${err.message}`);
+    // Uploads a 1×1 image that ImgBB deletes after 60s (its minimum expiration).
+    async imgbb_enabled({ api_key }) {
+        const { data } = await postForm(`https://api.imgbb.com/1/upload?expiration=60&key=${encodeURIComponent(api_key)}`, { image: PIXEL_PNG_BASE64 });
+        if (data.error?.code === 103) {
+            // Key is real, but ImgBB blocks the account or this server's network/IP
+            throw new Error('ImgBB recognised the key but has blocked its account or this network (ImgBB code 103: "forbidden"). Log in at imgbb.com to check the account, or try a key from another account or network.');
+        }
+        if (!data.success) throw new Error(`ImgBB rejected the API key (${data.error?.message || 'upload failed'}).`);
+        return 'ImgBB accepted a self-deleting test upload.';
     }
-}
+};
 
-/**
- * 2. Verify Gmail / SMTP Email Gateway
- */
-async function verifySmtp(token, extra = {}) {
-    const rawPass = typeof token === 'string' ? token.trim().replace(/\s+/g, '') : '';
-    const user = (extra.smtp_user || extra.email || process.env.SMTP_USER || 'optidentt@gmail.com').trim();
-
-    if (!rawPass || rawPass.length < 8) {
-        throw new Error('SMTP App Password must be at least 16 characters (Google App Password format).');
-    }
-
-    const host = extra.smtp_host || 'smtp.gmail.com';
-    const port = parseInt(extra.smtp_port) || 587;
-
-    const transporter = nodemailer.createTransport({
-        host,
-        port,
-        secure: false, // STARTTLS
-        auth: { user, pass: rawPass },
-        connectionTimeout: SMTP_TIMEOUT_MS,   // TCP connect limit
-        greetingTimeout:   SMTP_TIMEOUT_MS,   // SMTP greeting limit
-        socketTimeout:     SMTP_TIMEOUT_MS    // read/write limit
-    });
-
+/** @returns {Promise<string>} success message */
+export async function testIntegration(key, fields, ctx = {}) {
+    const test = TESTS[key];
+    if (!test) throw new Error(`No live test exists for ${key}.`);
     try {
-        // Hard-cap the full verify() call — nodemailer options above already
-        // cover TCP-level timeouts; this catches any remaining hang.
-        await withTimeout(
-            transporter.verify(),
-            SMTP_TIMEOUT_MS,
-            `SMTP connection to ${host}:${port} timed out after ${SMTP_TIMEOUT_MS / 1000}s.`
-        );
-        return {
-            verified: true,
-            message: `SMTP connection established & verified for ${user} on ${host}:${port}.`,
-            identifier: user
-        };
+        return await test(fields, ctx);
     } catch (err) {
-        console.error('[SMTP Verification Error]:', err.message);
-        if (err.message && err.message.includes('535')) {
-            throw new Error(`Gmail SMTP authentication failed (535 Bad Credentials). Please generate a 16-character Google App Password in your Google Account security settings.`);
-        }
-        throw new Error(`SMTP Gateway connection failed: ${err.message}`);
+        if (err.name === 'TimeoutError') throw new Error('The service did not respond in time. Try again.');
+        throw err;
     }
-}
-
-/**
- * 3. Verify Google reCAPTCHA Secret Key
- */
-async function verifyRecaptcha(token) {
-    const secret = typeof token === 'string' ? token.trim() : '';
-    if (!secret || secret.length < 16) {
-        throw new Error('reCAPTCHA Secret Key must be at least 20 characters (starts with 6L...).');
-    }
-
-    try {
-        // Probe Google's verify endpoint with 3.5s timeout
-        const params = new URLSearchParams();
-        params.append('secret', secret);
-        params.append('response', 'probe_test_token_2026');
-
-        const res = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-            method: 'POST',
-            body: params,
-            signal: AbortSignal.timeout(RECAPTCHA_TIMEOUT_MS)
-        });
-
-        const data = await res.json();
-        
-        // If Google explicitly rejects the secret key itself
-        if (data['error-codes'] && data['error-codes'].includes('invalid-input-secret')) {
-            throw new Error('Google reCAPTCHA API rejected this Secret Key (invalid-input-secret). Please check your Google reCAPTCHA Admin Console.');
-        }
-
-        // If error-codes does NOT contain invalid-input-secret (e.g. only invalid-input-response),
-        // that proves the SECRET KEY is authentic and accepted by Google!
-        return {
-            verified: true,
-            message: 'Google reCAPTCHA Secret Key verified with Google servers.',
-            identifier: `reCAPTCHA v2 (${secret.slice(0, 4)}••••${secret.slice(-4)})`
-        };
-    } catch (err) {
-        if (err.message && err.message.includes('reCAPTCHA')) throw err;
-        // If network times out or is offline, validate format gracefully
-        if (secret.startsWith('6L') && secret.length >= 25) {
-            return {
-                verified: true,
-                message: 'Google reCAPTCHA v2 Secret Key format validated and accepted.',
-                identifier: `reCAPTCHA v2 (${secret.slice(0, 4)}••••${secret.slice(-4)})`
-            };
-        }
-        throw new Error(`Google reCAPTCHA verification failed: ${err.message}`);
-    }
-}
-
-/**
- * 4. Verify SMS Gateway API Key
- */
-async function verifySmsGateway(token) {
-    const key = typeof token === 'string' ? token.trim() : '';
-    if (!key || key.length < 10) {
-        throw new Error('SMS Gateway API Key must be at least 10 characters.');
-    }
-
-    // Try Semaphore or Twilio validation with timeout
-    try {
-        const res = await fetch(`https://api.semaphore.co/api/v4/account?apikey=${encodeURIComponent(key)}`, {
-            signal: AbortSignal.timeout(SMS_TIMEOUT_MS)
-        });
-        if (res.ok) {
-            const data = await res.json();
-            return {
-                verified: true,
-                message: `SMS Gateway account verified (${data.account_name || 'Active'}). Credit balance: ${data.credit_balance || 'Available'}.`,
-                identifier: `SMS Gateway (${key.slice(0, 4)}••••${key.slice(-4)})`
-            };
-        }
-    } catch (e) {
-        // Fallback: format check
-    }
-
-    return {
-        verified: true,
-        message: 'SMS Gateway API key format validated and stored.',
-        identifier: `SMS API Key (${key.slice(0, 4)}••••${key.slice(-4)})`
-    };
-}
-
-/**
- * 5. Verify Google Auth / OAuth Client ID
- */
-async function verifyGoogleAuth(token, extra = {}) {
-    const clientId = typeof token === 'string' ? token.trim() : (extra.client_id || '');
-    if (!clientId || clientId.length < 16) {
-        throw new Error('Google Client ID must be a valid OAuth 2.0 Web Client ID (ends with .apps.googleusercontent.com).');
-    }
-
-    return {
-        verified: true,
-        message: 'Google OAuth 2.0 Client credentials format verified.',
-        identifier: `Google Client (${clientId.slice(0, 6)}••••${clientId.slice(-8)})`
-    };
 }

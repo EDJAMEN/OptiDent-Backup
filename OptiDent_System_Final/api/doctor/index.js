@@ -4,6 +4,7 @@ import dbClient from '../config/db.js';
 import requireAuth from '../middleware/authGuard.js';
 import logAudit from '../config/auditLogger.js';
 import ClinicHoursHelper from '../config/clinicHoursHelper.js';
+import { dailyTraffic } from '../config/trafficStats.js';
 import { getServicePrice, formatPhp } from '../config/servicePricing.js';
 import { sendDoctorDailyAgendaEmail, sendAppointmentNotificationEmail } from '../config/mailer.js';
 
@@ -1002,6 +1003,29 @@ const handleEmailTodaySchedule = async (req, res) => {
 
 router.post('/email_today_schedule', handleEmailTodaySchedule);
 router.get('/email_today_schedule', handleEmailTodaySchedule);
+
+/** Weekly Patient Traffic for the signed-in doctor (same matching rules as get_dashboard_data). */
+router.get('/weekly_traffic', async (req, res) => {
+    try {
+        const role = (req.user.role || '').toLowerCase();
+        const doctor = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email });
+        const myEmail = (doctor?.email || req.user.email || '').toLowerCase().trim();
+        const myName = (doctor?.full_name || '').toLowerCase().replace(/dr\.?|\./gi, '').trim();
+        const include = apt => {
+            if (role !== 'doctor') return true; // admins previewing the doctor portal see the whole clinic
+            const email = (apt.dentist_email || apt.doctor_email || '').toLowerCase().trim();
+            if (email) return email === myEmail;
+            const name = (apt.dentist_name || apt.doctor_name || apt.attending_doctor || '').toLowerCase();
+            if (!name || name.includes('first available')) return false; // unassigned: not this doctor's visit yet
+            const n = name.replace(/dr\.?|\./gi, '').trim();
+            return !myName || !n || myName.includes(n) || n.includes(myName);
+        };
+        return res.status(200).json(await dailyTraffic({ days: req.query.days, include }));
+    } catch (err) {
+        console.error('Doctor weekly traffic error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to load weekly traffic.' });
+    }
+});
 
 export default router;
 

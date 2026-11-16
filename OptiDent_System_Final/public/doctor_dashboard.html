@@ -1027,6 +1027,10 @@
             background: #334155;
         }
     </style>
+    <link rel="stylesheet" href="css/weeklyTraffic.css">
+    <link rel="stylesheet" href="css/roleHome.css">
+    <script src="js/weeklyTraffic.js"></script>
+    <script src="js/roleHome.js"></script>
 </head>
 
 <body data-theme="light">
@@ -1077,7 +1081,13 @@
             <!-- Sidebar Navigation Links -->
             <ul class="nav-menu">
                 <li>
-                    <a class="nav-item active" id="nav-queue" onclick="switchDocTab('queue')">
+                    <a class="nav-item active" id="nav-home" onclick="switchDocTab('home')">
+                        <i class='bx bx-grid-alt'></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" id="nav-queue" onclick="switchDocTab('queue')">
                         <i class='bx bx-list-check'></i>
                         <span>Today's Queue</span>
                     </a>
@@ -1168,7 +1178,7 @@
             <!-- Top Header Banner -->
             <div class="top-banner">
                 <div>
-                    <h2 class="font-bold text-2xl" style="margin: 0;" id="pageHeading">Today's Patient Queue & Operatory
+                    <h2 class="font-bold text-2xl" style="margin: 0;" id="pageHeading">Dashboard
                     </h2>
                     <p class="text-dim text-xs mt-1" id="currentDateString">Saturday, September 26, 2026 &bull; Active
                         Clinical Shift</p>
@@ -1229,8 +1239,13 @@
                 </div>
             </div>
 
+            <!-- TAB 0: Dashboard (overview) — rendered by renderDoctorHome() -->
+            <section id="tab-home" class="doc-tab-content">
+                <div id="doctorHome"></div>
+            </section>
+
             <!-- TAB 1: Today's Clinical Queue -->
-            <section id="tab-queue" class="doc-tab-content">
+            <section id="tab-queue" class="doc-tab-content" style="display: none;">
                 <div class="workspace-card">
                     <div class="flex-between mb-3">
                         <h3 class="font-bold text-lg" style="margin: 0; display: flex; align-items: center; gap: 8px;">
@@ -3111,6 +3126,7 @@
                     renderMetrics(data.metrics);
                     renderRequests(data.pending_requests || []);
                     renderQueue(data.queue_today);
+                    renderDoctorHome(data);
                     renderUpcoming(data.upcoming_appointments);
                     renderCompleted(data.completed_procedures);
                     renderPatients(data.patients);
@@ -3120,6 +3136,26 @@
             } catch (err) {
                 console.error("Error loading doctor workspace:", err);
             }
+        }
+
+        // Dashboard tab: minimal overview for the signed-in doctor (shared RoleHome + WeeklyTraffic components)
+        function renderDoctorHome(data) {
+            const m = data.metrics || {};
+            RoleHome.render(document.getElementById('doctorHome'), {
+                name: data.doctor?.full_name,
+                nextLabel: 'Next patient',
+                nextEmpty: 'No more patients today',
+                appointments: data.queue_today || [],
+                attention: [
+                    { label: 'Appointment requests to review', value: m.pending_approvals || 0, action: () => switchDocTab('requests') },
+                    { label: 'Patients waiting', value: m.waiting_queue || 0, action: () => switchDocTab('queue') },
+                    { label: 'In the chair now', value: m.in_progress || 0, action: () => switchDocTab('queue') }
+                ],
+                listTitle: "Today's schedule",
+                listEmpty: 'No patients booked with you today',
+                listAction: { label: 'Open queue', action: () => switchDocTab('queue') },
+                traffic: { endpoint: 'api/doctor/weekly_traffic.php?days=14', title: 'My patient traffic' }
+            });
         }
 
         function renderDoctorHeader(doc) {
@@ -5810,6 +5846,7 @@
             if (tabContent) tabContent.style.display = 'block';
 
             const headings = {
+                'home': "Dashboard",
                 'queue': "Today's Patient Queue & Operatory",
                 'requests': "Appointment Requests & Approval (D-008)",
                 'upcoming': "Upcoming Scheduled Appointments",

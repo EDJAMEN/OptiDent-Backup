@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getIntegration } from './integrationStore.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,6 +17,13 @@ const TARGET_CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'optidentt@gmail.co
  */
 function getGoogleCalendarClient() {
     try {
+        // Strategy 0: Service Account saved (and live-tested) through the admin Integrations panel
+        const vaultJson = getIntegration('google_calendar_sync')?.service_account_json;
+        if (vaultJson) {
+            const auth = new google.auth.GoogleAuth({ credentials: JSON.parse(vaultJson), scopes: ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.com/auth/calendar.events'] });
+            return google.calendar({ version: 'v3', auth });
+        }
+
         // Strategy A: Service Account JSON file in OptiDent_NodeJS or root
         const candidateFiles = ['google-service-account.json', 'master-host-514202-g2-5a4a6823ad9c.json'];
         const saPaths = [];

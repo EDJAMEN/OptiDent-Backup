@@ -1,0 +1,55 @@
+/* Weekly Patient Traffic card — shared by the admin, doctor and receptionist dashboards */
+.wtc {
+    --wtc-ink: #0f172a; --wtc-dim: #64748b; --wtc-faint: #94a3b8; --wtc-rule: #eef1f5;
+    --wtc-bg: #ffffff; --wtc-border: #e5e7eb;
+    --wtc-done: #14b8a6; --wtc-clinic: #a78bfa; --wtc-sched: #93c5fd; --wtc-walk: #fbbf24;
+    position: relative; background: var(--wtc-bg); border: 1px solid var(--wtc-border); border-radius: 14px;
+    padding: 20px; font-family: inherit; color: var(--wtc-ink);
+}
+body[data-theme="dark"] .wtc {
+    --wtc-ink: #e5e7eb; --wtc-dim: #94a3b8; --wtc-faint: #64748b; --wtc-rule: rgba(148,163,184,0.12);
+    --wtc-bg: #111827; --wtc-border: rgba(148,163,184,0.16);
+    --wtc-done: #2dd4bf; --wtc-clinic: #a78bfa; --wtc-sched: #60a5fa;
+}
+.wtc-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.wtc-title { margin: 0; font-size: 14px; font-weight: 600; color: var(--wtc-ink); }
+.wtc-range { font-size: 12px; color: var(--wtc-faint); white-space: nowrap; }
+
+.wtc-stats { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 28px; margin-bottom: 18px; }
+.wtc-stat { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.wtc-num { font-size: 20px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; color: var(--wtc-ink); }
+.wtc-label { font-size: 12px; color: var(--wtc-dim); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.wtc-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.wtc-stat-main { padding-right: 28px; border-right: 1px solid var(--wtc-rule); }
+.wtc-stat-main .wtc-num { font-size: 30px; letter-spacing: -0.5px; }
+.wtc-delta { font-size: 12px; color: var(--wtc-dim); }
+.wtc-delta.up { color: #059669; } .wtc-delta.down { color: #dc2626; }
+
+.wtc-chart { position: relative; height: 200px; width: 100%; }
+.wtc-chart svg { display: block; overflow: visible; }
+.wtc-grid { stroke: var(--wtc-rule); }
+.wtc-ax { fill: var(--wtc-faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+.wtc-ax.today { fill: var(--wtc-ink); font-weight: 600; }
+.wtc-val { fill: var(--wtc-dim); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.wtc-col { cursor: default; outline: none; }
+.wtc-hit { fill: transparent; }
+.wtc-col:hover .wtc-hit, .wtc-col:focus-visible .wtc-hit { fill: var(--wtc-rule); }
+.wtc-empty { position: absolute; inset: 0 0 24px 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--wtc-faint); pointer-events: none; }
+.wtc-empty[hidden] { display: none; }
+
+.wtc-tip {
+    position: absolute; z-index: 5; pointer-events: none; min-width: 160px; padding: 10px 12px;
+    background: var(--wtc-bg); border: 1px solid var(--wtc-border); border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(15,23,42,0.08); font-size: 12px; color: var(--wtc-ink);
+    transform: translate(-50%, -100%); opacity: 0; transition: opacity 0.12s ease;
+}
+.wtc-tip.show { opacity: 1; }
+.wtc-tip-h { font-weight: 600; margin-bottom: 6px; }
+.wtc-tip-r { display: flex; justify-content: space-between; gap: 16px; color: var(--wtc-dim); line-height: 1.7; }
+.wtc-tip-r b { color: var(--wtc-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.wtc-foot { margin-top: 12px; font-size: 12px; color: var(--wtc-faint); }
+
+@media (max-width: 640px) {
+    .wtc-stat-main { flex-basis: 100%; border-right: none; padding-right: 0; }
+}

@@ -3,23 +3,16 @@
  * Integrated with the Secure Super Admin Database Vault
  */
 
-import dbClient from './db.js';
-import { decryptToken } from './encryptionHelper.js';
+import { getIntegration } from './integrationStore.js';
 
 export async function verifyRecaptcha(token, remoteIp = '') {
     if (!token) return false;
 
-    // 1. Resolve Secret Key: Check database vault first, then environment fallback
-    let secret = process.env.RECAPTCHA_SECRET_KEY || '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe';
-    try {
-        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
-        if (settings?.integration_credentials?.recaptcha_enabled) {
-            const decrypted = decryptToken(settings.integration_credentials.recaptcha_enabled);
-            if (decrypted && decrypted.trim().length >= 10) {
-                secret = decrypted.trim();
-            }
-        }
-    } catch (_) {}
+    // 1. Secret must pair with the site key the login page shows (/recaptcha_config):
+    //    vault pair only when the vault has BOTH keys, otherwise the .env pair.
+    const vault = getIntegration('recaptcha_enabled');
+    const secret = (vault?.site_key && vault?.secret_key)
+        || process.env.RECAPTCHA_SECRET_KEY || '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe';
 
     const verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
 
