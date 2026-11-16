@@ -1,0 +1,22 @@
+{
+  "name": "optident-framework-free-api",
+  "version": "1.0.0",
+  "description": "Framework-Free RESTful API for OptiDent Dental Clinic Management System (Pure Node.js Core http/url/crypto + Native MongoDB)",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test_api.mjs"
+  },
+  "keywords": [
+    "optident",
+    "rest",
+    "framework-free",
+    "hateoas",
+    "native-node",
+    "stateless"
+  ],
+  "author": "OptiDent Architecture Team",
+  "license": "ISC"
+}
+

@@ -1,0 +1,502 @@
+openapi: 3.0.3
+info:
+  title: OptiDent Framework-Free RESTful API
+  description: >
+    Pure Native Node.js RESTful API specification for the OptiDent Dental Clinic Management System.
+    Engineered without external web frameworks, enforcing strict statelessness, HATEOAS hypermedia controls,
+    plural kebab-case resource URIs, and standardized JSON error and success envelopes.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001
+    description: Local Framework-Free Development Server
+  - url: http://localhost:3000
+    description: Primary Environment Gateway
+
+paths:
+  /api/v1/health:
+    get:
+      summary: Health check and runtime information
+      operationId: getHealthStatus
+      responses:
+        '200':
+          description: Server is online and operational
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: public, max-age=60
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardSuccess'
+
+  /api/v1/auth/tokens:
+    post:
+      summary: Issue stateless Bearer token (Login)
+      operationId: createToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: optidentt@gmail.com
+                password:
+                  type: string
+                  format: password
+                  example: Opident1014
+      responses:
+        '201':
+          description: Authentication successful, token generated
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/v1/auth/registrations:
+    post:
+      summary: Self-service patient onboarding
+      operationId: registerPatient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, name]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                name:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '201':
+          description: Registration completed successfully
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /api/v1/users:
+    get:
+      summary: Retrieve paginated users collection
+      operationId: listUsers
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [super_admin, doctor, receptionist, client]
+      responses:
+        '200':
+          description: Paginated collection of users with HATEOAS controls
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardSuccess'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      summary: Create new user
+      operationId: createUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, name]
+              properties:
+                email:
+                  type: string
+                name:
+                  type: string
+                role:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '201':
+          description: User created
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /api/v1/users/672f0001abcd
+
+  /api/v1/users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Retrieve individual user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User retrieved
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      summary: Completely replace user resource
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, name, role]
+      responses:
+        '200':
+          description: User replaced
+    patch:
+      summary: Partially update specific user fields
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+                role:
+                  type: string
+                status:
+                  type: string
+      responses:
+        '200':
+          description: User updated
+    delete:
+      summary: Soft-delete user into Data Recovery Vault
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: User soft-deleted successfully (No Content)
+
+  /api/v1/appointments:
+    get:
+      summary: Retrieve paginated appointments collection
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, scheduled, in_progress, completed, cancelled]
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Appointments collection with HATEOAS links
+    post:
+      summary: Create new dental appointment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [service_name, appointment_date, appointment_time]
+              properties:
+                patient_name:
+                  type: string
+                patient_email:
+                  type: string
+                doctor_name:
+                  type: string
+                service_name:
+                  type: string
+                appointment_date:
+                  type: string
+                  format: date
+                appointment_time:
+                  type: string
+                  example: "02:00 PM"
+                chief_complaint:
+                  type: string
+                operatory_chair:
+                  type: string
+      responses:
+        '201':
+          description: Appointment booked successfully
+        '409':
+          description: Slot already reserved (Conflict)
+
+  /api/v1/appointments/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Retrieve individual appointment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Appointment details
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      summary: Replace appointment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Appointment replaced
+    patch:
+      summary: Partially update appointment status or scheduling
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Appointment updated
+    delete:
+      summary: Cancel appointment
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Appointment cancelled
+
+  /api/v1/services:
+    get:
+      summary: List dental services catalog
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Services catalog
+    post:
+      summary: Create dental procedure service
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Service created
+
+  /api/v1/clinical-records:
+    get:
+      summary: Retrieve patient clinical records and dental charts
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Clinical records list
+    post:
+      summary: Record clinical consultation, procedure, or odontogram surfaces
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Record created
+
+  /api/v1/audit-logs:
+    get:
+      summary: Retrieve forensic administrative audit trail
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Audit logs list in Asia/Manila timestamp format
+    post:
+      summary: Record audit event
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Event logged
+
+  /api/v1/recovery-vault:
+    get:
+      summary: Retrieve soft-deleted records across domain collections
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: collection
+          in: query
+          schema:
+            type: string
+            enum: [all, users, appointments]
+      responses:
+        '200':
+          description: Soft-deleted records list
+
+  /api/v1/recovery-vault/{id}/restorations:
+    post:
+      summary: Restore soft-deleted record back to active state
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collection
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record restored successfully
+
+  /api/v1/recovery-vault/{id}:
+    delete:
+      summary: Permanently purge record from database
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: collection
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Record permanently purged (No Content)
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  responses:
+    BadRequestError:
+      description: Malformed JSON, missing fields, or underscore in URI
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    UnauthorizedError:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    NotFoundError:
+      description: Target resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+
+  schemas:
+    StandardSuccess:
+      type: object
+      required: [data, _links]
+      properties:
+        data:
+          type: object
+          description: Resource payload or paginated items
+        _links:
+          type: object
+          description: HATEOAS hypermedia links
+          additionalProperties:
+            type: object
+            required: [href, method]
+            properties:
+              href:
+                type: string
+              method:
+                type: string
+                enum: [GET, POST, PUT, PATCH, DELETE]
+
+    StandardError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, status, message, action, timestamp]
+          properties:
+            code:
+              type: string
+              example: DESCRIPTIVE_ERROR_CODE
+            status:
+              type: integer
+              example: 400
+            message:
+              type: string
+              example: Clear explanation of what went wrong.
+            action:
+              type: string
+              example: Concrete step the user or client should take to fix the error.
+            timestamp:
+              type: string
+              format: date-time
+              example: "2026-11-10T00:00:00.000Z"
+

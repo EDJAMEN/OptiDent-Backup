@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiDent — Clinical Management System | Portal</title>
+    <meta name="description" content="OptiDent Clinical Management System — Secure portal for staff and patients.">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <!-- Google Identity Services (GIS) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            --primary: #0EB1B1;
+            --primary-dark: #0a8f8f;
+            --primary-light: #F0FBFA;
+            --surface: #ffffff;
+            --border: #E2E8F0;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+            background: linear-gradient(135deg, #F0FBFA 0%, #ffffff 50%, #E6F7F7 100%);
+            margin: 0;
+            padding: 1.5rem 1rem;
+        }
+
+        /* ── Animated Background Orbs ─────────────────────────── */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.38;
+            pointer-events: none;
+            animation: driftOrb 14s ease-in-out infinite alternate;
+        }
+        .orb-1 {
+            width: 560px; height: 560px;
+            background: radial-gradient(circle, #0EB1B1 0%, #0a8f8f 60%, transparent 100%);
+            top: -160px; left: -140px;
+            animation-delay: 0s;
+        }
+        .orb-2 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #22c7c7 0%, #0EB1B1 60%, transparent 100%);
+            bottom: -100px; right: -100px;
+            animation-delay: -6s;
+        }
+        .orb-3 {
+            width: 260px; height: 260px;
+            background: radial-gradient(circle, #10b981 0%, #0EB1B1 70%, transparent 100%);
+            top: 50%; left: 65%;
+            animation-delay: -3s;
+        }
+        .orb-4 {
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, #0EB1B1 0%, #4dd8d8 60%, transparent 100%);
+            top: 10%; right: 20%;
+            opacity: 0.18;
+            animation-delay: -9s;
+        }
+        @keyframes driftOrb {
+            0%   { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(24px, 18px) scale(1.07); }
+        }
+
+        /* Grid pattern */
+        .grid-pattern {
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(14,177,177,0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14,177,177,0.045) 1px, transparent 1px);
+            background-size: 52px 52px;
+            pointer-events: none;
+        }
+
+        /* ── Card ─────────────────────────────────────────────── */
+        .auth-wrapper {
+            position: relative;
+            z-index: 10;
+            padding: 1rem;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-box {
+            width: 100%;
+            max-width: 480px;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 2.2rem;
+            box-shadow:
+                0 20px 40px -15px rgba(14, 177, 177, 0.14),
+                0 0 0 1px rgba(14, 177, 177, 0.1);
+            transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .auth-box.register-mode {
+            max-width: 680px;
+        }
+
+        /* ── Tabs Navigation ──────────────────────────────────── */
+        .auth-tabs-container {
+            display: flex;
+            background: #F1F5F9;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+            gap: 4px;
+            border: 1px solid var(--border);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px 14px;
+            border: none;
+            background: transparent;
+            border-radius: 9px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: all 0.2s ease;
+        }
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--primary-dark);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        /* ── Form Controls & Grid ─────────────────────────────── */
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        @media (max-width: 600px) {
+            .form-grid-2 { grid-template-columns: 1fr; }
+            .auth-box { padding: 1.5rem; }
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--primary-dark);
+            margin: 1.25rem 0 0.85rem 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .field-group {
+            margin-bottom: 12px;
+        }
+        .field-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .field-group .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            color: var(--text-main);
+            background: #ffffff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .field-group .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(14, 177, 177, 0.12);
+        }
+
+        /* ── Allergy Quick Chips ──────────────────────────────── */
+        .quick-chip {
+            background: #F1F5F9;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .quick-chip:hover {
+            background: #E2E8F0;
+            color: var(--text-main);
+        }
+        .quick-chip.active {
+            background: #FEE2E2;
+            border-color: #F87171;
+            color: #DC2626;
+            font-weight: 700;
+        }
+
+        .notification-banner {
+            display: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        .notification-banner.error {
+            display: flex;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+        .notification-banner.success {
+            display: flex;
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .db-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #F0FBFA;
+            color: #0a8f8f;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(14, 177, 177, 0.28);
+        }
+
+        /* ── 6-Digit OTP Verification Modal ── */
+        .otp-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .otp-modal-overlay.active {
+            display: flex;
+            animation: otpModalFadeIn 0.25s ease-out;
+        }
+        @keyframes otpModalFadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .otp-modal-dialog {
+            background: #ffffff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 440px;
+            padding: 2rem 1.75rem;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(14, 177, 177, 0.15);
+            position: relative;
+            text-align: center;
+        }
+        .otp-icon-wrap {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 12px auto;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(14, 177, 177, 0.15), rgba(10, 143, 143, 0.28));
+            color: #0EB1B1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 8px 16px -4px rgba(14, 177, 177, 0.3);
+        }
+        .otp-email-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 8px 0 14px 0;
+            max-width: 100%;
+            word-break: break-all;
+        }
+        .otp-inputs-grid {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 16px 0 12px 0;
+        }
+        .otp-box {
+            width: 46px;
+            height: 52px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            background: #f8fafc;
+            color: #0f172a;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .otp-box:focus {
+            border-color: #0EB1B1;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(14, 177, 177, 0.16);
+            transform: translateY(-2px);
+        }
+        .otp-box.filled {
+            border-color: #0EB1B1;
+            background: #f0fdfa;
+        }
+        .otp-box.error {
+            border-color: #ef4444 !important;
+            background: #fef2f2 !important;
+            color: #b91c1c !important;
+        }
+        @keyframes otpShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-7px); }
+            40%, 80% { transform: translateX(7px); }
+        }
+        .shake {
+            animation: otpShake 0.45s ease-in-out;
+        }
+        .otp-modal-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.15s;
+        }
+        .otp-modal-close:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <!-- Glassmorphism Background -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+    <div class="grid-pattern"></div>
+
+    <!-- Login & Register Unified Auth Card -->
+    <div class="auth-wrapper">
+        <div class="auth-box" id="authBox">
+
+            <!-- Header -->
+            <div class="auth-header text-center mb-2">
+                <div class="logo logo-large flex-center">
+                    <div class="logo-icon">
+                        <img src="assets/lightmode_dentassist.png" alt="OptiDent Logo" class="logo-img" style="max-height: 48px;">
+                    </div>
+                    <div class="logo-text">
+                        <div class="logo-main"><span class="logo-dent">Opti</span><span class="logo-assist">Dent</span></div>
+                        <div class="logo-subtext">CLINICAL MANAGEMENT SYSTEM</div>
+                    </div>
+                </div>
+                <p id="portalSubtext" class="text-dim mt-1 text-sm">Unified Access Portal for Patients &amp; Staff</p>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="auth-tabs-container" id="authTabsContainer">
+                <button type="button" class="tab-btn active" id="tabBtnLogin" onclick="switchAuthTab('login')">
+                    <i class='bx bx-log-in-circle'></i> Sign In
+                </button>
+                <button type="button" class="tab-btn" id="tabBtnRegister" onclick="switchAuthTab('register')">
+                    <i class='bx bx-user-plus'></i> Patient Sign Up
+                </button>
+            </div>
+
+            <!-- System Maintenance Mode Alert Banner -->
+            <div id="maintenanceAlertBanner" style="display: none; background: #FEF2F2; border: 1.5px solid #FCA5A5; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.08);">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #DC2626; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    <i class='bx bx-error-alt' style="font-size: 20px;"></i> System Maintenance Mode Active
+                </div>
+                <p style="font-size: 12px; color: #7F1D1D; margin: 0; line-height: 1.5; text-align: center;">
+                    OptiDent is currently offline for scheduled infrastructure maintenance. Patient, receptionist, and doctor logins are temporarily suspended.
+                </p>
+                <div style="text-align: center; margin-top: 10px;">
+                    <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(220, 38, 38, 0.1); color: #B91C1C; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 999px;">
+                        <i class='bx bx-shield-quarter'></i> Super Admin Emergency Access Only
+                    </span>
+                </div>
+            </div>
+
+            <!-- Notification Banner -->
+            <div id="authNotification" class="notification-banner" role="alert">
+                <i id="notifIcon" class='bx bx-info-circle' style="font-size: 18px;"></i>
+                <span id="notifMessage"></span>
+            </div>
+
+            <!-- Active Session Banner (only shown on login tab if already authenticated) -->
+            <div id="activeSessionBanner" style="display: none; margin-bottom: 14px; padding: 10px 14px; background: #F0FBFA; border: 1px solid rgba(14, 177, 177, 0.35); border-radius: 10px; font-size: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <div>
+                        <i class='bx bxs-user-check' style="color: var(--primary); font-size: 15px; vertical-align: middle;"></i>
+                        <span style="color: #0f766e; font-weight: 600;">Signed in:</span>
+                        <strong id="activeSessionUser" style="color: #0f172a;">User</strong>
+                        <span id="activeSessionRole" style="font-size: 10px; font-weight: 700; background: rgba(14, 177, 177, 0.15); color: var(--primary-dark); padding: 2px 6px; border-radius: 12px; margin-left: 4px;">ADMIN</span>
+                    </div>
+                    <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                        <button type="button" onclick="goToActiveDashboard()" class="btn-primary" style="padding: 4px 10px; font-size: 11px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                            Go to Dashboard &rarr;
+                        </button>
+                        <button type="button" onclick="logoutCurrentSession()" style="padding: 4px 8px; font-size: 11px; border-radius: 6px; background: #ffffff; border: 1px solid #cbd5e1; color: #64748b; cursor: pointer; font-weight: 600;">
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 1: LOGIN FORM (Staff, Doctors, Receptionists & Patients) -->
+            <form id="form-login" class="auth-form active" onsubmit="handleLoginSubmit(event)">
+                <div class="input-group">
+                    <i class='bx bx-envelope'></i>
+                    <input type="email" id="loginEmail" placeholder="Email Address (Staff or Patient)"
+                           required autocomplete="email" autofocus>
+                </div>
+                <div class="input-group">
+                    <i class='bx bx-lock-alt'></i>
+                    <input type="password" id="loginPassword" placeholder="Password"
+                           required class="password-field" autocomplete="current-password">
+                    <button type="button" class="password-toggle" onclick="togglePasswordVisibility('loginPassword', 'toggleIcon')">
+                        <i class='bx bx-hide' id="toggleIcon"></i>
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center mt-1 mb-2">
+                    <a href="javascript:void(0)" onclick="switchAuthTab('forgot')" class="text-xs font-semibold text-primary" style="text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                        <i class='bx bx-key' style="font-size: 14px;"></i> Forgot Password?
+                    </a>
+                    <a href="accept_invite.html" id="staffInviteLink" class="text-xs font-semibold text-dim" style="text-decoration: none;">
+                        Staff Invite Token?
+                    </a>
+                </div>
+
+                <!-- Google reCAPTCHA v2 Anti-Bot Layer -->
+                <div class="recaptcha-wrapper" id="recaptchaWrapper" style="display: flex; justify-content: center; margin: 10px 0 14px 0;">
+                    <div class="g-recaptcha" id="loginRecaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+                </div>
+
+                <button type="submit" id="submitLoginBtn" class="btn-primary w-full shadow-hover"
+                        style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px;">
+                    <i class='bx bx-log-in-circle mr-1'></i> Sign In to OptiDent
+                </button>
+
+                <!-- Google Sign-In Option -->
+                <div id="googleAuthContainer" style="margin-top: 14px;">
+                    <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <span style="flex: 1; border-bottom: 1px solid #e2e8f0;"></span>
+                        <span style="padding: 0 10px;">or continue with</span>
+                        <span style="flex: 1; border-bottom: 1px solid #e2e8f0;"></span>
+                    </div>
+
+                    <button type="button" id="btnGoogleAuth" onclick="handleGoogleSignIn()" class="btn-outline w-full shadow-hover"
+                            style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 16px; border: 1.5px solid #cbd5e1; border-radius: 10px; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s ease;">
+                        <svg width="18" height="18" viewBox="0 0 48 48">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                        <span>Continue with Google</span>
+                    </button>
+                </div>
+
+                <div class="mt-2 text-center border-top pt-2" id="newPatientPrompt">
+                    <p class="text-xs text-dim">
+                        New patient? 
+                        <a href="javascript:void(0)" onclick="switchAuthTab('register')" class="text-primary font-semibold" style="text-decoration: none;">
+                            Create your patient account here
+                        </a>
+                    </p>
+                </div>
+            </form>
+
+            <!-- TAB 2: PATIENT REGISTRATION FORM (C-001 - Progressive Onboarding) -->
+            <form id="form-register" class="auth-form" style="display: none;">
+                <!-- Stepper Progress Header -->
+                <div class="reg-stepper" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 1.25rem 0;">
+                    <div class="step-chip" id="chipStep1" style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: var(--primary-dark); background: rgba(14, 177, 177, 0.12); padding: 5px 12px; border-radius: 20px;">
+                        <span id="step1Icon" style="width: 18px; height: 18px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px;">1</span>
+                        <span>Account &amp; Gmail</span>
+                    </div>
+                    <div style="width: 24px; height: 2px; background: var(--border);" id="stepDividerLine"></div>
+                    <div class="step-chip" id="chipStep2" style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--text-muted); background: #f1f5f9; padding: 5px 12px; border-radius: 20px;">
+                        <span id="step2Icon" style="width: 18px; height: 18px; border-radius: 50%; background: #cbd5e1; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px;">2</span>
+                        <span>Personal &amp; Clinical Safety</span>
+                    </div>
+                </div>
+
+                <!-- STEP 1: Account Credentials & Gmail Verification -->
+                <div id="regStep1Container">
+                    <div class="section-label">
+                        <i class='bx bx-user-check'></i> Step 1: Create Account &amp; Verify Gmail
+                    </div>
+
+                    <div class="field-group">
+                        <label>Full Legal Name / Username *</label>
+                        <input type="text" id="regFullName" class="form-control" required placeholder="e.g. Maria Clara Santos" autofocus>
+                    </div>
+
+                    <div class="field-group">
+                        <label>Email Address (Gmail) *</label>
+                        <input type="email" id="regEmail" class="form-control" required placeholder="your.name@gmail.com" autocomplete="email">
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="field-group">
+                            <label>Password (Min. 8 chars) *</label>
+                            <div style="position: relative;">
+                                <input type="password" id="regPassword" class="form-control" required placeholder="••••••••" minlength="8" autocomplete="new-password">
+                                <button type="button" class="password-toggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted);" onclick="togglePasswordVisibility('regPassword', 'regPassIco')">
+                                    <i class='bx bx-hide' id="regPassIco"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label>Confirm Password *</label>
+                            <div style="position: relative;">
+                                <input type="password" id="regConfirmPassword" class="form-control" required placeholder="••••••••" minlength="8" autocomplete="new-password">
+                                <button type="button" class="password-toggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted);" onclick="togglePasswordVisibility('regConfirmPassword', 'regConfIco')">
+                                    <i class='bx bx-hide' id="regConfIco"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin: 10px 0 14px 0; display: flex; align-items: flex-start; gap: 8px;">
+                        <input type="checkbox" id="regConsent" required style="margin-top: 3px; accent-color: var(--primary);">
+                        <label for="regConsent" style="font-size: 12px; color: var(--text-muted); cursor: pointer; text-transform: none; font-weight: normal;">
+                            I agree to OptiDent's Data Privacy Policy and consent to secure account registration.
+                        </label>
+                    </div>
+
+                    <button type="button" id="btnSubmitStep1" onclick="handleSendCodeAndOpenModal(event)" class="btn-primary w-full shadow-hover"
+                            style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px;">
+                        <i class='bx bx-mail-send mr-1'></i> Send Verification Code &amp; Continue &rarr;
+                    </button>
+
+                    <!-- Google Quick Sign-Up Option -->
+                    <div id="googleRegisterContainer" style="margin-top: 14px;">
+                        <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <span style="flex: 1; border-bottom: 1px solid #e2e8f0;"></span>
+                            <span style="padding: 0 10px;">or sign up with</span>
+                            <span style="flex: 1; border-bottom: 1px solid #e2e8f0;"></span>
+                        </div>
+
+                        <button type="button" id="btnGoogleAuthRegister" onclick="handleGoogleSignIn()" class="btn-outline w-full shadow-hover"
+                                style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 16px; border: 1.5px solid #cbd5e1; border-radius: 10px; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s ease;">
+                            <svg width="18" height="18" viewBox="0 0 48 48">
+                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                            </svg>
+                            <span>Sign up with Google</span>
+                        </button>
+                    </div>
+
+                    <div id="reopenModalNotice" style="display: none; margin-top: 10px; text-align: center;">
+                        <a href="javascript:void(0)" onclick="openOtpModal()" class="text-primary font-semibold text-xs" style="text-decoration: underline;">
+                            <i class='bx bx-key'></i> Already received your code? Enter 6-digit code in modal &rarr;
+                        </a>
+                    </div>
+
+                    <div class="mt-2 text-center border-top pt-2">
+                        <p class="text-xs text-dim">
+                            Already have an account? 
+                            <a href="javascript:void(0)" onclick="switchAuthTab('login')" class="text-primary font-semibold" style="text-decoration: none;">
+                                Sign in here
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Personal Information & Clinical Safety Profile -->
+                <div id="regStep2Container" style="display: none;">
+                    <div style="background: rgba(14, 177, 177, 0.08); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                        <i class='bx bx-check-shield' style="font-size: 24px; color: #0a8f8f;"></i>
+                        <div>
+                            <div style="font-size: 12px; font-weight: 700; color: #0a8f8f;" id="step2WelcomeText">Account Verified!</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">Please fill in your personal &amp; clinical safety details for your dental records.</div>
+                        </div>
+                    </div>
+
+                    <div class="section-label">
+                        <i class='bx bx-id-card'></i> 1. Personal Demographics
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="field-group">
+                            <label>Mobile Phone *</label>
+                            <input type="tel" id="regPhone" class="form-control" placeholder="0917 123 4567" autocomplete="tel">
+                        </div>
+                        <div class="field-group">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                <label style="margin: 0;">Date of Birth</label>
+                                <span id="regAgeBadge" style="font-size: 11px; font-weight: 700; color: var(--primary-dark);">Age: --</span>
+                            </div>
+                            <input type="date" id="regDob" class="form-control" onchange="calculateClientAge()">
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="field-group">
+                            <label>Gender</label>
+                            <select id="regGender" class="form-control">
+                                <option value="Female">Female</option>
+                                <option value="Male">Male</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>Blood Type</label>
+                            <select id="regBloodType" class="form-control">
+                                <option value="Unknown">Unknown / Unspecified</option>
+                                <option value="O+">O positive (O+)</option>
+                                <option value="A+">A positive (A+)</option>
+                                <option value="B+">B positive (B+)</option>
+                                <option value="AB+">AB positive (AB+)</option>
+                                <option value="O-">O negative (O-)</option>
+                                <option value="A-">A negative (A-)</option>
+                                <option value="B-">B negative (B-)</option>
+                                <option value="AB-">AB negative (AB-)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label>City / Residential Address</label>
+                        <input type="text" id="regAddress" class="form-control" placeholder="e.g. Malaybalay City, Bukidnon">
+                    </div>
+
+                    <div class="section-label">
+                        <i class='bx bx-plus-medical'></i> 2. Clinical Safety &amp; Medical Alerts
+                    </div>
+
+                    <div class="field-group">
+                        <label>Allergies &amp; Health Conditions</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px;">
+                            <button type="button" class="quick-chip" onclick="toggleRegAllergy('Penicillin Allergy', this)">+ Penicillin</button>
+                            <button type="button" class="quick-chip" onclick="toggleRegAllergy('Latex Allergy', this)">+ Latex</button>
+                            <button type="button" class="quick-chip" onclick="toggleRegAllergy('Hypertension', this)">+ Hypertension</button>
+                            <button type="button" class="quick-chip" onclick="toggleRegAllergy('Diabetes', this)">+ Diabetes</button>
+                            <button type="button" class="quick-chip" onclick="toggleRegAllergy('Bleeding History', this)">+ Bleeding Tendency</button>
+                            <button type="button" class="quick-chip" onclick="toggleRegAllergy('Asthma', this)">+ Asthma</button>
+                            <button type="button" class="quick-chip" onclick="toggleRegAllergy('Pregnant', this)">+ Pregnant</button>
+                        </div>
+                        <input type="text" id="regAllergies" class="form-control" placeholder="None recorded or specify (e.g. Penicillin, Asthma)">
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="field-group">
+                            <label>Emergency Contact Person</label>
+                            <input type="text" id="regEmergName" class="form-control" placeholder="e.g. Juan Santos (Spouse)">
+                        </div>
+                        <div class="field-group">
+                            <label>Emergency Contact Phone</label>
+                            <input type="tel" id="regEmergPhone" class="form-control" placeholder="0918 000 0000">
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnSubmitStep2" onclick="handleStep2Complete(event)" class="btn-primary w-full shadow-hover"
+                            style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px; margin-top: 6px;">
+                        <i class='bx bx-check-double mr-1'></i> Save Clinical Profile &amp; Access Portal
+                    </button>
+
+                    <div class="mt-2 text-center pt-1">
+                        <a href="client_dashboard.html" class="text-xs text-dim" style="text-decoration: underline;">
+                            Skip for now and launch portal &rarr;
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <!-- TAB 3: FORGOT PASSWORD FORM (Self-service recovery for all roles) -->
+            <form id="form-forgot" class="auth-form" style="display: none;" onsubmit="event.preventDefault();">
+                <!-- STEP 1: Enter Registered Email -->
+                <div id="forgotStep1">
+                    <!-- Forgot Password Header Card -->
+                    <div style="background: rgba(14, 177, 177, 0.08); border: 1px solid rgba(14, 177, 177, 0.2); border-radius: 10px; padding: 12px 14px; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px;">
+                        <i class='bx bx-lock-open-alt' style="font-size: 26px; color: var(--primary);"></i>
+                        <div>
+                            <div style="font-size: 13px; font-weight: 700; color: var(--primary-dark);">Forgot Your Password?</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">Enter your registered email to receive a secure 6-digit recovery code.</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <i class='bx bx-envelope'></i>
+                        <input type="email" id="forgotEmail" placeholder="Enter your registered email" required autocomplete="email">
+                    </div>
+
+                    <button type="button" id="btnSendForgotCode" onclick="sendForgotPasswordCode()" class="btn-primary w-full shadow-hover"
+                            style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px; margin-top: 6px;">
+                        <i class='bx bx-send mr-1'></i> Send Recovery Code
+                    </button>
+
+                    <div class="mt-3 text-center border-top pt-2">
+                        <p class="text-xs text-dim">
+                            Remember your password?
+                            <a href="javascript:void(0)" onclick="switchAuthTab('login')" class="text-primary font-semibold" style="text-decoration: none;">
+                                Back to Sign In
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Dedicated OTP Verification Screen (Exact Design from Image 2) -->
+                <div id="forgotStep2" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 12px;">
+                        <div class="otp-icon-wrap" style="width: 50px; height: 50px; font-size: 24px; margin-bottom: 8px;">
+                            <i class='bx bx-shield-quarter'></i>
+                        </div>
+                        <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">
+                            OTP Verification
+                        </h4>
+                        <p style="font-size: 12.5px; color: #475569; margin: 0 0 10px 0; line-height: 1.45;">
+                            Please enter the OTP (One-Time Password) sent to your registered email to complete your verification.
+                        </p>
+                        <div style="display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; color: #0f172a;">
+                            <i class='bx bxl-gmail' style="color: #ea4335;"></i>
+                            <span id="forgotEmailDisplay"></span>
+                            <button type="button" onclick="editForgotEmail()" style="background: none; border: none; color: #0EB1B1; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 4px;">
+                                (Change)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 6 Separate Digit Boxes for OTP -->
+                    <div class="otp-inputs-grid" id="forgotOtpInputsContainer">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="0" autocomplete="off">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="1" autocomplete="off">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="2" autocomplete="off">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="3" autocomplete="off">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="4" autocomplete="off">
+                        <input type="text" class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-idx="5" autocomplete="off">
+                    </div>
+
+                    <!-- Timer & Resend (Matches Image 2) -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0 16px 0; font-size: 12px;">
+                        <span style="color: #64748b;">
+                            Remaining time: <strong id="forgotRemainingTimer" style="color: #0EB1B1; font-weight: 700;">14:59s</strong>
+                        </span>
+                        <span style="color: #64748b;">
+                            Didn't get the code? 
+                            <button type="button" id="btnForgotResend" onclick="sendForgotPasswordCode(true)" style="background: none; border: none; color: #0EB1B1; font-weight: 700; cursor: pointer; padding: 0; text-decoration: underline;">
+                                Resend
+                            </button>
+                        </span>
+                    </div>
+
+                    <!-- Action Buttons (Matches Image 2) -->
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button type="button" id="btnVerifyForgotOtp" onclick="verifyForgotOtpCode()" class="btn-primary w-full shadow-hover"
+                                style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px;">
+                            Verify
+                        </button>
+                        <button type="button" onclick="cancelForgotOtp()" class="btn-secondary w-full"
+                                style="padding: 11px; font-weight: 600; font-size: 13.5px; border-radius: 10px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Create New Password (After OTP is Verified) -->
+                <div id="forgotStep3" style="display: none;">
+                    <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px;">
+                        <i class='bx bx-check-shield' style="font-size: 26px; color: #059669;"></i>
+                        <div>
+                            <div style="font-size: 13px; font-weight: 700; color: #065f46;">OTP Verified Successfully</div>
+                            <div style="font-size: 11px; color: #047857;">Please create your new secure password below.</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <i class='bx bx-lock-alt'></i>
+                        <input type="password" id="forgotNewPassword" placeholder="New Password (min 8 characters)" minlength="8" required class="password-field">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('forgotNewPassword', 'toggleIconForgot1')">
+                            <i class='bx bx-hide' id="toggleIconForgot1"></i>
+                        </button>
+                    </div>
+
+                    <div class="input-group">
+                        <i class='bx bx-check-shield'></i>
+                        <input type="password" id="forgotConfirmPassword" placeholder="Confirm New Password" minlength="8" required class="password-field">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('forgotConfirmPassword', 'toggleIconForgot2')">
+                            <i class='bx bx-hide' id="toggleIconForgot2"></i>
+                        </button>
+                    </div>
+
+                    <button type="button" id="btnSubmitResetPassword" onclick="handleFinalPasswordReset()" class="btn-primary w-full shadow-hover"
+                            style="padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px; margin-top: 6px;">
+                        <i class='bx bx-reset mr-1'></i> Update Password &amp; Sign In
+                    </button>
+
+                    <div class="mt-3 text-center border-top pt-2">
+                        <p class="text-xs text-dim">
+                            Remember your password?
+                            <a href="javascript:void(0)" onclick="switchAuthTab('login')" class="text-primary font-semibold" style="text-decoration: none;">
+                                Back to Sign In
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- 6-Digit OTP Verification Modal -->
+    <div id="otpModal" class="otp-modal-overlay">
+        <div class="otp-modal-dialog">
+            <button type="button" class="otp-modal-close" onclick="closeOtpModal()" aria-label="Close modal">
+                <i class='bx bx-x'></i>
+            </button>
+
+            <div class="otp-icon-wrap">
+                <i class='bx bx-shield-quarter'></i>
+            </div>
+
+            <h3 style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">
+                Verify Your Gmail Address
+            </h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
+                Please enter the 6-digit security code sent to:
+            </p>
+            <div class="otp-email-pill">
+                <i class='bx bxl-gmail' style="color: #ea4335;"></i>
+                <span id="otpModalEmailText">patient@gmail.com</span>
+            </div>
+
+            <!-- Notification banner inside modal -->
+            <div id="otpModalAlert" class="notification-banner" style="display: none; margin: 8px 0 14px 0; padding: 8px 12px; font-size: 12px;">
+                <i id="otpModalAlertIcon" class='bx bx-error-circle'></i>
+                <span id="otpModalAlertMsg"></span>
+            </div>
+
+            <!-- 6-Box OTP input -->
+            <div class="otp-inputs-grid" id="otpBoxContainer">
+                <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="0" autofocus>
+                <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="1">
+                <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="2">
+                <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="3">
+                <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="4">
+                <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="5">
+            </div>
+
+            <!-- Timer & Resend Section -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0 18px 0; font-size: 12px;">
+                <span style="color: var(--text-muted);">
+                    <i class='bx bx-time-five'></i> Valid for 10 minutes
+                </span>
+                <button type="button" id="btnOtpModalResend" onclick="resendOtpFromModal()" style="background: none; border: none; color: #0EB1B1; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 6px; border-radius: 6px;">
+                    <i class='bx bx-refresh'></i> Resend Code
+                </button>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button type="button" id="btnModalVerifyOtp" onclick="submitOtpFromModal()" class="btn-primary w-full shadow-hover" style="padding: 12px; font-size: 14px; font-weight: 700; border-radius: 10px;">
+                    <i class='bx bx-check-shield mr-1'></i> Verify Code &amp; Create Account &rarr;
+                </button>
+                <button type="button" onclick="closeOtpModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; padding: 6px;">
+                    Change Email or Details
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Account Chooser Modal (Identical to Google's Account Selector) -->
+    <div id="googleAuthModal" class="google-chooser-overlay">
+        <div class="google-chooser-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="24" height="24" viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+                    <span style="font-size: 13px; font-weight: 500; color: #bdc1c6;">Sign in with Google</span>
+                </div>
+                <button type="button" onclick="closeGoogleAuthModal()" style="background: none; border: none; color: #9aa0a6; font-size: 20px; cursor: pointer; padding: 2px 6px; border-radius: 50%;" aria-label="Close">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+
+            <h3 style="font-size: 22px; font-weight: 500; color: #e8eaed; margin: 4px 0 2px 0;">Choose an account</h3>
+            <p style="font-size: 13px; color: #9aa0a6; margin: 0 0 14px 0;">to continue to <strong style="color: #e8eaed;">OptiDent Clinical Management</strong></p>
+
+            <!-- Loading overlay inside modal -->
+            <div id="googleLoadingSpinner" style="display: none; padding: 24px 0; text-align: center;">
+                <div style="display: inline-block; width: 34px; height: 34px; border: 3.5px solid rgba(138, 180, 248, 0.25); border-radius: 50%; border-top-color: #8ab4f8; animation: spin 0.8s linear infinite;"></div>
+                <p id="googleLoadingText" style="margin-top: 12px; font-size: 13.5px; color: #8ab4f8; font-weight: 500;">Signing in with Google...</p>
+            </div>
+
+            <!-- Error alert inside modal -->
+            <div id="googleAuthAlert" class="notification-banner" style="display: none; margin: 0 0 14px 0; padding: 8px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;">
+                <i id="googleAuthAlertIcon" class='bx bx-error-circle'></i>
+                <span id="googleAuthAlertMsg"></span>
+            </div>
+
+            <!-- Google Accounts List View -->
+            <div id="googleAccountsList" style="max-height: 330px; overflow-y: auto; border-top: 1px solid #3c4043; border-bottom: 1px solid #3c4043;">
+                <!-- Account 1 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('edjamenf@gmail.com', 'Edjamen Flores')">
+                    <div class="google-acc-avatar" style="background: #2e7d32; color: #ffffff;">E</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Edjamen Flores</div>
+                        <div class="google-acc-email">edjamenf@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- Account 2 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('optidentt@gmail.com', 'OptiDent Admin')">
+                    <div class="google-acc-avatar" style="background: #0EB1B1; color: #ffffff;">O</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">OptiDent Admin</div>
+                        <div class="google-acc-email">optidentt@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- Account 3 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('2401102032@student.buksu.edu.ph', 'Edjamen Flores')">
+                    <div class="google-acc-avatar" style="background: #0288d1; color: #ffffff;">E</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Edjamen Flores</div>
+                        <div class="google-acc-email">2401102032@student.buksu.edu.ph</div>
+                    </div>
+                </div>
+
+                <!-- Account 4 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('laymen1014@gmail.com', 'Lay Men')">
+                    <div class="google-acc-avatar" style="background: #00897b; color: #ffffff;">L</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Lay Men</div>
+                        <div class="google-acc-email">laymen1014@gmail.com</div>
+                    </div>
+                    <span style="font-size: 11px; color: #9aa0a6; padding: 2px 6px;">Signed out</span>
+                </div>
+
+                <!-- Account 5 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('oniichanejmn@gmail.com', 'Ejmn Oniichan')">
+                    <div class="google-acc-avatar" style="background: #00acc1; color: #ffffff;">E</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Ejmn Oniichan</div>
+                        <div class="google-acc-email">oniichanejmn@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- Account 6 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('edflores280@gmail.com', 'Jay Flores')">
+                    <div class="google-acc-avatar" style="background: #fb8c00; color: #ffffff;">J</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Jay Flores</div>
+                        <div class="google-acc-email">edflores280@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- Account 7 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('janelflores567@gmail.com', 'Janel Flores')">
+                    <div class="google-acc-avatar" style="background: #d81b60; color: #ffffff;">J</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Janel Flores</div>
+                        <div class="google-acc-email">janelflores567@gmail.com</div>
+                    </div>
+                    <span style="font-size: 11px; color: #9aa0a6; padding: 2px 6px;">Signed out</span>
+                </div>
+
+                <!-- Account 8 -->
+                <div class="google-acc-row" onclick="selectGoogleAccount('2401101234@student.buksu.edu.ph', 'Keren Sole Salvanera')">
+                    <div class="google-acc-avatar" style="background: #5e35b1; color: #ffffff;">K</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name">Keren Sole Salvanera</div>
+                        <div class="google-acc-email">2401101234@student.buksu.edu.ph</div>
+                    </div>
+                </div>
+
+                <!-- Use another account -->
+                <div class="google-acc-row" onclick="toggleUseAnotherGoogleAccount(true)" style="border-bottom: none;">
+                    <div class="google-acc-avatar" style="background: transparent; border: 1.5px solid #5f6368; color: #e8eaed; font-size: 18px;">
+                        <i class='bx bx-user'></i>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="google-acc-name" style="font-weight: 500;">Use another account</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Account Input View (Shown when clicking 'Use another account') -->
+            <div id="googleAnotherAccountView" style="display: none; padding-top: 14px;">
+                <label style="display: block; font-size: 12px; font-weight: 500; color: #bdc1c6; margin-bottom: 6px;">Email or phone</label>
+                <input type="email" id="googleCustomEmail" placeholder="Enter your Google or Gmail account" style="width: 100%; padding: 11px 12px; font-size: 13.5px; border: 1.5px solid #5f6368; border-radius: 8px; background: #2a2b2e; color: #ffffff; outline: none; box-sizing: border-box;">
+                <div style="display: flex; gap: 8px; margin-top: 14px;">
+                    <button type="button" onclick="submitCustomGoogleAccount()" style="flex: 1; padding: 10px; background: #8ab4f8; color: #202124; font-weight: 600; font-size: 13.5px; border: none; border-radius: 8px; cursor: pointer;">
+                        Next &rarr;
+                    </button>
+                    <button type="button" onclick="toggleUseAnotherGoogleAccount(false)" style="padding: 10px 14px; background: transparent; color: #bdc1c6; border: 1px solid #5f6368; font-size: 13px; border-radius: 8px; cursor: pointer;">
+                        Back
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #9aa0a6;">
+                <span>OptiDent Google OAuth 2.0</span>
+                <span style="color: #8ab4f8; font-size: 11px;">Protected by Google Identity</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let activeSessionDest = null;
+        let sessionRedirectTimer = null;
+        let isMaintenanceMode = false;
+
+        function applyMaintenanceModeUI(active) {
+            isMaintenanceMode = !!active;
+            const banner = document.getElementById('maintenanceAlertBanner');
+            const tabsContainer = document.getElementById('authTabsContainer');
+            const subtext = document.getElementById('portalSubtext');
+            const emailInput = document.getElementById('loginEmail');
+            const passInput = document.getElementById('loginPassword');
+            const submitBtn = document.getElementById('submitLoginBtn');
+            const staffInvite = document.getElementById('staffInviteLink');
+            const newPatientFooter = document.getElementById('newPatientPrompt');
+            const googleAuth = document.getElementById('googleAuthContainer');
+            const googleReg = document.getElementById('googleRegisterContainer');
+
+            if (isMaintenanceMode) {
+                if (banner) banner.style.display = 'block';
+                if (tabsContainer) tabsContainer.style.display = 'none';
+                if (subtext) subtext.innerHTML = '<span style="color: #dc2626; font-weight: 700; font-size: 13px;"><i class="bx bx-shield-quarter mr-1"></i> Super Administrator Emergency Access Console</span>';
+                if (emailInput) emailInput.placeholder = 'Super Admin Email Address';
+                if (passInput) passInput.placeholder = 'Super Admin Password';
+                if (submitBtn) {
+                    submitBtn.innerHTML = "<i class='bx bx-shield-quarter mr-1'></i> Sign In as Super Admin";
+                    submitBtn.style.background = '#dc2626';
+                    submitBtn.style.borderColor = '#b91c1c';
+                }
+                if (staffInvite) staffInvite.style.display = 'none';
+                if (newPatientFooter) newPatientFooter.style.display = 'none';
+                if (googleAuth) googleAuth.style.display = 'none';
+                if (googleReg) googleReg.style.display = 'none';
+
+                if (window.location.hash === '#register') {
+                    switchAuthTab('login');
+                }
+            } else {
+                if (banner) banner.style.display = 'none';
+                if (tabsContainer) tabsContainer.style.display = 'grid';
+                if (subtext) subtext.textContent = 'Unified Access Portal for Patients & Staff';
+                if (emailInput) emailInput.placeholder = 'Email Address (Staff or Patient)';
+                if (passInput) passInput.placeholder = 'Password';
+                if (submitBtn) {
+                    submitBtn.innerHTML = "<i class='bx bx-log-in-circle mr-1'></i> Sign In to OptiDent";
+                    submitBtn.style.background = '';
+                    submitBtn.style.borderColor = '';
+                }
+                if (staffInvite) staffInvite.style.display = '';
+                if (newPatientFooter) newPatientFooter.style.display = '';
+                if (googleAuth) googleAuth.style.display = 'block';
+                if (googleReg) googleReg.style.display = 'block';
+            }
+        }
+
+        // ── Google Sign-In & Account Chooser Handlers ──────────────────
+        let googleOAuthConfig = { enabled: true, client_id: '' };
+
+        async function initGoogleAuthConfig() {
+            try {
+                const res = await fetch('api/auth/google_config');
+                if (res.ok) {
+                    googleOAuthConfig = await res.json();
+                }
+            } catch (_) {}
+        }
+        initGoogleAuthConfig();
+
+        function handleGoogleSignIn() {
+            if (isMaintenanceMode) {
+                showNotif('error', 'Google Sign-In is temporarily disabled during System Maintenance Mode. Please sign in with Super Admin credentials.');
+                return;
+            }
+
+            // If a live Google Client ID is configured in settings or .env, open official Google OAuth popup
+            if (googleOAuthConfig && googleOAuthConfig.client_id) {
+                const clientId = googleOAuthConfig.client_id;
+                const redirectUri = window.location.origin + '/index.html';
+                const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token%20id_token&scope=openid%20profile%20email&prompt=select_account`;
+                const popup = window.open(authUrl, 'GoogleSignIn', 'width=500,height=620,left=350,top=120');
+                if (popup) return;
+            }
+
+            // Otherwise, open the authentic Google Account Chooser
+            toggleUseAnotherGoogleAccount(false);
+            const alert = document.getElementById('googleAuthAlert');
+            if (alert) alert.style.display = 'none';
+            const spinner = document.getElementById('googleLoadingSpinner');
+            if (spinner) spinner.style.display = 'none';
+            const list = document.getElementById('googleAccountsList');
+            if (list) list.style.display = 'block';
+
+            const modal = document.getElementById('googleAuthModal');
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeGoogleAuthModal() {
+            const modal = document.getElementById('googleAuthModal');
+            if (modal) modal.classList.remove('active');
+            const alert = document.getElementById('googleAuthAlert');
+            if (alert) alert.style.display = 'none';
+            const spinner = document.getElementById('googleLoadingSpinner');
+            if (spinner) spinner.style.display = 'none';
+        }
+
+        function toggleUseAnotherGoogleAccount(showCustom = true) {
+            const list = document.getElementById('googleAccountsList');
+            const customView = document.getElementById('googleAnotherAccountView');
+            const alert = document.getElementById('googleAuthAlert');
+            if (alert) alert.style.display = 'none';
+
+            if (showCustom) {
+                if (list) list.style.display = 'none';
+                if (customView) {
+                    customView.style.display = 'block';
+                    const inp = document.getElementById('googleCustomEmail');
+                    if (inp) {
+                        inp.value = '';
+                        inp.focus();
+                    }
+                }
+            } else {
+                if (list) list.style.display = 'block';
+                if (customView) customView.style.display = 'none';
+            }
+        }
+
+        async function selectGoogleAccount(email, name) {
+            const alert = document.getElementById('googleAuthAlert');
+            const alertMsg = document.getElementById('googleAuthAlertMsg');
+            const spinner = document.getElementById('googleLoadingSpinner');
+            const spinnerText = document.getElementById('googleLoadingText');
+            const list = document.getElementById('googleAccountsList');
+            const customView = document.getElementById('googleAnotherAccountView');
+
+            if (alert) alert.style.display = 'none';
+            if (list) list.style.display = 'none';
+            if (customView) customView.style.display = 'none';
+            if (spinner) {
+                spinner.style.display = 'block';
+                if (spinnerText) spinnerText.textContent = `Signing in as ${name || email}...`;
+            }
+
+            try {
+                const res = await fetch('api/auth/google_login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, name })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    if (spinnerText) spinnerText.textContent = 'Account authenticated! Opening OptiDent...';
+                    setTimeout(() => {
+                        closeGoogleAuthModal();
+                        showNotif('success', `Signed in via Google as ${data.user?.full_name || email}. Launching portal...`);
+                        setTimeout(() => {
+                            window.location.href = data.redirect || data.redirect_url || 'client_dashboard.html';
+                        }, 500);
+                    }, 400);
+                } else {
+                    if (spinner) spinner.style.display = 'none';
+                    if (list) list.style.display = 'block';
+                    if (alert && alertMsg) {
+                        alert.style.display = 'flex';
+                        alertMsg.textContent = data.message || 'Google account sign-in failed.';
+                    }
+                }
+            } catch (err) {
+                if (spinner) spinner.style.display = 'none';
+                if (list) list.style.display = 'block';
+                if (alert && alertMsg) {
+                    alert.style.display = 'flex';
+                    alertMsg.textContent = 'Unable to reach the OptiDent authentication server.';
+                }
+            }
+        }
+
+        async function submitCustomGoogleAccount() {
+            const inp = document.getElementById('googleCustomEmail');
+            const email = (inp ? inp.value : '').trim().toLowerCase();
+            const alert = document.getElementById('googleAuthAlert');
+            const alertMsg = document.getElementById('googleAuthAlertMsg');
+
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                if (alert && alertMsg) {
+                    alert.style.display = 'flex';
+                    alertMsg.textContent = 'Please enter a valid Google account or Gmail address.';
+                }
+                return;
+            }
+
+            const inferredName = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            await selectGoogleAccount(email, inferredName);
+        }
+
+        // ── Tab Switching ────────────────────────────────────────────────
+        function switchAuthTab(tabName) {
+            hideNotif();
+            if (sessionRedirectTimer) {
+                clearTimeout(sessionRedirectTimer);
+                sessionRedirectTimer = null;
+            }
+            if (isMaintenanceMode && tabName === 'register') {
+                showNotif('error', 'Patient registration is currently disabled while System Maintenance Mode is active.');
+                return;
+            }
+            const activeBanner = document.getElementById('activeSessionBanner');
+            const box = document.getElementById('authBox');
+            const btnLogin = document.getElementById('tabBtnLogin');
+            const btnReg = document.getElementById('tabBtnRegister');
+            const formLogin = document.getElementById('form-login');
+            const formReg = document.getElementById('form-register');
+            const formForgot = document.getElementById('form-forgot');
+            const tabsContainer = document.getElementById('authTabsContainer');
+            const subtext = document.getElementById('portalSubtext');
+
+            if (tabName === 'register') {
+                if (activeBanner) activeBanner.style.display = 'none';
+                if (tabsContainer) tabsContainer.style.display = 'grid';
+                box.classList.add('register-mode');
+                btnLogin.classList.remove('active');
+                btnReg.classList.add('active');
+                formLogin.style.display = 'none';
+                if (formForgot) formForgot.style.display = 'none';
+                if (typeof cancelForgotOtp === 'function') cancelForgotOtp();
+                formReg.style.display = 'block';
+                subtext.textContent = 'Create your patient account to access dental records & book visits.';
+                window.location.hash = '#register';
+            } else if (tabName === 'forgot') {
+                if (activeBanner) activeBanner.style.display = 'none';
+                if (tabsContainer) tabsContainer.style.display = 'none';
+                box.classList.remove('register-mode');
+                btnLogin.classList.remove('active');
+                btnReg.classList.remove('active');
+                formLogin.style.display = 'none';
+                formReg.style.display = 'none';
+                if (formForgot) formForgot.style.display = 'block';
+                subtext.textContent = isMaintenanceMode ? 'Super Admin Account Recovery' : 'Account Recovery & Password Reset';
+                window.location.hash = '#forgot';
+            } else {
+                if (tabsContainer) tabsContainer.style.display = isMaintenanceMode ? 'none' : 'grid';
+                box.classList.remove('register-mode');
+                btnReg.classList.remove('active');
+                btnLogin.classList.add('active');
+                formReg.style.display = 'none';
+                if (formForgot) formForgot.style.display = 'none';
+                if (typeof cancelForgotOtp === 'function') cancelForgotOtp();
+                formLogin.style.display = 'block';
+                if (isMaintenanceMode) {
+                    subtext.innerHTML = '<span style="color: #dc2626; font-weight: 700; font-size: 13px;"><i class="bx bx-shield-quarter mr-1"></i> Super Administrator Emergency Access Console</span>';
+                } else {
+                    subtext.textContent = 'Unified Access Portal for Patients & Staff';
+                }
+                window.location.hash = '#login';
+                if (activeSessionDest && activeBanner) {
+                    activeBanner.style.display = 'block';
+                }
+            }
+        }
+
+        // ── Toggle Password Visibility ───────────────────────────────────
+        function togglePasswordVisibility(inputId, iconId) {
+            const inp = document.getElementById(inputId);
+            const ico = document.getElementById(iconId);
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                ico.className = 'bx bx-show';
+            } else {
+                inp.type = 'password';
+                ico.className = 'bx bx-hide';
+            }
+        }
+
+        // ── Calculate Patient Age ────────────────────────────────────────
+        function calculateClientAge() {
+            const dobVal = document.getElementById('regDob').value;
+            const badge = document.getElementById('regAgeBadge');
+            if (!dobVal) {
+                badge.textContent = 'Age: --';
+                return;
+            }
+            const dob = new Date(dobVal);
+            const now = new Date();
+            let age = now.getFullYear() - dob.getFullYear();
+            const m = now.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) {
+                age--;
+            }
+            badge.textContent = (age >= 0 && !isNaN(age)) ? `Age: ${age} yrs` : 'Age: --';
+        }
+
+        // ── Quick Allergy Chips ──────────────────────────────────────────
+        function toggleRegAllergy(chipText, chipBtn) {
+            const input = document.getElementById('regAllergies');
+            let current = input.value.trim();
+            let items = current ? current.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+            const idx = items.findIndex(i => i.toLowerCase() === chipText.toLowerCase());
+            if (idx >= 0) {
+                items.splice(idx, 1);
+                if (chipBtn) chipBtn.classList.remove('active');
+            } else {
+                items.push(chipText);
+                if (chipBtn) chipBtn.classList.add('active');
+            }
+            input.value = items.join(', ');
+        }
+
+        let recaptchaEnabled = false;
+
+        async function initRecaptchaConfig() {
+            try {
+                const res = await fetch('api/auth/recaptcha_config');
+                const cfg = await res.json();
+                if (cfg) {
+                    recaptchaEnabled = !!cfg.enabled;
+                    const wrap = document.getElementById('recaptchaWrapper');
+                    if (wrap) wrap.style.display = recaptchaEnabled ? 'flex' : 'none';
+                    if (cfg.site_key) {
+                        const el = document.getElementById('loginRecaptcha');
+                        if (el && el.getAttribute('data-sitekey') !== cfg.site_key) {
+                            el.setAttribute('data-sitekey', cfg.site_key);
+                        }
+                    }
+                    if (cfg.maintenance_mode !== undefined) {
+                        applyMaintenanceModeUI(!!cfg.maintenance_mode);
+                    }
+                }
+            } catch (_) {}
+        }
+        initRecaptchaConfig();
+
+        // ── Handle Login Submission (C-002) ──────────────────────────────
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            hideNotif();
+
+            const email    = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const btn      = document.getElementById('submitLoginBtn');
+
+            if (!email || !password) {
+                showNotif('error', 'Please enter your email and password.');
+                return;
+            }
+
+            // reCAPTCHA verification (enforced only when enabled by Super Admin)
+            let recaptchaToken = '';
+            if (recaptchaEnabled && typeof grecaptcha !== 'undefined') {
+                try {
+                    recaptchaToken = grecaptcha.getResponse();
+                } catch (_) {}
+                if (!recaptchaToken) {
+                    showNotif('error', 'Please complete the reCAPTCHA challenge ("I\'m not a robot") before signing in.');
+                    return;
+                }
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Authenticating...";
+
+            try {
+                const res = await fetch('api/auth/login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, required_role: 'any', recaptcha_token: recaptchaToken })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    const label = data.user.role === 'doctor'
+                        ? `Dr. ${data.user.full_name}`
+                        : data.user.full_name;
+                    showNotif('success', `Welcome back, ${label}! Launching workspace...`);
+
+                    const dest = data.redirect ||
+                        (['super_admin', 'admin'].includes(data.user.role)
+                            ? 'admin_dashboard.html'
+                            : data.user.role === 'doctor'
+                                ? 'doctor_dashboard.html'
+                                : (['receptionist', 'staff'].includes(data.user.role)
+                                    ? 'receptionist_dashboard.html'
+                                    : (['patient', 'client'].includes(data.user.role)
+                                        ? 'client_dashboard.html'
+                                        : 'index.html')));
+
+                    setTimeout(() => { window.location.href = dest; }, 850);
+                } else {
+                    showNotif('error', data.message || 'Login failed. Please check your credentials.');
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-log-in-circle mr-1'></i> Sign In to OptiDent";
+                    if (typeof grecaptcha !== 'undefined') {
+                        try { grecaptcha.reset(); } catch (_) {}
+                    }
+                }
+            } catch (err) {
+                showNotif('error', 'Unable to reach the server. Please verify the local server is running.');
+                btn.disabled = false;
+                btn.innerHTML = "<i class='bx bx-log-in-circle mr-1'></i> Sign In to OptiDent";
+                if (typeof grecaptcha !== 'undefined') {
+                    try { grecaptcha.reset(); } catch (_) {}
+                }
+            }
+        }
+
+        // ── Request 6-Digit Gmail Verification Code ───────────────────────
+        // ── 6-Digit OTP Modal & Registration Step 1 ──────────────────────
+        let codeCooldown = 0;
+        let codeInterval = null;
+
+        function setupOtpInputs() {
+            const boxes = document.querySelectorAll('.otp-box');
+            boxes.forEach((box, idx) => {
+                box.addEventListener('input', (e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    e.target.value = val ? val[val.length - 1] : '';
+                    if (e.target.value) {
+                        e.target.classList.add('filled');
+                        if (idx < boxes.length - 1) {
+                            boxes[idx + 1].focus();
+                        } else {
+                            const code = getOtpCode();
+                            if (code.length === 6) {
+                                document.getElementById('btnModalVerifyOtp').focus();
+                            }
+                        }
+                    } else {
+                        e.target.classList.remove('filled');
+                    }
+                });
+
+                box.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !box.value && idx > 0) {
+                        boxes[idx - 1].focus();
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        submitOtpFromModal();
+                    }
+                });
+
+                box.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+                    const cleanDigits = pasteData.replace(/[^0-9]/g, '').slice(0, 6);
+                    if (cleanDigits) {
+                        cleanDigits.split('').forEach((d, i) => {
+                            if (boxes[i]) {
+                                boxes[i].value = d;
+                                boxes[i].classList.add('filled');
+                            }
+                        });
+                        const nextIdx = Math.min(cleanDigits.length, 5);
+                        boxes[nextIdx].focus();
+                        if (cleanDigits.length === 6) {
+                            document.getElementById('btnModalVerifyOtp').focus();
+                        }
+                    }
+                });
+            });
+        }
+
+        function getOtpCode() {
+            const boxes = document.querySelectorAll('.otp-box');
+            let code = '';
+            boxes.forEach(b => { code += (b.value || '').trim(); });
+            return code;
+        }
+
+        function openOtpModal(email) {
+            hideOtpModalAlert();
+            if (!email) {
+                email = document.getElementById('regEmail').value.trim();
+            }
+            const emailSpan = document.getElementById('otpModalEmailText');
+            if (emailSpan) emailSpan.textContent = email || 'your Gmail';
+
+            const modal = document.getElementById('otpModal');
+            if (modal) modal.classList.add('active');
+
+            // Reset digit boxes and focus first
+            const boxes = document.querySelectorAll('.otp-box');
+            boxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+            setTimeout(() => {
+                if (boxes[0]) boxes[0].focus();
+            }, 100);
+        }
+
+        function closeOtpModal() {
+            const modal = document.getElementById('otpModal');
+            if (modal) modal.classList.remove('active');
+            const notice = document.getElementById('reopenModalNotice');
+            if (notice) notice.style.display = 'block';
+        }
+
+        function showOtpModalAlert(type, msg) {
+            const alert = document.getElementById('otpModalAlert');
+            const alertMsg = document.getElementById('otpModalAlertMsg');
+            const alertIco = document.getElementById('otpModalAlertIcon');
+            if (!alert) return;
+            alert.className = `notification-banner ${type}`;
+            alert.style.display = 'flex';
+            if (alertMsg) alertMsg.textContent = msg;
+            if (alertIco) alertIco.className = type === 'success' ? 'bx bx-check-circle' : 'bx bx-error-circle';
+        }
+
+        function hideOtpModalAlert() {
+            const alert = document.getElementById('otpModalAlert');
+            if (alert) alert.style.display = 'none';
+        }
+
+        function startCooldownTimer() {
+            codeCooldown = 60;
+            updateCooldownDisplay();
+            if (codeInterval) clearInterval(codeInterval);
+            codeInterval = setInterval(() => {
+                codeCooldown--;
+                if (codeCooldown <= 0) {
+                    clearInterval(codeInterval);
+                    const btn = document.getElementById('btnOtpModalResend');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = "<i class='bx bx-refresh'></i> Resend Code";
+                        btn.style.color = '#0EB1B1';
+                        btn.style.cursor = 'pointer';
+                    }
+                } else {
+                    updateCooldownDisplay();
+                }
+            }, 1000);
+        }
+
+        function updateCooldownDisplay() {
+            const btn = document.getElementById('btnOtpModalResend');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class='bx bx-time'></i> Resend in ${codeCooldown}s`;
+                btn.style.color = '#94a3b8';
+                btn.style.cursor = 'not-allowed';
+            }
+        }
+
+        async function resendOtpFromModal() {
+            if (codeCooldown > 0) return;
+            const email = document.getElementById('regEmail').value.trim();
+            const fullName = document.getElementById('regFullName').value.trim() || 'Patient';
+            const btn = document.getElementById('btnOtpModalResend');
+
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Sending...";
+
+            try {
+                const res = await fetch('api/auth/send_patient_code.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, full_name: fullName })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    showOtpModalAlert('success', `✓ New verification code sent to ${email}!`);
+                    startCooldownTimer();
+                } else {
+                    showOtpModalAlert('error', data.message || 'Failed to send verification code.');
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-refresh'></i> Resend Code";
+                }
+            } catch (err) {
+                showOtpModalAlert('error', 'Unable to reach the verification server.');
+                btn.disabled = false;
+                btn.innerHTML = "<i class='bx bx-refresh'></i> Resend Code";
+            }
+        }
+
+        // Send code & open the 6-digit OTP modal
+        async function handleSendCodeAndOpenModal(e) {
+            if (e) e.preventDefault();
+            hideNotif();
+
+            const fullName = document.getElementById('regFullName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const consent = document.getElementById('regConsent').checked;
+
+            if (!fullName) {
+                showNotif('error', 'Please enter your Full Legal Name / Username.');
+                document.getElementById('regFullName').focus();
+                return;
+            }
+
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showNotif('error', 'Please enter a valid Gmail address.');
+                document.getElementById('regEmail').focus();
+                return;
+            }
+
+            if (password.length < 8) {
+                showNotif('error', 'Password must be at least 8 characters long.');
+                document.getElementById('regPassword').focus();
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showNotif('error', 'Passwords do not match. Please re-enter your password.');
+                document.getElementById('regConfirmPassword').focus();
+                return;
+            }
+
+            if (!consent) {
+                showNotif('error', 'Please agree to the Privacy Policy to proceed.');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitStep1');
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Sending Verification Code...";
+
+            try {
+                const res = await fetch('api/auth/send_patient_code.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, full_name: fullName })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-key mr-1'></i> Enter 6-Digit Code &rarr;";
+                    const notice = document.getElementById('reopenModalNotice');
+                    if (notice) notice.style.display = 'block';
+
+                    startCooldownTimer();
+                    // Open the dedicated 6-digit verification code modal!
+                    openOtpModal(email);
+                } else {
+                    showNotif('error', data.message || 'Failed to send verification code.');
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-mail-send mr-1'></i> Send Verification Code &amp; Continue &rarr;";
+                }
+            } catch (err) {
+                showNotif('error', 'Unable to reach the verification server. Please verify the local server.');
+                btn.disabled = false;
+                btn.innerHTML = "<i class='bx bx-mail-send mr-1'></i> Send Verification Code &amp; Continue &rarr;";
+            }
+        }
+
+        // Submit the 6 digits from inside the modal to complete Step 1
+        async function submitOtpFromModal() {
+            hideOtpModalAlert();
+            const code = getOtpCode();
+
+            if (!code || code.length !== 6) {
+                showOtpModalAlert('error', 'Please enter all 6 digits of your verification code.');
+                const container = document.getElementById('otpBoxContainer');
+                if (container) {
+                    container.style.animation = 'otpShake 0.4s ease';
+                    setTimeout(() => { container.style.animation = ''; }, 400);
+                }
+                return;
+            }
+
+            const fullName = document.getElementById('regFullName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+            const btn = document.getElementById('btnModalVerifyOtp');
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Verifying Code...";
+
+            try {
+                const res = await fetch('api/auth/client_register_step1.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: fullName,
+                        email: email,
+                        verification_code: code,
+                        password: password,
+                        confirm_password: confirmPassword
+                    })
+                });
+                const data = await res.json();
+
+                if (res.status === 201 && data.status === 'success') {
+                    showOtpModalAlert('success', '✓ Gmail verified! Creating your patient account...');
+                    btn.innerHTML = "<i class='bx bx-check-circle mr-1'></i> Verified!";
+                    btn.style.background = '#16a34a';
+
+                    setTimeout(() => {
+                        closeOtpModal();
+                        showNotif('success', '✓ Account created & Gmail verified! Please complete your personal & clinical details.');
+
+                        // Update Stepper
+                        const chip1 = document.getElementById('chipStep1');
+                        const chip2 = document.getElementById('chipStep2');
+                        const step1Ico = document.getElementById('step1Icon');
+                        const step2Ico = document.getElementById('step2Icon');
+                        const stepLine = document.getElementById('stepDividerLine');
+
+                        if (chip1) {
+                            chip1.style.background = '#f0fdf4';
+                            chip1.style.color = '#15803d';
+                        }
+                        if (step1Ico) {
+                            step1Ico.innerHTML = "<i class='bx bx-check'></i>";
+                            step1Ico.style.background = '#16a34a';
+                        }
+                        if (stepLine) stepLine.style.background = '#0EB1B1';
+                        if (chip2) {
+                            chip2.style.background = 'rgba(14, 177, 177, 0.12)';
+                            chip2.style.color = 'var(--primary-dark)';
+                        }
+                        if (step2Ico) {
+                            step2Ico.style.background = 'var(--primary)';
+                        }
+
+                        // Populate welcome name
+                        const welcome = document.getElementById('step2WelcomeText');
+                        if (welcome) welcome.textContent = `Account Verified! Welcome, ${fullName}.`;
+
+                        // Switch view from Step 1 to Step 2
+                        document.getElementById('regStep1Container').style.display = 'none';
+                        document.getElementById('regStep2Container').style.display = 'block';
+                        document.getElementById('regPhone').focus();
+                    }, 600);
+                } else {
+                    showOtpModalAlert('error', data.message || 'Invalid or expired verification code.');
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-check-shield mr-1'></i> Verify Code &amp; Create Account &rarr;";
+                    const container = document.getElementById('otpBoxContainer');
+                    if (container) {
+                        container.style.animation = 'otpShake 0.4s ease';
+                        setTimeout(() => { container.style.animation = ''; }, 400);
+                    }
+                }
+            } catch (err) {
+                showOtpModalAlert('error', 'Unable to reach the server. Please verify your connection.');
+                btn.disabled = false;
+                btn.innerHTML = "<i class='bx bx-check-shield mr-1'></i> Verify Code &amp; Create Account &rarr;";
+            }
+        }
+
+        // ── STEP 2: Save Personal Info & Clinical Safety Details ───────────
+        async function handleStep2Complete(e) {
+            if (e) e.preventDefault();
+            hideNotif();
+
+            const phone = document.getElementById('regPhone').value.trim();
+            const dob = document.getElementById('regDob').value;
+            const gender = document.getElementById('regGender').value;
+            const bloodType = document.getElementById('regBloodType').value;
+            const address = document.getElementById('regAddress').value.trim();
+            const allergies = document.getElementById('regAllergies').value.trim();
+            const emergName = document.getElementById('regEmergName').value.trim();
+            const emergPhone = document.getElementById('regEmergPhone').value.trim();
+
+            const btn = document.getElementById('btnSubmitStep2');
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Saving Clinical Profile...";
+
+            const payload = {
+                phone: phone,
+                dob: dob,
+                gender: gender,
+                blood_type: bloodType,
+                address: address,
+                allergies: allergies,
+                emergency_contact_name: emergName,
+                emergency_contact_phone: emergPhone
+            };
+
+            try {
+                const res = await fetch('api/client/complete_profile.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    showNotif('success', 'Profile and clinical safety saved! Launching Patient Portal...');
+                    setTimeout(() => {
+                        window.location.href = data.redirect || 'client_dashboard.html';
+                    }, 800);
+                } else {
+                    showNotif('error', data.message || 'Failed to save clinical details.');
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-check-double mr-1'></i> Save Clinical Profile &amp; Access Portal";
+                }
+            } catch (err) {
+                showNotif('error', 'Unable to reach the server. Opening dashboard...');
+                setTimeout(() => { window.location.href = 'client_dashboard.html'; }, 900);
+            }
+        }
+
+        function showNotif(type, text) {
+            const notif = document.getElementById('authNotification');
+            const msg   = document.getElementById('notifMessage');
+            const ico   = document.getElementById('notifIcon');
+            notif.className    = `notification-banner ${type}`;
+            msg.textContent    = text;
+            ico.className      = type === 'success' ? 'bx bx-check-circle' : 'bx bx-error-circle';
+            ico.style.fontSize = '18px';
+        }
+
+        function hideNotif() {
+            document.getElementById('authNotification').style.display = 'none';
+        }
+
+        // ── Forgot Password Logic (Image 2 Segmented OTP Design) ───────────
+        let verifiedForgotCode = '';
+        let forgotTimerInterval = null;
+
+        function setupForgotOtpInputs() {
+            const boxes = document.querySelectorAll('.forgot-otp-box');
+            boxes.forEach((box, idx) => {
+                box.addEventListener('input', (e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    e.target.value = val ? val[val.length - 1] : '';
+                    e.target.classList.remove('error');
+                    
+                    if (e.target.value) {
+                        e.target.classList.add('filled');
+                        if (idx < boxes.length - 1) {
+                            boxes[idx + 1].focus();
+                        } else {
+                            const code = getForgotOtpCode();
+                            if (code.length === 6) {
+                                document.getElementById('btnVerifyForgotOtp').focus();
+                            }
+                        }
+                    } else {
+                        e.target.classList.remove('filled');
+                    }
+                });
+
+                box.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace') {
+                        if (!box.value && idx > 0) {
+                            boxes[idx - 1].focus();
+                            boxes[idx - 1].value = '';
+                            boxes[idx - 1].classList.remove('filled', 'error');
+                        } else {
+                            box.value = '';
+                            box.classList.remove('filled', 'error');
+                        }
+                    } else if (e.key === 'ArrowLeft' && idx > 0) {
+                        boxes[idx - 1].focus();
+                    } else if (e.key === 'ArrowRight' && idx < boxes.length - 1) {
+                        boxes[idx + 1].focus();
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const code = getForgotOtpCode();
+                        if (code.length === 6) {
+                            verifyForgotOtpCode();
+                        }
+                    }
+                });
+
+                box.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+                    const digits = pasteData.replace(/[^0-9]/g, '').slice(0, 6);
+                    if (digits) {
+                        digits.split('').forEach((d, i) => {
+                            if (boxes[i]) {
+                                boxes[i].value = d;
+                                boxes[i].classList.add('filled');
+                                boxes[i].classList.remove('error');
+                            }
+                        });
+                        const focusIdx = Math.min(digits.length, boxes.length - 1);
+                        if (boxes[focusIdx]) boxes[focusIdx].focus();
+                        if (digits.length === 6) {
+                            verifyForgotOtpCode();
+                        }
+                    }
+                });
+            });
+        }
+
+        function getForgotOtpCode() {
+            const boxes = document.querySelectorAll('.forgot-otp-box');
+            let code = '';
+            boxes.forEach(b => { code += (b.value || '').trim(); });
+            return code;
+        }
+
+        function startForgotTimer(totalSeconds = 899) {
+            clearInterval(forgotTimerInterval);
+            let remaining = totalSeconds;
+            const timerEl = document.getElementById('forgotRemainingTimer');
+            const resendBtn = document.getElementById('btnForgotResend');
+            if (resendBtn) resendBtn.disabled = true;
+
+            function updateDisplay() {
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}s`;
+                if (timerEl) timerEl.textContent = formatted;
+
+                if (remaining <= 0) {
+                    clearInterval(forgotTimerInterval);
+                    if (timerEl) timerEl.textContent = 'Expired';
+                    if (resendBtn) resendBtn.disabled = false;
+                }
+                remaining--;
+            }
+
+            updateDisplay();
+            forgotTimerInterval = setInterval(updateDisplay, 1000);
+        }
+
+        async function sendForgotPasswordCode(isResend = false) {
+            hideNotif();
+            const emailInp = document.getElementById('forgotEmail');
+            const email = (emailInp.value || '').trim();
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showNotif('error', 'Please enter a valid registered email address.');
+                emailInp.focus();
+                return;
+            }
+
+            const btn = document.getElementById(isResend ? 'btnForgotResend' : 'btnSendForgotCode');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = isResend ? "<i class='bx bx-loader-alt bx-spin'></i> Sending..." : "<i class='bx bx-loader-alt bx-spin mr-1'></i> Sending Code...";
+
+            try {
+                const res = await fetch('api/auth/forgot_password.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    document.getElementById('forgotStep1').style.display = 'none';
+                    document.getElementById('forgotStep3').style.display = 'none';
+                    document.getElementById('forgotStep2').style.display = 'block';
+                    document.getElementById('forgotEmailDisplay').textContent = email;
+                    
+                    // Reset OTP boxes
+                    const boxes = document.querySelectorAll('.forgot-otp-box');
+                    boxes.forEach(b => {
+                        b.value = '';
+                        b.classList.remove('filled', 'error');
+                    });
+
+                    startForgotTimer(899);
+                    showNotif('success', data.message || '6-digit OTP code sent to your email.');
+
+                    setTimeout(() => {
+                        if (boxes[0]) boxes[0].focus();
+                    }, 150);
+                } else {
+                    showNotif('error', data.message || 'Failed to send recovery code. Please check your email.');
+                }
+            } catch (err) {
+                showNotif('error', 'Unable to reach the server. Please verify your connection.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        function editForgotEmail() {
+            clearInterval(forgotTimerInterval);
+            document.getElementById('forgotStep2').style.display = 'none';
+            document.getElementById('forgotStep3').style.display = 'none';
+            document.getElementById('forgotStep1').style.display = 'block';
+            document.getElementById('forgotEmail').focus();
+            hideNotif();
+        }
+
+        function cancelForgotOtp() {
+            clearInterval(forgotTimerInterval);
+            document.getElementById('forgotStep2').style.display = 'none';
+            document.getElementById('forgotStep3').style.display = 'none';
+            document.getElementById('forgotStep1').style.display = 'block';
+            hideNotif();
+        }
+
+        async function verifyForgotOtpCode() {
+            hideNotif();
+            const email = (document.getElementById('forgotEmail').value || '').trim();
+            const code = getForgotOtpCode();
+            const container = document.getElementById('forgotOtpInputsContainer');
+            const boxes = document.querySelectorAll('.forgot-otp-box');
+
+            if (!code || code.length !== 6) {
+                showNotif('error', 'Please enter the complete 6-digit verification code.');
+                if (container) {
+                    container.classList.remove('shake');
+                    void container.offsetWidth;
+                    container.classList.add('shake');
+                }
+                boxes.forEach(b => { if (!b.value) b.classList.add('error'); });
+                return;
+            }
+
+            const btn = document.getElementById('btnVerifyForgotOtp');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Verifying Code...";
+
+            try {
+                const res = await fetch('api/auth/verify_reset_code.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    verifiedForgotCode = code;
+                    clearInterval(forgotTimerInterval);
+
+                    showNotif('success', data.message || 'OTP verified! Now create your new password.');
+                    document.getElementById('forgotStep2').style.display = 'none';
+                    document.getElementById('forgotStep3').style.display = 'block';
+
+                    setTimeout(() => {
+                        const newPassInp = document.getElementById('forgotNewPassword');
+                        if (newPassInp) newPassInp.focus();
+                    }, 150);
+                } else {
+                    showNotif('error', data.message || 'Invalid or expired OTP code.');
+                    if (container) {
+                        container.classList.remove('shake');
+                        void container.offsetWidth;
+                        container.classList.add('shake');
+                    }
+                    boxes.forEach(b => b.classList.add('error'));
+                    if (boxes[0]) boxes[0].focus();
+                }
+            } catch (err) {
+                showNotif('error', 'Unable to reach the server. Please verify your connection.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        async function handleFinalPasswordReset() {
+            hideNotif();
+            const email = (document.getElementById('forgotEmail').value || '').trim();
+            const code = verifiedForgotCode || getForgotOtpCode();
+            const newPassword = (document.getElementById('forgotNewPassword').value || '').trim();
+            const confirmPassword = (document.getElementById('forgotConfirmPassword').value || '').trim();
+
+            if (!code || code.length !== 6) {
+                showNotif('error', 'Verification code session expired. Please verify again.');
+                document.getElementById('forgotStep3').style.display = 'none';
+                document.getElementById('forgotStep2').style.display = 'block';
+                return;
+            }
+
+            if (!newPassword || newPassword.length < 8) {
+                showNotif('error', 'New password must be at least 8 characters long.');
+                document.getElementById('forgotNewPassword').focus();
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showNotif('error', 'Passwords do not match. Please re-enter.');
+                document.getElementById('forgotConfirmPassword').focus();
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitResetPassword');
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin mr-1'></i> Updating Password...";
+
+            try {
+                const res = await fetch('api/auth/reset_password.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        code,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    showNotif('success', data.message || 'Password updated successfully!');
+                    document.getElementById('loginEmail').value = email;
+                    document.getElementById('loginPassword').value = '';
+                    
+                    document.getElementById('forgotStep3').style.display = 'none';
+                    document.getElementById('forgotStep2').style.display = 'none';
+                    document.getElementById('forgotStep1').style.display = 'block';
+                    document.getElementById('forgotNewPassword').value = '';
+                    document.getElementById('forgotConfirmPassword').value = '';
+                    verifiedForgotCode = '';
+
+                    setTimeout(() => {
+                        switchAuthTab('login');
+                        showNotif('success', 'Your password is reset! Please sign in with your new password.');
+                    }, 1200);
+                } else {
+                    showNotif('error', data.message || 'Failed to reset password. Please try again.');
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-reset mr-1'></i> Update Password &amp; Sign In";
+                }
+            } catch (err) {
+                showNotif('error', 'Unable to reach the server. Please verify your connection.');
+                btn.disabled = false;
+                btn.innerHTML = "<i class='bx bx-reset mr-1'></i> Update Password &amp; Sign In";
+            }
+        }
+
+        // ── Auto-Detect Existing Active Session & Hash Route ─────────────
+        function checkHashAndInitTab() {
+            const h = (window.location.hash || '').toLowerCase();
+            if (h === '#register' || h === '#signup') {
+                switchAuthTab('register');
+            } else if (h === '#forgot' || h === '#reset' || h === '#recovery') {
+                switchAuthTab('forgot');
+            } else if (h === '#login') {
+                switchAuthTab('login');
+            }
+        }
+        checkHashAndInitTab();
+        setupOtpInputs();
+        setupForgotOtpInputs();
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkHashAndInitTab();
+            setupOtpInputs();
+            setupForgotOtpInputs();
+
+            // Sync tab with URL hash change (e.g. browser back/forward buttons)
+            window.addEventListener('hashchange', checkHashAndInitTab);
+
+            // Check if user already has an active session from a previous login
+            fetch('api/auth/me.php')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'authenticated' && data.role) {
+                        const r = (data.role || '').toLowerCase();
+                        const dest = (['super_admin', 'admin'].includes(r))
+                            ? 'admin_dashboard.html'
+                            : (r === 'doctor')
+                                ? 'doctor_dashboard.html'
+                                : (['receptionist', 'staff'].includes(r))
+                                    ? 'receptionist_dashboard.html'
+                                    : (['patient', 'client'].includes(r))
+                                        ? 'client_dashboard.html'
+                                        : null;
+
+                        activeSessionDest = dest;
+
+                        // CRITICAL FIX: NEVER automatically redirect if user is registering!
+                        const currentHash = window.location.hash;
+                        const regForm = document.getElementById('form-register');
+                        const isRegistering = (currentHash === '#register' || currentHash === '#signup' || (regForm && regForm.style.display !== 'none'));
+                        if (isRegistering) {
+                            // User is registering a patient account. Do NOT redirect!
+                            return;
+                        }
+
+                        // On login tab: display friendly session banner instead of sudden forced redirect
+                        if (dest) {
+                            const banner = document.getElementById('activeSessionBanner');
+                            const userSpan = document.getElementById('activeSessionUser');
+                            const roleSpan = document.getElementById('activeSessionRole');
+                            if (banner && userSpan && roleSpan) {
+                                userSpan.textContent = data.full_name || 'User';
+                                roleSpan.textContent = (data.role || '').replace('_', ' ').toUpperCase();
+                                banner.style.display = 'block';
+                            }
+                        }
+                    }
+                })
+                .catch(() => {});
+        });
+
+        function goToActiveDashboard() {
+            if (activeSessionDest) {
+                window.location.href = activeSessionDest;
+            }
+        }
+
+        async function logoutCurrentSession() {
+            try {
+                await fetch('api/auth/logout.php', { method: 'POST' });
+                activeSessionDest = null;
+                const banner = document.getElementById('activeSessionBanner');
+                if (banner) banner.style.display = 'none';
+                showNotif('success', 'Logged out of previous session. You can now sign in or register freely.');
+            } catch (e) {
+                window.location.reload();
+            }
+        }
+    </script>
+</body>
+</html>

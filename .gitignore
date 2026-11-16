@@ -12,13 +12,11 @@ Thumbs.db
 
 # Framework-Free Architecture Refactor (Local only - do not push)
 OptiDent_FrameworkFree_API/
-OptiDent_System_Final/
-
-
 
 # Node dependencies
 node_modules/
 OptiDent_NodeJS/node_modules/
+OptiDent_System_Final/node_modules/
 
 # Environment Secrets & Local Data
 .env
@@ -26,6 +24,9 @@ OptiDent_NodeJS/node_modules/
 OptiDent_NodeJS/.env
 OptiDent_NodeJS/.env.*
 OptiDent_NodeJS/database_mongo_storage.json
+OptiDent_System_Final/.env
+OptiDent_System_Final/.env.*
+OptiDent_System_Final/database_mongo_storage.json
 *service-account*.json
 master-host-*.json
 
