@@ -1,6 +1,7 @@
 import express from 'express';
 import dbClient from '../config/db.js';
-import { makeQrCode, qrCheckinEnabled, goqrEnabled } from '../config/qrPass.js';
+import { makeQrCode, qrApiKey } from '../config/qrPass.js';
+import { fetchQrPng } from '../config/integrationVerifier.js';
 import requireAuth from '../middleware/authGuard.js';
 import logAudit from '../config/auditLogger.js';
 import { getServicePrice, formatPhp } from '../config/servicePricing.js';
@@ -951,37 +952,55 @@ router.post('/update_notification_preferences', async (req, res) => {
  */
 
 // 1. Get Appointment Details & Check-In QR Pass
+const QR_OFF_MESSAGE = 'QR check-in passes are turned off by the clinic. Please give your name at the front desk.';
+
+/** The appointment if it exists and (for patients) belongs to the signed-in patient; otherwise null. */
+async function findOwnAppointment(req, apptId) {
+    const appt = await dbClient.findOne('appointments', { _id: apptId });
+    if (!appt || appt.is_deleted || appt.is_archived) return null;
+    if (!['patient', 'client'].includes(req.user.role)) return appt; // staff/admin roles may view any
+    const me = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email }) || {};
+    const mine = (appt.patient_id && String(appt.patient_id) === String(me._id || req.user.id)) ||
+        (appt.patient_email && me.email && appt.patient_email.toLowerCase() === me.email.toLowerCase()) ||
+        (appt.patient_phone && me.phone && appt.patient_phone === me.phone);
+    return mine ? appt : null;
+}
+
 router.get('/get_appointment_qr', async (req, res) => {
     try {
         const apptId = req.query.appointment_id || req.query.id;
         if (!apptId) return res.status(400).json({ status: 'error', message: 'Appointment ID required.' });
-        if (!(await qrCheckinEnabled())) return res.status(403).json({ status: 'error', message: 'QR check-in passes are turned off by the clinic. Please give your name at the front desk.' });
+        if (!qrApiKey()) return res.status(403).json({ status: 'error', message: QR_OFF_MESSAGE });
 
-        const appt = await dbClient.findOne('appointments', { _id: apptId });
-        if (!appt || appt.is_deleted || appt.is_archived) return res.status(404).json({ status: 'error', message: 'Appointment not found.' });
+        const appt = await findOwnAppointment(req, apptId);
+        if (!appt) return res.status(404).json({ status: 'error', message: 'Appointment not found.' });
 
-        // Patients may only get passes for their own appointments (staff/admin roles may view any)
-        if (['patient', 'client'].includes(req.user.role)) {
-            const me = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email }) || {};
-            const mine = (appt.patient_id && String(appt.patient_id) === String(me._id || req.user.id)) ||
-                (appt.patient_email && me.email && appt.patient_email.toLowerCase() === me.email.toLowerCase()) ||
-                (appt.patient_phone && me.phone && appt.patient_phone === me.phone);
-            if (!mine) return res.status(404).json({ status: 'error', message: 'Appointment not found.' });
-        }
-
-        const qrCode = makeQrCode(appt._id);
         return res.status(200).json({
             status: 'success',
             ref_code: `OPT-APT-${String(appt._id).slice(-6).toUpperCase()}`,
-            qr_code: qrCode,
-            // goQR.me integration (Gateway Center): image drawn by api.qrserver.com; the page falls back to the built-in generator
-            qr_image_url: (await goqrEnabled())
-                ? `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&ecc=M&data=${encodeURIComponent(qrCode)}`
-                : null
+            qr_code: makeQrCode(appt._id),
+            // Drawn server-side by the QR Code API (the key never reaches the browser); the page falls back to the built-in generator
+            qr_image_url: `api/client/qr_image.php?id=${encodeURIComponent(String(appt._id))}`
         });
     } catch (err) {
         console.error('QR Pass fetch error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to generate QR pass.' });
+    }
+});
+
+// QR pass image (PNG) drawn by the QR Code API integration (api-ninjas.com)
+router.get('/qr_image', async (req, res) => {
+    try {
+        const key = qrApiKey();
+        if (!key) return res.status(403).json({ status: 'error', message: QR_OFF_MESSAGE });
+        const appt = await findOwnAppointment(req, req.query.id || req.query.appointment_id);
+        if (!appt) return res.status(404).json({ status: 'error', message: 'Appointment not found.' });
+        const png = await fetchQrPng(makeQrCode(appt._id), key);
+        res.set({ 'Content-Type': 'image/png', 'Cache-Control': 'private, max-age=3600' });
+        return res.send(png);
+    } catch (err) {
+        console.error('QR image error:', err.message);
+        return res.status(502).json({ status: 'error', message: 'QR Code API unavailable.' });
     }
 });
 

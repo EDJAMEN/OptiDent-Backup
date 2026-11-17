@@ -15,17 +15,12 @@ export const INTEGRATION_FIELDS = {
         { name: 'site_key', label: 'reCAPTCHA Site Key', pattern: /^6L[\w-]{38}$/ },
         { name: 'secret_key', label: 'reCAPTCHA Secret Key', secret: true, pattern: /^6L[\w-]{38}$/ }
     ],
-    sms_gateway_enabled: [
-        { name: 'api_key', label: 'SMS API Key', secret: true, pattern: /^[\w-]{10,100}$/ }
-    ],
     google_calendar_sync: [
         { name: 'service_account_json', label: 'Service Account JSON', secret: true, jsonKeys: ['client_email', 'private_key', 'private_key_id'] }
     ],
     imgbb_enabled: [
         { name: 'api_key', label: 'ImgBB API Key', secret: true, pattern: /^[a-f0-9]{32}$/i }
-    ],
-    // No admin input: the server generates the webhook secret.
-    google_forms_enabled: []
+    ]
 };
 
 /** Keeps only known fields, trims them, checks formats. Throws Error with a user-facing message. */

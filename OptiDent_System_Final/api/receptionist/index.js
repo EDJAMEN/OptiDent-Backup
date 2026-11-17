@@ -7,7 +7,7 @@ import { getServicePrice, formatPhp } from '../config/servicePricing.js';
 import { ClinicHoursHelper } from '../config/clinicHoursHelper.js';
 import { sendAppointmentNotificationEmail } from '../config/mailer.js';
 import { dailyTraffic } from '../config/trafficStats.js';
-import { readQrCode, qrCheckinEnabled } from '../config/qrPass.js';
+import { readQrCode, qrApiKey } from '../config/qrPass.js';
 
 const router = express.Router();
 
@@ -1375,7 +1375,7 @@ router.get('/weekly_traffic', async (req, res) => {
  */
 router.post('/verify_qr', async (req, res) => {
     try {
-        if (!(await qrCheckinEnabled())) return res.status(403).json({ status: 'error', message: 'QR check-in is turned off by the Super Admin (Gateway Center). Check the patient in from the queue instead.' });
+        if (!qrApiKey()) return res.status(403).json({ status: 'error', message: 'QR check-in is off: the Super Admin has not connected the QR Code API key (Gateway Center). Check the patient in from the queue instead.' });
         const id = readQrCode(req.body.code);
         const reply = (result, message, appointment = null) => {
             logAudit(req, 'QR_PASS_SCANNED', 'RECEPTION', { result, appointment_id: appointment ? appointment.id : id || null }, result === 'valid' ? 'success' : 'failure');

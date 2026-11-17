@@ -5,7 +5,7 @@
  * by anyone else fails verification at the front desk.
  */
 import crypto from 'crypto';
-import dbClient from './db.js';
+import { getIntegration } from './integrationStore.js';
 
 const PREFIX = 'OPTIDENT-QR:v1:';
 
@@ -15,16 +15,13 @@ function sign(id) {
     return crypto.createHmac('sha256', secret).update(`qr:v1:${id}`).digest('base64url').slice(0, 22); // 132 bits
 }
 
-/** Super Admin switch in the Gateway Center (Settings → QR Check-in Passes). On unless explicitly turned off. */
-export async function qrCheckinEnabled() {
-    const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
-    return settings?.integrations?.qr_checkin_enabled !== false;
-}
-
-/** goQR.me integration (Gateway Center). Off unless explicitly turned on. */
-export async function goqrEnabled() {
-    const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
-    return settings?.integrations?.goqr_enabled === true;
+/**
+ * QR check-in is on only while the "QR Code API" integration holds a live-tested key
+ * (Gateway Center). Disabling the integration erases the key, which turns QR check-in off.
+ * @returns {string|null} the API Ninjas key, or null when QR check-in is off
+ */
+export function qrApiKey() {
+    return getIntegration('qr_api_enabled')?.api_key || null;
 }
 
 export function makeQrCode(appointmentId) {

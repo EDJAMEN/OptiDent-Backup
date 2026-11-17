@@ -15,6 +15,7 @@ import clientRoutes from './api/client/index.js';
 import receptionistRoutes from './api/receptionist/index.js';
 import doctorRoutes from './api/doctor/index.js';
 import adminRoutes from './api/admin/index.js';
+import reportRoutes from './api/reports/index.js';
 
 dotenv.config();
 
@@ -58,7 +59,7 @@ app.use(normalizePhp);
 
 // Serve Frontend Static Assets
 const publicDir = path.join(__dirname, 'public');
-app.use(express.static(publicDir));
+app.use(express.static(publicDir, { index: false })); // '/' is handled by the root route below
 app.use('/assets', express.static(path.join(publicDir, 'assets')));
 app.use('/css', express.static(path.join(publicDir, 'css')));
 
@@ -68,6 +69,7 @@ app.use('/api/client', clientRoutes);
 app.use('/api/receptionist', receptionistRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -87,9 +89,9 @@ app.use('/api', (req, res) => {
     });
 });
 
-// Root default route
+// Root default route: the landing page is the front door; login/register stays at index.html
 app.get('/', (req, res) => {
-    res.sendFile(path.join(publicDir, 'index.html'));
+    res.sendFile(path.join(publicDir, 'landing.html'));
 });
 
 // Error handling middleware

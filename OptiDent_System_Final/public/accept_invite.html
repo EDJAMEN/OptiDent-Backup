@@ -162,7 +162,7 @@
                         </div>
                     </div>
 
-                    <!-- Receptionist / Front Desk Credentials (R-001) -->
+                    <!-- Receptionist / Front Desk Credentials -->
                     <div id="receptionistExtraFields" class="doctor-card-box" style="display: none; background: #f8fafc; border-color: #cbd5e1;">
                         <div class="flex items-center gap-1 mb-1">
                             <i class='bx bx-headphone' style="color: #4f46e5; font-size: 16px;"></i>
@@ -178,7 +178,7 @@
                         </div>
                     </div>
 
-                    <!-- Doctor Specific Professional Credentials (D-001) -->
+                    <!-- Doctor Specific Professional Credentials -->
                     <div id="doctorExtraFields" class="doctor-card-box">
                         <div class="flex items-center gap-1 mb-1">
                             <i class='bx bxs-badge-check' style="color: #059669; font-size: 16px;"></i>
@@ -338,7 +338,7 @@
                             rolePill.innerHTML = `<i class='bx bxs-user-check'></i> Inviting: DOCTOR (DMD / DDS)`;
                             doctorExtraFields.style.display = 'block';
                             receptionistFields.style.display = 'none';
-                            document.getElementById('portalSubtitle').textContent = 'Doctor Account Activation (D-001)';
+                            document.getElementById('portalSubtitle').textContent = 'Doctor Account Activation';
                             document.getElementById('portalDesc').textContent = 'Complete your professional credentials to activate secure access to your clinical workspace.';
                             document.getElementById('nameLabel').textContent = 'Doctor Legal Full Name & Title';
                             document.getElementById('staffFullName').placeholder = 'e.g. Dr. Roberto Mendoza, DMD';
@@ -353,7 +353,7 @@
                             rolePill.style.cssText += '; background:#EEF2FF; color:#4F46E5; border-color:rgba(79,70,229,0.3);';
                             doctorExtraFields.style.display = 'none';
                             receptionistFields.style.display = 'block';
-                            document.getElementById('portalSubtitle').textContent = 'Receptionist Account Activation (R-001)';
+                            document.getElementById('portalSubtitle').textContent = 'Receptionist Account Activation';
                             document.getElementById('portalDesc').textContent = 'Complete your details to activate your front desk access to the OptiDent clinic system.';
                             document.getElementById('nameLabel').textContent = 'Full Legal Name';
                             document.getElementById('staffFullName').placeholder = 'e.g. Maria dela Cruz';

@@ -1138,7 +1138,6 @@
                     <a class="nav-item" id="nav-schedule" onclick="switchDocTab('schedule')">
                         <i class='bx bx-calendar-check'></i>
                         <span>Duty Schedule</span>
-                        <span style="margin-left: auto; font-size: 9px; background: rgba(14, 177, 177, 0.15); color: var(--doctor-primary-dark); padding: 2px 6px; border-radius: 4px; font-weight: 700;">D-006</span>
                     </a>
                 </li>
 
@@ -1194,7 +1193,7 @@
                     </button>
                     <button type="button" id="btnEmailTodaySchedule" class="btn-primary" onclick="emailDoctorTodaySchedule()"
                         style="padding: 8px 14px; font-size: 13px; border-radius: 8px; background: linear-gradient(135deg, #0EB1B1, #0284C7); border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff;"
-                        title="Send today's patient schedule to your registered email & Super Admin (C-009)">
+                        title="Send today's patient schedule to your registered email & Super Admin">
                         <i class='bx bx-envelope' style="font-size: 16px;"></i> Email Today's Schedule
                     </button>
                     <button class="btn-outline" onclick="loadDoctorDashboard()"
@@ -1280,7 +1279,7 @@
                 </div>
             </section>
  
-             <!-- TAB: Appointment Requests & Approval (D-008) -->
+             <!-- TAB: Appointment Requests & Approval -->
              <section id="tab-requests" class="doc-tab-content" style="display: none;">
                  <div class="workspace-card">
                      <div class="flex-between mb-3 flex-wrap gap-2">
@@ -1347,7 +1346,7 @@
                 </div>
             </section>
 
-            <!-- TAB 3: Completed Procedures & Clinical Record Management (D-004) -->
+            <!-- TAB 3: Completed Procedures & Clinical Record Management -->
             <section id="tab-completed" class="doc-tab-content" style="display: none;">
                 <div class="workspace-card">
                     <div class="flex-between mb-3 flex-wrap gap-2">
@@ -1355,8 +1354,7 @@
                             <h3 class="font-bold text-lg"
                                 style="margin: 0; display: flex; align-items: center; gap: 8px;">
                                 <i class='bx bx-book-content text-primary'></i> Clinical Record Management &amp;
-                                Treatment Logs (D-004)
-                            </h3>
+                                Treatment Logs                            </h3>
                             <p class="text-dim text-xs mt-0">Document, edit, and review patient diagnostic findings,
                                 odontogram charting, operatory notes, and prescriptions.</p>
                         </div>
@@ -1457,8 +1455,7 @@
                             <div>
                                 <h3 class="font-bold text-lg"
                                     style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                                    <i class='bx bx-id-card text-primary'></i> Professional Doctor Credentials (D-001)
-                                </h3>
+                                    <i class='bx bx-id-card text-primary'></i> Professional Doctor Credentials                                </h3>
                                 <p class="text-dim text-xs mt-1">Manage your medical license, field of specialization,
                                     and clinic availability hours.</p>
                             </div>
@@ -1521,8 +1518,7 @@
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                     <label class="text-xs font-bold text-dim uppercase" style="margin-bottom: 0;">Consultation Availability Schedule</label>
                                     <a href="javascript:void(0)" onclick="switchDocTab('schedule')" style="font-size: 11px; font-weight: 700; color: var(--doctor-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
-                                        <i class='bx bx-slider'></i> Manage Duty Schedule (D-006)
-                                    </a>
+                                        <i class='bx bx-slider'></i> Manage Duty Schedule                                    </a>
                                 </div>
                                 <div class="input-group">
                                     <i class='bx bx-time-five'></i>
@@ -1662,14 +1658,14 @@
                 </div>
             </section>
 
-            <!-- TAB 6: Doctor Schedule Management (D-006) -->
+            <!-- TAB 6: Doctor Schedule Management -->
             <section id="tab-schedule" class="doc-tab-content" style="display: none;">
                 <div class="top-banner mb-3" style="margin-bottom: 1.25rem;">
                     <div>
                         <div class="flex items-center gap-2">
                             <h2 class="font-bold text-2xl" style="margin: 0;">Doctor Schedule &amp; Duty Management</h2>
                             <span class="badge" style="background: rgba(14, 177, 177, 0.15); color: var(--doctor-primary-dark); font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 700;">
-                                <i class='bx bx-calendar-check'></i> D-006 Feature
+                                <i class='bx bx-calendar-check'></i> Feature
                             </span>
                         </div>
                         <p class="text-dim text-xs mt-1">Configure your clinical working days and duty hours. The system will dynamically generate appointment booking slots for patient self-service and receptionist bookings.</p>
@@ -1692,7 +1688,7 @@
                         </p>
 
                         <form id="form-doctor-schedule" onsubmit="event.preventDefault(); confirmDoctorScheduleSave();">
-                            <!-- Working Duty Days Interactive Calendar & Day Selector (D-006) -->
+                            <!-- Working Duty Days Interactive Calendar & Day Selector -->
                             <div class="mb-3">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                                     <label class="text-xs font-bold text-dim uppercase" style="margin: 0;">Weekly Duty Days &amp; Calendar Availability</label>
@@ -1905,15 +1901,14 @@
         </main>
     </div>
 
-    <!-- MODAL: Clinical Notes & Dental Charting (D-004) -->
+    <!-- MODAL: Clinical Notes & Dental Charting -->
     <div id="chartingModal" class="doc-modal-overlay">
         <div class="doc-modal-content" style="max-width: 720px;">
             <div class="flex justify-between items-center border-bottom pb-2 mb-3">
                 <div>
                     <h3 class="font-bold text-lg" style="margin: 0; display: flex; align-items: center; gap: 6px;">
                         <i class='bx bx-plus-medical text-primary'></i> Complete Treatment &amp; Clinical Charting
-                        (D-004)
-                    </h3>
+                                           </h3>
                     <div class="text-dim text-xs mt-1" id="chartingPatientSubtitle">Patient: Loading...</div>
                 </div>
                 <button type="button" class="btn-icon" onclick="closeChartingModal()"><i class='bx bx-x'
@@ -2042,14 +2037,13 @@
         </div>
     </div>
 
-    <!-- MODAL: Create New Clinical Record Direct Entry (D-004) -->
+    <!-- MODAL: Create New Clinical Record Direct Entry -->
     <div id="newClinicalRecordModal" class="doc-modal-overlay">
         <div class="doc-modal-content" style="max-width: 740px;">
             <div class="flex justify-between items-center border-bottom pb-2 mb-3">
                 <div>
                     <h3 class="font-bold text-lg" style="margin: 0; display: flex; align-items: center; gap: 6px;">
-                        <i class='bx bx-edit-alt text-primary'></i> Document New Clinical Treatment Record (D-004)
-                    </h3>
+                        <i class='bx bx-edit-alt text-primary'></i> Document New Clinical Treatment Record                    </h3>
                     <p class="text-dim text-xs mt-0">Record an encounter, clinical notes, and odontogram teeth for any
                         patient.</p>
                 </div>
@@ -2159,7 +2153,7 @@
         </div>
     </div>
 
-    <!-- MODAL: Edit Existing Clinical Record (D-004) -->
+    <!-- MODAL: Edit Existing Clinical Record -->
     <div id="editRecordModal" class="doc-modal-overlay">
         <div class="doc-modal-content" style="max-width: 760px; padding: 2.25rem; border-radius: 20px; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.25);">
             <div class="flex justify-between items-center border-bottom pb-3 mb-4" style="border-bottom: 1.5px solid var(--doctor-border); padding-bottom: 14px; margin-bottom: 22px;">
@@ -2369,7 +2363,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-base" style="margin: 0;">Review Schedule &amp; Hours Update</h3>
-                        <p class="text-dim text-xs mt-0" style="margin: 0;">Task D-006 &bull; Duty Availability Enforcement (Step 1 of 2)</p>
+                        <p class="text-dim text-xs mt-0" style="margin: 0;">Duty Availability Enforcement (Step 1 of 2)</p>
                     </div>
                 </div>
                 <button type="button" class="btn-icon" onclick="closeConfirmDoctorScheduleModal()"><i class='bx bx-x' style="font-size: 24px;"></i></button>
@@ -2613,7 +2607,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-base" style="margin: 0; color: #b91c1c;">Cancel Consultation</h3>
-                        <p class="text-dim text-xs mt-0" style="margin: 0;">Task D-007 &bull; Appointment Status Tracking</p>
+                        <p class="text-dim text-xs mt-0" style="margin: 0;">Appointment Status Tracking</p>
                     </div>
                 </div>
                 <button type="button" class="btn-icon" onclick="closeDoctorCancelModal()"><i class='bx bx-x' style="font-size: 24px;"></i></button>
@@ -2644,7 +2638,7 @@
         </div>
     </div>
 
-    <!-- ── MODAL: Decline Appointment Request (D-009) ────────────────── -->
+    <!-- ── MODAL: Decline Appointment Request ────────────────── -->
     <div id="doctorDeclineModal" class="doc-modal-overlay" style="z-index: 1200;">
         <div class="doc-modal-content" style="max-width: 480px; padding: 1.5rem; border-radius: 16px;">
             <div class="flex justify-between items-center border-bottom pb-2 mb-3">
@@ -2654,7 +2648,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-base" style="margin: 0; color: #b91c1c;">Decline Appointment Request</h3>
-                        <p class="text-dim text-xs mt-0" style="margin: 0;">Task D-009 &bull; Inform patient of schedule non-accommodation</p>
+                        <p class="text-dim text-xs mt-0" style="margin: 0;">Inform patient of schedule non-accommodation</p>
                     </div>
                 </div>
                 <button type="button" class="btn-icon" onclick="closeDoctorDeclineModal()"><i class='bx bx-x' style="font-size: 24px;"></i></button>
@@ -2699,7 +2693,7 @@
         </div>
     </div>
 
-    <!-- ── MODAL: Doctor Approve Review - Step 1 (D-008) ────────────── -->
+    <!-- ── MODAL: Doctor Approve Review - Step 1 ────────────── -->
     <div id="doctorApproveModal" class="doc-modal-overlay" style="z-index: 1200;">
         <div class="doc-modal-content" style="max-width: 480px; padding: 1.5rem; border-radius: 16px;">
             <div class="flex justify-between items-center border-bottom pb-2 mb-3">
@@ -2709,7 +2703,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-base" style="margin: 0; color: var(--doctor-text);">Review Appointment Request</h3>
-                        <p class="text-dim text-xs mt-0" style="margin: 0;">Task D-008 &bull; Step 1 of 2: Consultation Schedule Review</p>
+                        <p class="text-dim text-xs mt-0" style="margin: 0;">Step 1 of 2: Consultation Schedule Review</p>
                     </div>
                 </div>
                 <button type="button" class="btn-icon" onclick="closeDoctorApproveModal()"><i class='bx bx-x' style="font-size: 24px;"></i></button>
@@ -2758,7 +2752,7 @@
         </div>
     </div>
 
-    <!-- ── MODAL: Secondary Final Approval Confirmation - Step 2 (D-008) ── -->
+    <!-- ── MODAL: Secondary Final Approval Confirmation - Step 2 ── -->
     <div id="doctorApproveConfirmModal" class="doc-modal-overlay" style="z-index: 1250;">
         <div class="doc-modal-content" style="max-width: 440px; padding: 1.75rem; border-radius: 18px; text-align: center;">
             <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 12px auto;">
@@ -5759,7 +5753,7 @@
             }
         });
 
-        // Cancellation Handler (D-007)
+        // Cancellation Handler
         function cancelAppointmentDoctor(apptId) {
             const allAppts = [
                 ...(cachedDashboardData?.queue_today || []),
@@ -5848,12 +5842,12 @@
             const headings = {
                 'home': "Dashboard",
                 'queue': "Today's Patient Queue & Operatory",
-                'requests': "Appointment Requests & Approval (D-008)",
+                'requests': "Appointment Requests & Approval",
                 'upcoming': "Upcoming Scheduled Appointments",
-                'completed': "Completed Treatments & Clinical Record Management (D-004)",
-                'patients': "My Patient Directory & Medical History (D-003)",
-                'profile': "Doctor Professional Profile & Availability (D-001)",
-                'schedule': "Doctor Duty Schedule & Working Hours Management (D-006)"
+                'completed': "Completed Treatments & Clinical Record Management",
+                'patients': "My Patient Directory & Medical History",
+                'profile': "Doctor Professional Profile & Availability",
+                'schedule': "Doctor Duty Schedule & Working Hours Management"
             };
             document.getElementById('pageHeading').textContent = headings[tabKey] || "Doctor Workspace";
         }

@@ -416,6 +416,16 @@
             color: #dc2626;
         }
     </style>
+    <style>
+        /* Embedded inside landing.html: drop the page background so it blends into the split layout */
+        html.embed, html.embed body { background: transparent !important; min-height: 100%; }
+        html.embed .orb, html.embed .grid-pattern { display: none !important; }
+        /* One scrollbar only: the landing page's. The framed form still scrolls with the wheel. */
+        html.embed, html.embed body { height: 100%; min-height: 0 !important; padding: 0 !important; overflow: hidden; }
+        html.embed .auth-wrapper { min-height: 100%; height: 100%; padding: 24px 16px; overflow-y: auto; scrollbar-width: none; }
+        html.embed .auth-wrapper::-webkit-scrollbar { display: none; }
+    </style>
+    <script>if (window.self !== window.top) document.documentElement.classList.add('embed');</script>
 </head>
 <body>
     <!-- Glassmorphism Background -->
@@ -540,14 +550,6 @@
                     <div class="google-signin-slot" data-text="continue_with" style="display: flex; justify-content: center; min-height: 44px;"></div>
                 </div>
 
-                <div class="mt-2 text-center border-top pt-2" id="newPatientPrompt">
-                    <p class="text-xs text-dim">
-                        New patient? 
-                        <a href="javascript:void(0)" onclick="switchAuthTab('register')" class="text-primary font-semibold" style="text-decoration: none;">
-                            Create your patient account here
-                        </a>
-                    </p>
-                </div>
             </form>
 
             <!-- TAB 2: PATIENT REGISTRATION FORM (C-001 - Progressive Onboarding) -->
@@ -953,7 +955,6 @@
             const passInput = document.getElementById('loginPassword');
             const submitBtn = document.getElementById('submitLoginBtn');
             const staffInvite = document.getElementById('staffInviteLink');
-            const newPatientFooter = document.getElementById('newPatientPrompt');
             const googleAuth = document.getElementById('googleAuthContainer');
             const googleReg = document.getElementById('googleRegisterContainer');
 
@@ -969,7 +970,6 @@
                     submitBtn.style.borderColor = '#b91c1c';
                 }
                 if (staffInvite) staffInvite.style.display = 'none';
-                if (newPatientFooter) newPatientFooter.style.display = 'none';
                 if (googleAuth) googleAuth.style.display = 'none';
                 if (googleReg) googleReg.style.display = 'none';
 
@@ -988,7 +988,6 @@
                     submitBtn.style.borderColor = '';
                 }
                 if (staffInvite) staffInvite.style.display = '';
-                if (newPatientFooter) newPatientFooter.style.display = '';
                 if (googleAuth) googleAuth.style.display = 'block';
                 if (googleReg) googleReg.style.display = 'block';
             }
@@ -1062,7 +1061,7 @@
                 const data = await res.json();
                 if (res.ok && data.status === 'success') {
                     showNotif('success', `Signed in with Google as ${data.user?.full_name || data.user?.email}. Opening your portal...`);
-                    setTimeout(() => { window.location.href = data.redirect || 'client_dashboard.html'; }, 500);
+                    setTimeout(() => { (window.top || window).location.href = data.redirect || 'client_dashboard.html'; }, 500);
                 } else {
                     showNotif('error', data.message || 'Google sign-in failed.');
                 }
@@ -1260,7 +1259,7 @@
                                         ? 'client_dashboard.html'
                                         : 'index.html')));
 
-                    setTimeout(() => { window.location.href = dest; }, 850);
+                    setTimeout(() => { (window.top || window).location.href = dest; }, 850);
                 } else {
                     showNotif('error', data.message || 'Login failed. Please check your credentials.');
                     btn.disabled = false;
@@ -1657,7 +1656,7 @@
                 if (res.ok && data.status === 'success') {
                     showNotif('success', 'Profile and clinical safety saved! Launching Patient Portal...');
                     setTimeout(() => {
-                        window.location.href = data.redirect || 'client_dashboard.html';
+                        (window.top || window).location.href = data.redirect || 'client_dashboard.html';
                     }, 800);
                 } else {
                     showNotif('error', data.message || 'Failed to save clinical details.');
@@ -1666,7 +1665,7 @@
                 }
             } catch (err) {
                 showNotif('error', 'Unable to reach the server. Opening dashboard...');
-                setTimeout(() => { window.location.href = 'client_dashboard.html'; }, 900);
+                setTimeout(() => { (window.top || window).location.href = 'client_dashboard.html'; }, 900);
             }
         }
 
@@ -2058,7 +2057,7 @@
 
         function goToActiveDashboard() {
             if (activeSessionDest) {
-                window.location.href = activeSessionDest;
+                (window.top || window).location.href = activeSessionDest;
             }
         }
 

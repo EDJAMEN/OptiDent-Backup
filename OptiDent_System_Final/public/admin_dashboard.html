@@ -12,6 +12,221 @@
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <!-- DentAssist System CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <!-- Restored Gateway Center styles (lost in an accidental deletion; copied verbatim from the earlier version) -->
+    <style>
+        .integrations-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        padding: 6px 10px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        }
+        .integrations-filter-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        }
+        .integration-filter-pill {
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        background: transparent;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        }
+        .integration-filter-pill:hover {
+        color: #0f172a;
+        background: #e2e8f0;
+        }
+        .integration-filter-pill.active {
+        background: #ffffff;
+        color: #0eb1b1;
+        border-color: #cbd5e1;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        font-weight: 700;
+        }
+        .integration-search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        min-width: 230px;
+        }
+        .integration-search-box i {
+        position: absolute;
+        left: 10px;
+        color: #94a3b8;
+        font-size: 15px;
+        pointer-events: none;
+        }
+        .integration-search-input {
+        width: 100%;
+        padding: 7px 12px 7px 32px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        font-size: 12px;
+        color: #0f172a;
+        outline: none;
+        transition: all 0.15s ease;
+        }
+        .integration-search-input:focus {
+        border-color: #0eb1b1;
+        box-shadow: 0 0 0 3px rgba(14, 177, 177, 0.15);
+        }
+        #integrationsCardsCore {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+        }
+        .integration-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #e2e8f0;
+        transition: background 0.2s ease;
+        }
+        .token-subtext-container {
+        margin-bottom: 12px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 11.5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        min-height: 38px;
+        }
+        .key-guide-box {
+        margin-top: 10px;
+        margin-bottom: 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        font-size: 12px;
+        }
+        .key-guide-header {
+        padding: 9px 12px;
+        background: #f1f5f9;
+        color: #334155;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        user-select: none;
+        transition: background 0.15s ease;
+        }
+        .key-guide-header:hover {
+        background: #e2e8f0;
+        }
+        .key-guide-content {
+        padding: 12px 14px;
+        line-height: 1.6;
+        color: #475569;
+        background: #ffffff;
+        border-top: 1px solid #e2e8f0;
+        }
+        .key-guide-content ol {
+        margin: 0;
+        padding-left: 20px;
+        }
+        .key-guide-content li {
+        margin-bottom: 6px;
+        }
+        .key-guide-content strong {
+        color: #0f172a;
+        }
+        .key-guide-content code {
+        font-family: monospace;
+        background: #f1f5f9;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 11px;
+        color: #0f172a;
+        word-break: break-all;
+        }
+        .key-guide-pill {
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid #cbd5e1;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.15s ease;
+        }
+        .key-guide-pill:hover {
+        background: #ffffff;
+        color: #0eb1b1;
+        border-color: #0eb1b1;
+        box-shadow: 0 2px 4px rgba(14, 177, 177, 0.12);
+        }
+        @media (max-width: 992px) {
+        #systemIntegrationsModal {
+        padding: 16px;
+        }
+        
+        #systemIntegrationsModal .modal-container {
+        padding: 22px;
+        max-height: 92vh;
+        }
+        
+        #integrationsCardsCore {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        }
+        
+        .integration-launch-hub {
+        padding: 20px;
+        }
+        }
+        .integration-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            background: #ffffff;
+            padding: 20px 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(15, 23, 42, 0.03);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            min-height: 250px;
+        }
+        .integration-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+            box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+        }
+        /* Equal columns: long values (e.g. service-account emails) truncate instead of widening a column */
+        #integrationsCardsCore { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        #integrationsCardsCore .integration-card, #integrationsCardsCore .integration-card > div, .token-subtext-container > div { min-width: 0; }
+        @media (max-width: 992px) { #integrationsCardsCore { grid-template-columns: minmax(0, 1fr); } }
+    </style>
     <style>
         .badge-super-admin {
             background: linear-gradient(135deg, #0EB1B1, #0284C7);
@@ -438,8 +653,8 @@
         }
 
         .clinic-day-tile {
-            background: #ffffff;
-            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
             border-radius: 10px;
             padding: 8px 4px;
             text-align: center;
@@ -456,6 +671,7 @@
 
         .clinic-day-tile:hover {
             border-color: #0EB1B1;
+            background: #ffffff;
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
@@ -464,7 +680,7 @@
             background: linear-gradient(135deg, #0EB1B1 0%, #088b8b 100%) !important;
             border-color: #088b8b !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(14, 177, 177, 0.35);
+            box-shadow: 0 4px 12px rgba(14, 177, 177, 0.25);
         }
 
         .clinic-day-tile.active .clinic-day-tile-code,
@@ -490,33 +706,55 @@
             line-height: 1;
         }
 
+        .clinic-preset-btn {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #f8fafc;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .clinic-preset-btn:hover {
+            background: #0EB1B1;
+            color: #ffffff;
+            border-color: #0EB1B1;
+            box-shadow: 0 2px 6px rgba(14, 177, 177, 0.25);
+        }
+
         .clinic-calendar-container {
             background: #ffffff;
-            border: 1.5px solid #e2e8f0;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 12px;
+            padding: 14px;
             margin-top: 10px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
         }
 
         .clinic-cal-header {
             display: flex !important;
             justify-content: space-between !important;
             align-items: center !important;
-            margin-bottom: 10px !important;
+            margin-bottom: 12px !important;
+            padding-bottom: 8px !important;
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .clinic-cal-nav-btn {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
             background: #ffffff;
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
             cursor: pointer;
             font-size: 14px;
-            color: #475569;
+            color: #334155;
             transition: all 0.15s ease;
         }
 
@@ -529,31 +767,38 @@
         .clinic-cal-weekdays {
             display: grid !important;
             grid-template-columns: repeat(7, 1fr) !important;
+            gap: 6px !important;
             text-align: center;
-            font-size: 10.5px;
+            font-size: 11px;
             font-weight: 700;
-            color: #64748b;
+            color: #475569;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 0;
             margin-bottom: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
         }
 
         .clinic-cal-grid {
             display: grid !important;
             grid-template-columns: repeat(7, 1fr) !important;
-            gap: 5px !important;
+            gap: 6px !important;
         }
 
         .clinic-cal-cell {
-            padding: 8px 4px;
-            border-radius: 8px;
+            padding: 7px 4px;
+            border-radius: 9px;
             cursor: pointer;
             font-size: 12px;
-            transition: all 0.15s ease;
+            font-weight: 600;
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             user-select: none;
             background: #ffffff;
-            border: 1px solid #f1f5f9;
-            min-height: 42px;
+            border: 1px solid #e2e8f0;
+            min-height: 46px;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
@@ -562,52 +807,70 @@
         }
 
         .clinic-cal-cell:hover {
-            transform: scale(1.05);
+            transform: translateY(-1px);
             z-index: 2;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+            border-color: #0EB1B1;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
         }
 
         .clinic-cal-cell.is-duty {
-            background: rgba(14, 177, 177, 0.12) !important;
+            background: rgba(14, 177, 177, 0.08) !important;
             border: 1.5px solid #0EB1B1 !important;
             color: #0a8f8f !important;
             font-weight: 700 !important;
         }
 
+        .clinic-cal-cell.is-duty:hover {
+            background: rgba(14, 177, 177, 0.15) !important;
+            border-color: #088b8b !important;
+            box-shadow: 0 4px 12px rgba(14, 177, 177, 0.2);
+        }
+
         .clinic-cal-cell.is-off {
             color: #94a3b8;
-            background: #ffffff;
-            border: 1px solid #f1f5f9;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .clinic-cal-cell.is-off:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #64748b;
         }
 
         .clinic-cal-cell.is-other-month {
-            opacity: 0.25;
+            background: #fafafa;
+            border: 1px dashed #e2e8f0;
+            color: #cbd5e1;
+            opacity: 0.5;
             pointer-events: none;
         }
 
         .clinic-cal-cell.is-today {
-            box-shadow: inset 0 0 0 1.5px #3b82f6;
+            box-shadow: 0 0 0 2px #2563eb, 0 2px 8px rgba(37, 99, 235, 0.25) !important;
+            border-color: #2563eb !important;
+            font-weight: 800 !important;
         }
 
         .clinic-cal-cell .duty-dot {
-            width: 4px;
-            height: 4px;
+            width: 5px;
+            height: 5px;
             border-radius: 50%;
             background: #0EB1B1;
-            margin-top: 2px;
+            margin-top: 3px;
         }
 
         .clinic-cal-cell.is-specific-off {
             background: #fff1f2 !important;
-            border: 1.5px dashed #f43f5e !important;
+            border: 1.5px solid #f43f5e !important;
             color: #e11d48 !important;
             font-weight: 700 !important;
         }
 
         .clinic-cal-cell.is-extra-duty {
-            background: rgba(99, 102, 241, 0.15) !important;
-            border: 1.5px solid #6366f1 !important;
-            color: #4f46e5 !important;
+            background: #f0fdfa !important;
+            border: 1.5px solid #059669 !important;
+            color: #047857 !important;
             font-weight: 700 !important;
         }
 
@@ -731,7 +994,6 @@
             border-radius: 20px;
             background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 50%, #f8fafc 100%);
             border: 1px solid rgba(14, 177, 177, 0.25);
-            border-left: 6px solid #0eb1b1;
             padding: 24px 28px;
             box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
             position: relative;
@@ -1096,23 +1358,15 @@
         /* Mission Control Launch Banner in tab-master */
         /* Redesigned Premium Gateway Launch Hub (No AI-cliché colored left-borders) */
         .integration-launch-hub {
-            border-radius: 18px;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border: 1px solid rgba(226, 232, 240, 0.95);
-            border-left: 6px solid #0eb1b1;
             border-radius: 16px;
             background: #ffffff;
             border: 1px solid #e2e8f0;
             padding: 24px 28px;
-            margin-top: 12px;
-            margin-bottom: 28px;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
             margin-top: 14px;
             margin-bottom: 24px;
             box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 6px 16px -4px rgba(15, 23, 42, 0.03);
             position: relative;
             overflow: hidden;
-            transition: all 0.2s ease;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -1274,261 +1528,98 @@
 
         .integrations-modal-header {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
             gap: 16px;
-            padding-bottom: 20px;
+            padding-bottom: 18px;
             border-bottom: 1px solid #f1f5f9;
             margin-bottom: 18px;
         }
 
-        .integrations-toolbar {
+        .integrations-header-actions {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            padding: 6px 10px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-        }
-
-        .integrations-filter-group {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .integration-filter-pill {
-            padding: 6px 14px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #64748b;
-            background: transparent;
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .integration-filter-pill:hover {
-            color: #0f172a;
-            background: #e2e8f0;
-        }
-
-        .integration-filter-pill.active {
-            background: #ffffff;
-            color: #0eb1b1;
-            border-color: #cbd5e1;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-            font-weight: 700;
-        }
-
-        .integration-search-box {
-            position: relative;
-            display: flex;
-            align-items: center;
-            min-width: 230px;
-        }
-
-        .integration-search-box i {
-            position: absolute;
-            left: 10px;
-            color: #94a3b8;
-            font-size: 15px;
-            pointer-events: none;
-        }
-
-        .integration-search-input {
-            width: 100%;
-            padding: 7px 12px 7px 32px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            background: #ffffff;
-            font-size: 12px;
-            color: #0f172a;
-            outline: none;
-            transition: all 0.15s ease;
-        }
-
-        .integration-search-input:focus {
-            border-color: #0eb1b1;
-            box-shadow: 0 0 0 3px rgba(14, 177, 177, 0.15);
-        }
-
-        /* Uniform 2-Column Cards Grid */
-        #integrationsCardsCore {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 18px;
-        }
-
-        .integration-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            background: #ffffff;
-            padding: 20px 22px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 2px 5px rgba(15, 23, 42, 0.03);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
-            min-height: 250px;
-        }
-
-        .integration-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: #e2e8f0;
-            transition: background 0.2s ease;
-        }
-
-        .integration-card:hover {
-            transform: translateY(-2px);
-            border-color: #cbd5e1;
-            box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
-        }
-
-        .token-subtext-container {
-            margin-bottom: 12px;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 11.5px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             gap: 8px;
-            flex-wrap: wrap;
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
-            min-height: 38px;
+            flex-shrink: 0;
+            margin-left: auto;
         }
 
-        /* How-To-Get-Key Collapsible Accordion Guide */
-        .key-guide-box {
-            margin-top: 10px;
-            margin-bottom: 14px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            overflow: hidden;
-            font-size: 12px;
-        }
-
-        .key-guide-header {
-            padding: 9px 12px;
-            background: #f1f5f9;
-            color: #334155;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            user-select: none;
-            transition: background 0.15s ease;
-        }
-
-        .key-guide-header:hover {
-            background: #e2e8f0;
-        }
-
-        .key-guide-content {
-            padding: 12px 14px;
-            line-height: 1.6;
-            color: #475569;
-            background: #ffffff;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .key-guide-content ol {
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        .key-guide-content li {
-            margin-bottom: 6px;
-        }
-
-        .key-guide-content strong {
-            color: #0f172a;
-        }
-
-        .key-guide-content code {
-            font-family: monospace;
-            background: #f1f5f9;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            color: #0f172a;
-            word-break: break-all;
-        }
-
-        .key-guide-pill {
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 8px;
-            background: #f8fafc;
-            color: #475569;
-            border: 1px solid #cbd5e1;
-            font-weight: 600;
-            cursor: pointer;
+        .btn-emergency-lock {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            transition: all 0.15s ease;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #dc2626;
+            background: #fff5f5;
+            border: 1px solid #fecaca;
+            cursor: pointer;
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            line-height: 1;
         }
 
-        .key-guide-pill:hover {
-            background: #ffffff;
-            color: #0eb1b1;
-            border-color: #0eb1b1;
-            box-shadow: 0 2px 4px rgba(14, 177, 177, 0.12);
+        .btn-emergency-lock:hover {
+            background: #fee2e2;
+            border-color: #f87171;
+            color: #b91c1c;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+            transform: translateY(-1px);
         }
 
-        /* Responsive Breakpoints */
-        @media (max-width: 992px) {
-            #systemIntegrationsModal {
-                padding: 16px;
-            }
+        .btn-restore-all {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #059669;
+            background: #f0fdf4;
+            border: 1px solid #a7f3d0;
+            cursor: pointer;
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            line-height: 1;
+        }
 
-            #systemIntegrationsModal .modal-container {
-                padding: 22px;
-                max-height: 92vh;
-            }
+        .btn-restore-all:hover {
+            background: #dcfce7;
+            border-color: #6ee7b7;
+            color: #047857;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+            transform: translateY(-1px);
+        }
 
-            #integrationsCardsCore {
-                grid-template-columns: 1fr;
-                gap: 14px;
-            }
+        .btn-modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 22px;
+            line-height: 1;
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            padding: 0;
+        }
 
-            .integration-launch-hub {
-                padding: 20px;
-            }
+        .btn-modal-close:hover {
+            background: #fee2e2;
+            color: #ef4444;
+            border-color: #fca5a5;
+            transform: rotate(90deg);
         }
 
         @media (max-width: 640px) {
-            #systemIntegrationsModal {
-                padding: 8px;
-            }
-
-            #systemIntegrationsModal .modal-container {
-                padding: 16px;
-                border-radius: 14px;
-                max-height: 95vh;
-            }
-
             .integrations-modal-header {
                 flex-direction: column;
                 align-items: stretch !important;
@@ -1538,14 +1629,22 @@
             .integrations-header-actions {
                 display: flex;
                 width: 100%;
-                justify-content: space-between;
-                gap: 6px;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 8px;
+                flex-wrap: wrap;
             }
 
-            .integrations-header-actions button {
+            .integrations-header-actions .btn-emergency-lock,
+            .integrations-header-actions .btn-restore-all {
                 flex: 1;
-                font-size: 11px !important;
-                padding: 6px 8px !important;
+                font-size: 11.5px !important;
+                padding: 7px 10px !important;
+                justify-content: center;
+            }
+
+            .integrations-header-actions .btn-modal-close {
+                flex: 0 0 36px;
             }
 
             .integrations-toolbar {
@@ -1630,6 +1729,7 @@
     </style>
     <link rel="stylesheet" href="css/weeklyTraffic.css">
     <script src="js/weeklyTraffic.js"></script>
+    <script src="js/pdfReport.js"></script>
 </head>
 
 <body data-theme="light">
@@ -1663,35 +1763,35 @@
                     </li>
                     <li id="menu-tab-invitations" onclick="switchTab('invitations')">
                         <i class='bx bx-mail-send'></i>
-                        <span>Staff Invitations (SA-002)</span>
+                        <span>Staff Invitations</span>
                     </li>
                     <li id="menu-tab-users" onclick="switchTab('users')">
                         <i class='bx bx-group'></i>
-                        <span>Users & Roles (SA-003)</span>
+                        <span>Users & Roles</span>
                     </li>
                     <li id="menu-tab-rbac" onclick="switchTab('rbac')">
                         <i class='bx bx-shield-quarter'></i>
-                        <span>Role Permissions (SA-004)</span>
+                        <span>Role Permissions</span>
                     </li>
                     <li id="menu-tab-master" onclick="switchTab('master')">
                         <i class='bx bx-slider-alt'></i>
-                        <span>Settings & Controls (SA-005 / SA-008)</span>
+                        <span>Settings & Controls</span>
                     </li>
                     <li id="menu-tab-vault" onclick="switchTab('vault')">
                         <i class='bx bx-archive-in'></i>
-                        <span>Recovery Vault (SA-006)</span>
+                        <span>Recovery Vault</span>
                     </li>
                     <li id="menu-tab-archive" onclick="switchTab('archive')">
                         <i class='bx bx-archive'></i>
-                        <span>Data Archives (SA-007)</span>
+                        <span>Data Archives</span>
                     </li>
                     <li id="menu-tab-reports" onclick="switchTab('reports')">
                         <i class='bx bx-bar-chart-alt-2'></i>
-                        <span>Reports & Monitoring (SA-009)</span>
+                        <span>Reports & Monitoring</span>
                     </li>
                     <li id="menu-tab-clinical" onclick="switchTab('clinical')">
                         <i class='bx bx-book-content'></i>
-                        <span>Clinical Records (D-004)</span>
+                        <span>Clinical Records</span>
                     </li>
                     <li class="mt-auto" onclick="toggleTheme()"
                         style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 20px !important; cursor: pointer;">
@@ -2138,7 +2238,7 @@
                 <div id="tab-invitations" class="admin-tab" style="display: none;">
                     <div class="flex items-center justify-between border-bottom pb-1 mb-2">
                         <div>
-                            <h2 class="font-bold text-xl">Doctor & Receptionist Invitation (Task SA-002)</h2>
+                            <h2 class="font-bold text-xl">Doctor & Receptionist Invitation</h2>
                             <p class="text-dim text-sm mt-0">Invite clinic professionals to securely register and join
                                 the system</p>
                         </div>
@@ -2240,9 +2340,9 @@
                         <div class="flex items-center justify-between gap-1" style="flex-wrap: wrap;">
                             <div>
                                 <div class="flex items-center gap-1 mb-1">
-                                    <h2 class="text-xl font-bold text-dark m-0">Clinical Record Management (D-004)</h2>
+                                    <h2 class="text-xl font-bold text-dark m-0">Clinical Record Management</h2>
                                     <span class="badge"
-                                        style="background: rgba(14, 177, 177, 0.12); color: #0eb1b1; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 4px;">D-004
+                                        style="background: rgba(14, 177, 177, 0.12); color: #0eb1b1; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 4px;">
                                         Clinical Governance</span>
                                 </div>
                                 <p class="text-xs text-dim m-0">
@@ -2411,7 +2511,7 @@
                 <div id="tab-users" class="admin-tab" style="display: none;">
                     <div class="flex items-center justify-between border-bottom pb-1 mb-2">
                         <div>
-                            <h2 class="font-bold text-xl">Multi-User Management (Task SA-003)</h2>
+                            <h2 class="font-bold text-xl">Multi-User Management</h2>
                             <p class="text-dim text-sm mt-0">Manage Super Admin, Doctor, Receptionist, and Client
                                 accounts in MongoDB</p>
                         </div>
@@ -2560,7 +2660,7 @@
                     <header class="admin-header flex justify-between items-center mb-2 pb-1 border-bottom">
                         <div>
                             <h2 class="font-bold text-xl">Role-Based Access Control (RBAC Matrix)</h2>
-                            <p class="text-dim text-sm mt-0">Task SA-004 &bull; Manage granular feature permissions and
+                            <p class="text-dim text-sm mt-0">Manage granular feature permissions and
                                 access rules for every system role</p>
                         </div>
                         <div class="flex gap-1">
@@ -2632,7 +2732,7 @@
                                     <i class='bx bxs-crown'></i> Root Authority
                                 </span>
                             </div>
-                            <p class="text-dim text-sm mt-0">Tasks SA-005 &amp; SA-008 &bull; Comprehensive governance
+                            <p class="text-dim text-sm mt-0">Comprehensive governance
                                 over clinic system preferences, security policies, database backups, and live audit
                                 trails.</p>
                         </div>
@@ -2718,11 +2818,11 @@
                                         </span>
                                     </div>
                                     <p class="text-xs text-dim mt-0 mb-2" style="font-size: 12.5px; line-height: 1.45; color: #64748b;">
-                                        Centralized gateway orchestration for Google OAuth, Calendar Live Sync, SMTP Mailer, SMS Notifications, and reCAPTCHA Bot Defense.
+                                        Centralized gateway orchestration for Google OAuth, Calendar Live Sync, SMTP Mailer, ImgBB Storage, and reCAPTCHA Bot Defense.
                                     </p>
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="hub-meta-pill"><i class='bx bx-shield-quarter text-primary'></i> AES-256 Encrypted</span>
-                                        <span class="hub-meta-pill"><i class='bx bx-check-double text-success'></i> 7 Configured Services</span>
+                                        <span class="hub-meta-pill"><i class='bx bx-check-double text-success'></i> 6 Configured Services</span>
                                         <span class="hub-meta-pill"><i class='bx bx-sync text-info'></i> Real-Time Two-Way Sync</span>
                                     </div>
                                 </div>
@@ -2792,7 +2892,7 @@
                                                 </div>
                                                 <div class="flex items-center gap-1">
                                                     <span class="badge"
-                                                        style="background: rgba(14, 177, 177, 0.12); color: #0eb1b1; font-weight: 700; font-size: 11px; padding: 3px 9px; border-radius: 6px;">SA-008
+                                                        style="background: rgba(14, 177, 177, 0.12); color: #0eb1b1; font-weight: 700; font-size: 11px; padding: 3px 9px; border-radius: 6px;">
                                                         Settings</span>
                                                     <span class="text-xs text-dim" style="font-size: 11px;">Persists to
                                                         MongoDB
@@ -2938,8 +3038,8 @@
 
                                                     <!-- Right Sub-Column: Clinic Working Hours & Duty Availability (Calendar, Presets, Shifts) -->
                                                     <div style="display: flex; flex-direction: column; gap: 14px;">
-                                                        <div class="clinic-schedule-card p-3 border rounded-xl"
-                                                            style="border-radius: 12px; border: 1.5px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.02); margin: 0;">
+                                                        <div class="clinic-schedule-card p-3"
+                                                            style="border-radius: 14px; border: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03); margin: 0; padding: 18px;">
                                                             <div
                                                                 class="flex items-center justify-between border-bottom pb-2 mb-2">
                                                                 <h4 class="font-bold text-sm mb-0 flex items-center gap-2"
@@ -3055,7 +3155,7 @@
 
                                                                     <!-- Calendar Legend -->
                                                                     <div class="clinic-cal-legend"
-                                                                        style="border-top: 1px dashed #e2e8f0; padding-top: 8px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 10.5px; color: #64748b;">
+                                                                        style="border-top: 1px solid #e2e8f0; padding-top: 10px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 10.5px; color: #64748b;">
                                                                         <span
                                                                             style="display: inline-flex; align-items: center; gap: 4px;">
                                                                             <span
@@ -3180,8 +3280,7 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div class="mt-2 pt-2 border-top"
-                                                                style="border-top: 1px dashed #e2e8f0;">
+                                                            <div class="mt-3 pt-3 border-top" style="border-top: 1px solid #e2e8f0;">
                                                                 <label
                                                                     style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; font-weight: 600; color: var(--text-color);">
                                                                     <input type="checkbox" id="settingLunchBreak"
@@ -3533,7 +3632,7 @@
                                                         <i class='bx bx-archive-in'></i> Non-Destructive Vault
                                                     </span>
                                                 </div>
-                                                <p class="text-dim text-sm mt-0">Task SA-006 &bull; Safely review,
+                                                <p class="text-dim text-sm mt-0">Safely review,
                                                     restore, or permanently
                                                     purge soft-deleted user accounts and clinic records.</p>
                                             </div>
@@ -3668,7 +3767,7 @@
                                                     <h2 class="font-bold text-xl mb-0">Historical Data Archives</h2>
                                                     <span class="badge"
                                                         style="background: rgba(99, 102, 241, 0.12); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600;">
-                                                        <i class='bx bx-archive'></i> SA-007 Retention
+                                                        <i class='bx bx-archive'></i> Retention
                                                     </span>
                                                 </div>
                                                 <p class="text-dim text-sm mt-0">Preserve completed appointments,
@@ -3879,7 +3978,7 @@
                                                         <h2 class="text-xl font-bold text-dark m-0">Operations &
                                                             Governance Reports</h2>
                                                         <span class="badge"
-                                                            style="background: rgba(14, 177, 177, 0.12); color: #0eb1b1; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 4px;">SA-009
+                                                            style="background: rgba(14, 177, 177, 0.12); color: #0eb1b1; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 4px;">
                                                             Intelligence</span>
                                                     </div>
                                                     <p class="text-xs text-dim m-0">
@@ -4342,8 +4441,7 @@
                     style="font-size: 24px; cursor: pointer; border: none; background: transparent;">&times;</button>
             </div>
             <p class="text-xs text-dim mb-2">
-                Reassigning a user's role updates their permissions according to the <strong>RBAC Matrix
-                    (SA-004)</strong>.
+                Reassigning a user's role updates their permissions according to the <strong>RBAC Matrix</strong>.
             </p>
             <form id="assignRoleForm">
                 <div class="form-group mb-1">
@@ -4518,40 +4616,40 @@
 
             <!-- Modal Header -->
             <div class="integrations-modal-header">
-                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                <div style="display: flex; align-items: flex-start; gap: 14px; flex: 1; min-width: 0;">
                     <div
-                        style="width: 50px; height: 50px; border-radius: 16px; background: linear-gradient(135deg, rgba(14, 177, 177, 0.16), rgba(59, 130, 246, 0.16)); color: #0eb1b1; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(14, 177, 177, 0.15);">
+                        style="width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, rgba(14, 177, 177, 0.16), rgba(59, 130, 246, 0.16)); color: #0eb1b1; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(14, 177, 177, 0.12);">
                         <i class='bx bx-slider-alt'></i>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                             <h2
-                                style="font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; letter-spacing: -0.01em;">
+                                style="font-size: 19px; font-weight: 700; color: #0f172a; margin: 0; letter-spacing: -0.01em;">
                                 System Integrations &amp; Core API Gateway Hub</h2>
                             <span id="modalSystemGateBadge" class="badge"
                                 style="font-size: 11px; padding: 4px 12px; border-radius: 999px; background: rgba(16, 185, 129, 0.12); color: #059669; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.25); display: inline-flex; align-items: center; gap: 6px;">
-                                <span class="live-dot-pulse"></span> <span id="modalActiveSubsystemCountText">5/7
-                                    Subsystems Active</span>
+                                <span class="live-dot-pulse"></span> <span id="modalActiveSubsystemCountText">4/6 Subsystems Active</span>
                             </span>
                         </div>
-                        <p style="font-size: 13px; color: #64748b; margin: 6px 0 0 0; line-height: 1.5;">
-                            Enterprise multi-subsystem gateway manager. Real-time encryption, API token vault &amp;
-                            circuit breakers.
+                        <p style="font-size: 12.5px; color: #64748b; margin: 4px 0 0 0; line-height: 1.45;">
+                            Enterprise multi-subsystem gateway manager. Real-time encryption, API token vault &amp; circuit breakers.
                         </p>
                     </div>
                 </div>
                 <div class="integrations-header-actions">
-                    <button type="button" class="btn-outline sm" onclick="emergencyLockdownPrompt()"
-                        style="color: #dc2626; border-color: #fecaca; background: #fff5f5; font-size: 12px; padding: 8px 14px; border-radius: 10px; font-weight: 600; cursor: pointer;">
-                        <i class='bx bxs-lock-alt mr-1'></i> Emergency Lock
+                    <button type="button" class="btn-emergency-lock" onclick="emergencyLockdownPrompt()"
+                        title="Instantly lock down public and staff logins (super admin only)">
+                        <i class='bx bxs-lock-alt'></i>
+                        <span>Emergency Lock</span>
                     </button>
-                    <button type="button" class="btn-outline sm" onclick="restoreAllIntegrationsPrompt()"
-                        style="color: #059669; border-color: #a7f3d0; background: #f0fdf4; font-size: 12px; padding: 8px 14px; border-radius: 10px; font-weight: 600; cursor: pointer;">
-                        <i class='bx bx-check-double mr-1'></i> Restore All
+                    <button type="button" class="btn-restore-all" onclick="restoreAllIntegrationsPrompt()"
+                        title="Restore all normal login and email dispatch services">
+                        <i class='bx bx-check-double'></i>
+                        <span>Restore All</span>
                     </button>
-                    <button type="button" onclick="closeIntegrationsModal()" title="Close"
-                        style="width: 38px; height: 38px; border-radius: 50%; background: #f1f5f9; color: #64748b; border: none; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;">
-                        &times;
+                    <div class="header-action-divider" style="width: 1px; height: 26px; background: #e2e8f0; margin: 0 4px;"></div>
+                    <button type="button" class="btn-modal-close" onclick="closeIntegrationsModal()" title="Close (Esc)">
+                        <i class='bx bx-x'></i>
                     </button>
                 </div>
             </div>
@@ -4561,19 +4659,19 @@
                 <div class="integrations-filter-group">
                     <button type="button" class="integration-filter-pill active" data-category="all"
                         onclick="filterIntegrationCategory('all', this)">
-                        All Systems (7)
+                        All Systems (6)
                     </button>
                     <button type="button" class="integration-filter-pill" data-category="security"
                         onclick="filterIntegrationCategory('security', this)">
-                        <i class='bx bx-shield-quarter'></i> Security &amp; Auth (2)
+                        <i class='bx bx-shield-quarter'></i> Security &amp; Auth (3)
                     </button>
                     <button type="button" class="integration-filter-pill" data-category="messaging"
                         onclick="filterIntegrationCategory('messaging', this)">
-                        <i class='bx bx-message-rounded-dots'></i> Messaging &amp; Mail (2)
+                        <i class='bx bx-message-rounded-dots'></i> Messaging &amp; Mail (1)
                     </button>
                     <button type="button" class="integration-filter-pill" data-category="cloud"
                         onclick="filterIntegrationCategory('cloud', this)">
-                        <i class='bx bx-cloud'></i> Cloud &amp; Webhooks (3)
+                        <i class='bx bx-cloud'></i> Cloud &amp; Storage (2)
                     </button>
                 </div>
                 <div class="integration-search-box">
@@ -4713,68 +4811,7 @@
                             </label>
                         </div>
                     </div>
-
-                    <!-- 3. SMS Mobile Notifications Gateway -->
-                    <div class="integration-card" data-category="messaging"
-                        data-name="sms mobile phone text reminders gateway notifications api">
-                        <div>
-                            <div
-                                style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div
-                                        style="width: 44px; height: 44px; border-radius: 12px; background: rgba(59, 130, 246, 0.12); display: flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 24px; flex-shrink: 0;">
-                                        <i class='bx bx-message-rounded-dots'></i>
-                                    </div>
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 14.5px; color: #0f172a;">SMS Mobile
-                                            Gateway</div>
-                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Patient Text
-                                            Broadcast &amp; Alerts</div>
-                                    </div>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                                    <button type="button" class="key-guide-pill"
-                                        onclick="openKeyGuideDirectly('sms_gateway_enabled')"
-                                        title="View step-by-step instructions to obtain SMS API Key">
-                                        <i class='bx bx-book-open'></i> Key Guide
-                                    </button>
-                                    <span id="badgeSmsGateway" class="badge"
-                                        style="font-size: 11px; padding: 4px 10px; border-radius: 8px; background: rgba(100, 116, 139, 0.1); color: #64748b; font-weight: 700;">
-                                        STANDBY
-                                    </span>
-                                </div>
-                            </div>
-                            <p
-                                style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 12px 0; min-height: 38px;">
-                                Automated SMS text messages dispatched to patient mobile numbers for appointment
-                                confirmation, queue updates, and schedule reminders.
-                            </p>
-                            <!-- Encrypted Token Subtext -->
-                            <div id="tokenSubtext_sms_gateway_enabled" class="token-subtext-container">
-                                <div
-                                    style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    <i class='bx bx-key' style="color: #94a3b8; font-size: 14px; flex-shrink: 0;"></i>
-                                    <span style="color: #94a3b8; font-weight: 500;">Key Cleared &amp; Reset</span>
-                                </div>
-                                <span
-                                    style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; flex-shrink: 0;">TURN
-                                    ON TO ENTER</span>
-                            </div>
-                        </div>
-                        <div
-                            style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 12px; font-weight: 700; color: #64748b;"
-                                id="labelSmsGatewayStatus">Standby / Inactive</span>
-                            <label class="master-toggle" title="Toggle SMS Mobile Gateway"
-                                style="margin: 0; cursor: pointer;">
-                                <input type="checkbox" id="switchSmsGateway"
-                                    onchange="requestIntegrationToggle('sms_gateway_enabled', this.checked, this)">
-                                <span class="master-toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- 4. Google Calendar API Live Sync -->
+<!-- 3. Google Calendar API Live Sync -->
                     <div class="integration-card" data-category="cloud"
                         data-name="google calendar api live sync appointments calendar sync schedule edjamenf@gmail.com">
                         <div>
@@ -4871,7 +4908,7 @@
                         </div>
                     </div>
 
-                    <!-- 5. Google reCAPTCHA v2 Anti-Bot Defense Switch -->
+                    <!-- 4. Google reCAPTCHA v2 Anti-Bot Defense Switch -->
                     <div class="integration-card" data-category="security"
                         data-name="google recaptcha anti-bot security defense brute force shield">
                         <div>
@@ -4934,7 +4971,7 @@
                         </div>
                     </div>
 
-                    <!-- 6. ImgBB Image Hosting -->
+                    <!-- 5. ImgBB Image Hosting -->
                     <div class="integration-card" data-category="cloud"
                         data-name="imgbb image hosting cdn uploads clinical photos dental records">
                         <div>
@@ -4969,70 +5006,77 @@
                             </label>
                         </div>
                     </div>
-
-                    <!-- 7. Google Forms Webhook -->
-                    <div class="integration-card" data-category="cloud"
-                        data-name="google forms webhook intake surveys registrations feedback">
+<!-- 8. QR Code API (api-ninjas.com) — key required; turning it on enables QR check-in -->
+                    <div class="integration-card" data-category="security"
+                        data-name="qr code api ninjas check-in pass scanner appointment verify reception">
                         <div>
-                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                <div
-                                    style="width: 44px; height: 44px; border-radius: 12px; background: rgba(103, 58, 183, 0.14); display: flex; align-items: center; justify-content: center; color: #673ab7; font-size: 24px; flex-shrink: 0;">
-                                    <i class='bx bx-spreadsheet'></i>
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div
+                                        style="width: 44px; height: 44px; border-radius: 12px; background: rgba(14, 177, 177, 0.14); display: flex; align-items: center; justify-content: center; color: #0eb1b1; font-size: 24px; flex-shrink: 0;">
+                                        <i class='bx bx-qr-scan'></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 14.5px; color: #0f172a;">QR Code API</div>
+                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">API Ninjas · QR Check-in Passes</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div style="font-weight: 700; font-size: 14.5px; color: #0f172a;">Google Forms
-                                        Webhook</div>
-                                    <div style="font-size: 11px; color: #64748b; margin-top: 2px;">External Patient
-                                        Intake &amp; Surveys</div>
-                                </div>
+                                <button type="button" class="key-guide-pill" onclick="openKeyGuideDirectly('qr_api_enabled')" title="How to get a free API Ninjas key">
+                                    <i class='bx bx-book-open'></i> Key Guide
+                                </button>
                             </div>
                             <p
                                 style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 12px 0; min-height: 38px;">
-                                Bridges external Google Forms intake forms into OptiDent appointments via cryptographic
-                                HMAC webhook endpoints.
+                                Draws each patient's signed appointment QR pass and enables the front-desk scanner. Off until a working API key is connected.
                             </p>
-                            <div id="tokenSubtext_google_forms_enabled" class="token-subtext-container"></div>
+                            <div id="tokenSubtext_qr_api_enabled" class="token-subtext-container"></div>
                         </div>
                         <div
                             style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
                             <span style="font-size: 12px; font-weight: 700; color: #64748b;"
-                                id="labelGoogleFormsStatus">Standby / Inactive</span>
-                            <label class="master-toggle" title="Toggle Google Forms Webhook"
+                                id="labelQrApiStatus">Standby / Inactive</span>
+                            <label class="master-toggle" title="Toggle QR Code API"
                                 style="margin: 0; cursor: pointer;">
-                                <input type="checkbox" id="switchGoogleForms"
-                                    onchange="requestIntegrationToggle('google_forms_enabled', this.checked, this)">
+                                <input type="checkbox" id="switchQrApi"
+                                    onchange="requestIntegrationToggle('qr_api_enabled', this.checked, this)">
                                 <span class="master-toggle-slider"></span>
                             </label>
                         </div>
                     </div>
 
-                    <!-- 8. QR Check-in Passes (built-in, no API key) -->
-                    <div class="integration-card" data-category="security"
-                        data-name="qr code check-in pass scanner appointment verify reception front desk">
+                    <!-- 9. PDF Report API (pdfshift.io) — key required; turning it on enables PDF report downloads -->
+                    <div class="integration-card" data-category="cloud"
+                        data-name="pdf report api pdfshift export download reports header footer">
                         <div>
-                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                <div
-                                    style="width: 44px; height: 44px; border-radius: 12px; background: rgba(14, 177, 177, 0.14); display: flex; align-items: center; justify-content: center; color: #0eb1b1; font-size: 24px; flex-shrink: 0;">
-                                    <i class='bx bx-qr-scan'></i>
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div
+                                        style="width: 44px; height: 44px; border-radius: 12px; background: rgba(239, 68, 68, 0.12); display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 24px; flex-shrink: 0;">
+                                        <i class='bx bxs-file-pdf'></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 14.5px; color: #0f172a;">PDF Report API</div>
+                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">PDFShift · Official Report PDFs</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div style="font-weight: 700; font-size: 14.5px; color: #0f172a;">QR Check-in Passes</div>
-                                    <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Signed Appointment Verification</div>
-                                </div>
+                                <button type="button" class="key-guide-pill" onclick="openKeyGuideDirectly('pdf_api_enabled')" title="How to get a free PDFShift key">
+                                    <i class='bx bx-book-open'></i> Key Guide
+                                </button>
                             </div>
                             <p
                                 style="font-size: 12.5px; line-height: 1.55; color: #64748b; margin: 0 0 12px 0; min-height: 38px;">
-                                Patients show a signed QR pass for their appointment; the front desk scans it to confirm it is genuine and check them in.
+                                Turns report screens into PDFs with the clinic header, footer and page numbers. PDF downloads stay off until a working API key is connected.
                             </p>
+                            <div id="tokenSubtext_pdf_api_enabled" class="token-subtext-container"></div>
                         </div>
                         <div
                             style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 12px; font-weight: 700; color: #10b981;"
-                                id="labelQrCheckinStatus">Scanning Active</span>
-                            <label class="master-toggle" title="Toggle QR Check-in Passes"
+                            <span style="font-size: 12px; font-weight: 700; color: #64748b;"
+                                id="labelPdfApiStatus">Standby / Inactive</span>
+                            <label class="master-toggle" title="Toggle PDF Report API"
                                 style="margin: 0; cursor: pointer;">
-                                <input type="checkbox" id="switchQrCheckin" checked
-                                    onchange="requestIntegrationToggle('qr_checkin_enabled', this.checked, this)">
+                                <input type="checkbox" id="switchPdfApi"
+                                    onchange="requestIntegrationToggle('pdf_api_enabled', this.checked, this)">
                                 <span class="master-toggle-slider"></span>
                             </label>
                         </div>
@@ -5441,7 +5485,7 @@
                     </div>
                 </div>
 
-                <!-- Field 6: ImgBB API Key -->
+                <!-- Field 4: ImgBB API Key -->
                 <div id="fieldWrap_imgbb_enabled" style="display: none; margin-bottom: 16px;">
                     <label for="inputTokenImgbbKey"
                         style="font-size: 12.5px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 6px;">ImgBB
@@ -5455,16 +5499,56 @@
                         uploaded and deletes itself after 60 seconds.</div>
                 </div>
 
-                <!-- Field 7: Google Forms (no input; server generates the secret) -->
-                <div id="fieldWrap_google_forms_enabled" style="display: none; margin-bottom: 16px;">
-                    <div style="font-size: 12.5px; color: #334155; line-height: 1.55;">
-                        Google Forms has no outside service to test against, so the server generates a random webhook
-                        secret.
-                        It is shown <strong>once</strong> after you continue. Paste it into your form's Apps Script.
+                <!-- Field 6a: PDF Report API (PDFShift) -->
+                <div id="fieldWrap_pdf_api_enabled" style="display: none; margin-bottom: 16px;">
+                    <label for="inputTokenPdfApiKey"
+                        style="font-size: 12.5px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 6px;">PDFShift API Key</label>
+                    <input type="password" id="inputTokenPdfApiKey" name="api_key" autocomplete="off"
+                        placeholder="Paste the key from app.pdfshift.io → API Keys (starts with sk_)"
+                        style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: monospace; outline: none;">
+                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">The key is checked with PDFShift before saving (this check does not use a conversion credit).</div>
+                    <div class="key-guide-box">
+                        <div class="key-guide-header" onclick="toggleKeyGuide('guide_pdf_api')">
+                            <span><i class='bx bx-help-circle' style="color: #ef4444; vertical-align: middle;"></i> <strong>Step-by-Step: How to get a free PDFShift key</strong></span>
+                            <i class='bx bx-chevron-down' id="guide_pdf_api_chevron" style="transition: transform 0.2s ease;"></i>
+                        </div>
+                        <div id="guide_pdf_api" class="key-guide-content" style="display: none;">
+                            <ol>
+                                <li>Go to <a href="https://pdfshift.io/" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">pdfshift.io</a> and click <strong>Sign up</strong> (the Free plan needs no credit card).</li>
+                                <li>Confirm your email address from the message PDFShift sends you.</li>
+                                <li>Log in to the dashboard at <a href="https://app.pdfshift.io/" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">app.pdfshift.io</a>.</li>
+                                <li>Open <strong>API Keys</strong> and copy your key (it starts with <code>sk_</code>), or create a new one.</li>
+                                <li>Paste it in the box above and click <strong>Verify &amp; Encrypt Vault Key</strong>.</li>
+                            </ol>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Live Verification Status / Error Container -->
+                <!-- Field 6b: QR Code API (API Ninjas) -->
+                <div id="fieldWrap_qr_api_enabled" style="display: none; margin-bottom: 16px;">
+                    <label for="inputTokenQrApiKey"
+                        style="font-size: 12.5px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 6px;">API Ninjas API Key</label>
+                    <input type="password" id="inputTokenQrApiKey" name="api_key" autocomplete="off"
+                        placeholder="Paste the key from api-ninjas.com → My Account"
+                        style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: monospace; outline: none;">
+                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">A test QR code is drawn with this key before anything is saved.</div>
+                    <div class="key-guide-box">
+                        <div class="key-guide-header" onclick="toggleKeyGuide('guide_qr_api')">
+                            <span><i class='bx bx-help-circle' style="color: #0eb1b1; vertical-align: middle;"></i> <strong>Step-by-Step: How to get a free API Ninjas key</strong></span>
+                            <i class='bx bx-chevron-down' id="guide_qr_api_chevron" style="transition: transform 0.2s ease;"></i>
+                        </div>
+                        <div id="guide_qr_api" class="key-guide-content" style="display: none;">
+                            <ol>
+                                <li>Go to <a href="https://api-ninjas.com/register" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">api-ninjas.com/register</a> and create a free account (no credit card needed).</li>
+                                <li>Confirm your email address from the message API Ninjas sends you.</li>
+                                <li>Log in and open <a href="https://api-ninjas.com/profile" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">My Account</a>.</li>
+                                <li>Click <strong>Show API Key</strong> and copy it.</li>
+                                <li>Paste it in the box above and click <strong>Verify &amp; Encrypt Vault Key</strong>.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+<!-- Live Verification Status / Error Container -->
                 <div id="tokenModalVerificationStatus"
                     style="display: none; margin-bottom: 18px; padding: 12px; border-radius: 10px; font-size: 12.5px; line-height: 1.5;">
                 </div>
@@ -6283,7 +6367,7 @@
                             </td>
                             <td style="padding: 12px 16px; text-align: right;">
                                 ${!u.is_master ? `
-                                    <button class="btn-outline sm" onclick="openAssignRoleModal('${escapeHtml(u.email)}', '${escapeHtml(role)}')" title="Assign Role (SA-004)" style="padding: 4px 8px; font-size: 11px; margin-right: 4px; color: var(--primary); border-color: var(--primary);">
+                                    <button class="btn-outline sm" onclick="openAssignRoleModal('${escapeHtml(u.email)}', '${escapeHtml(role)}')" title="Assign Role" style="padding: 4px 8px; font-size: 11px; margin-right: 4px; color: var(--primary); border-color: var(--primary);">
                                         <i class='bx bx-shield-quarter'></i> Role
                                     </button>
                                 ` : ''}
@@ -6294,7 +6378,7 @@
                                     <i class='bx ${status === 'active' ? 'bx-power-off' : 'bx-check-circle'}'></i>
                                 </button>
                                 ${!u.is_master ? `
-                                    <button class="btn-text sm" onclick="openArchiveModal('users', '${u._id}', '${escapeHtml(u.email)}', '${escapeHtml(u.full_name || '')}')" title="Archive Account (SA-007)" style="padding: 4px 8px; font-size: 11px; color: #6366f1;">
+                                    <button class="btn-text sm" onclick="openArchiveModal('users', '${u._id}', '${escapeHtml(u.email)}', '${escapeHtml(u.full_name || '')}')" title="Archive Account" style="padding: 4px 8px; font-size: 11px; color: #6366f1;">
                                         <i class='bx bx-archive-in'></i>
                                     </button>
                                     <button class="btn-text text-danger sm" onclick="openDeleteUserModal('${escapeHtml(u.email)}', '${escapeHtml(u.full_name || '')}', '${escapeHtml(u.role || '')}')" title="Delete User" style="padding: 4px 8px; font-size: 11px;">
@@ -6906,7 +6990,6 @@
                 google_auth_enabled: true,
                 allow_non_admin_logins: true,
                 smtp_email_enabled: true,
-                sms_gateway_enabled: false,
                 patient_self_registration: true,
                 patient_online_booking: true,
                 patient_rescheduling_enabled: true,
@@ -6923,11 +7006,11 @@
             const TOKEN_SUBTEXT_LABELS = {
                 smtp_email_enabled: 'App Password:',
                 google_auth_enabled: 'OAuth Client:',
-                sms_gateway_enabled: 'SMS API Key:',
                 google_calendar_sync: 'Service Account:',
                 recaptcha_enabled: 'Secret Key:',
                 imgbb_enabled: 'ImgBB API Key:',
-                google_forms_enabled: 'Webhook Secret:'
+                qr_api_enabled: 'API Ninjas Key:',
+                pdf_api_enabled: 'PDFShift Key:',
             };
 
             function renderTokenSubtext(key, isEnabled, maskedVal) {
@@ -6976,7 +7059,6 @@
                 integrations = integrations || activeSystemIntegrations || {};
                 const googleAuth = integrations.google_auth_enabled !== false && integrations.allow_non_admin_logins !== false;
                 const smtp = integrations.smtp_email_enabled !== false;
-                const sms = !!integrations.sms_gateway_enabled;
                 const selfReg = integrations.patient_self_registration !== false;
                 const booking = integrations.patient_online_booking !== false;
                 const resched = integrations.patient_rescheduling_enabled !== false;
@@ -7016,17 +7098,6 @@
                 // 3. SMS Gateway
                 const bSms = document.getElementById('badgeSmsGateway');
                 const lSms = document.getElementById('labelSmsGatewayStatus');
-                const sSms = document.getElementById('switchSmsGateway');
-                if (sSms) sSms.checked = sms;
-                if (bSms) {
-                    bSms.textContent = sms ? 'ACTIVE' : 'STANDBY';
-                    bSms.style.background = sms ? 'rgba(16, 185, 129, 0.1)' : 'rgba(100, 116, 139, 0.1)';
-                    bSms.style.color = sms ? '#10b981' : '#64748b';
-                }
-                if (lSms) {
-                    lSms.textContent = sms ? 'SMS Dispatch Active' : 'Standby / Inactive';
-                    lSms.style.color = sms ? '#10b981' : '#64748b';
-                }
 
                 // 4. Google Calendar API Live Sync
                 const gCalSync = integrations.google_calendar_sync !== false;
@@ -7071,13 +7142,13 @@
                 // Render Vault Key Subtexts on all 5 integration cards
                 renderTokenSubtext('google_auth_enabled', googleAuth, activeMaskedTokens.google_auth_enabled);
                 renderTokenSubtext('smtp_email_enabled', smtp, activeMaskedTokens.smtp_email_enabled);
-                renderTokenSubtext('sms_gateway_enabled', sms, activeMaskedTokens.sms_gateway_enabled);
                 renderTokenSubtext('google_calendar_sync', gCalSync, activeMaskedTokens.google_calendar_sync);
                 renderTokenSubtext('recaptcha_enabled', recaptcha, activeMaskedTokens.recaptcha_enabled);
 
-                // ImgBB + Google Forms (off unless explicitly enabled)
+                // ImgBB (off unless explicitly enabled)
                 [['imgbb_enabled', 'switchImgbb', 'labelImgbbStatus', 'Image Hosting Active'],
-                ['google_forms_enabled', 'switchGoogleForms', 'labelGoogleFormsStatus', 'Webhook Active']].forEach(([k, sw, lb, onText]) => {
+                ['qr_api_enabled', 'switchQrApi', 'labelQrApiStatus', 'QR Check-in Active'],
+                ['pdf_api_enabled', 'switchPdfApi', 'labelPdfApiStatus', 'PDF Reports Active'],].forEach(([k, sw, lb, onText]) => {
                     const on = !!integrations[k];
                     const s = document.getElementById(sw);
                     const l = document.getElementById(lb);
@@ -7085,13 +7156,6 @@
                     if (l) { l.textContent = on ? onText : 'Standby / Inactive'; l.style.color = on ? '#10b981' : '#64748b'; }
                     renderTokenSubtext(k, on, activeMaskedTokens[k]);
                 });
-
-                // QR Check-in (on unless explicitly turned off)
-                const qrOn = integrations.qr_checkin_enabled !== false;
-                const sQr = document.getElementById('switchQrCheckin');
-                const lQr = document.getElementById('labelQrCheckinStatus');
-                if (sQr) sQr.checked = qrOn;
-                if (lQr) { lQr.textContent = qrOn ? 'Scanning Active' : 'Disabled'; lQr.style.color = qrOn ? '#10b981' : '#64748b'; }
 
                 // Overall Status Banner
                 const overall = document.getElementById('systemGateOverallBadge');
@@ -7132,9 +7196,7 @@
                 updateTelemetryPill('smtp', smtp, 'ONLINE', 'PAUSED');
                 updateTelemetryPill('calendar', gCalSync, 'SYNC ACTIVE', 'PAUSED');
                 updateTelemetryPill('recaptcha', recaptcha, 'ARMED', 'DISABLED');
-                updateTelemetryPill('sms', sms, 'ACTIVE', 'STANDBY');
                 updateTelemetryPill('imgbb', !!integrations.imgbb_enabled, 'CDN ACTIVE', 'STANDBY');
-                updateTelemetryPill('forms', !!integrations.google_forms_enabled, 'HOOK ACTIVE', 'STANDBY');
 
                 // Count operational subsystems
                 let activeSubsystemsCount = 0;
@@ -7142,9 +7204,8 @@
                 if (smtp) activeSubsystemsCount++;
                 if (gCalSync) activeSubsystemsCount++;
                 if (recaptcha) activeSubsystemsCount++;
-                if (sms) activeSubsystemsCount++;
                 if (integrations.imgbb_enabled) activeSubsystemsCount++;
-                if (integrations.google_forms_enabled) activeSubsystemsCount++;
+                if (integrations.qr_checkin_enabled) activeSubsystemsCount++;
 
                 const modalBadge = document.getElementById('modalSystemGateBadge');
                 if (modalBadge) {
@@ -7157,7 +7218,7 @@
                         modalBadge.style.background = "rgba(239, 68, 68, 0.15)";
                         modalBadge.style.color = "#ef4444";
                     } else {
-                        modalBadge.innerHTML = `<span class='live-dot-pulse'></span> <span id="modalActiveSubsystemCountText">${activeSubsystemsCount}/7 Subsystems Active</span>`;
+                        modalBadge.innerHTML = `<span class='live-dot-pulse'></span> <span id="modalActiveSubsystemCountText">${activeSubsystemsCount}/6 Subsystems Active</span>`;
                         modalBadge.style.background = "rgba(16, 185, 129, 0.12)";
                         modalBadge.style.color = "#059669";
                     }
@@ -7184,73 +7245,6 @@
                     descOff: 'Suspends live SMTP email dispatch. The system will switch to mock verification codes for testing to prevent delivery timeout failures.',
                     criticalOnDisable: false
                 },
-                'sms_gateway_enabled': {
-                    name: 'SMS Mobile Gateway',
-                    icon: 'bx-message-rounded-dots',
-                    iconColor: '#3b82f6',
-                    iconBg: 'rgba(59, 130, 246, 0.12)',
-                    descOn: 'Enables automated SMS text dispatch to patient mobile phones for appointment reminders and schedule updates.',
-                    descOff: 'Disables SMS text dispatch and keeps automated mobile reminders in standby mode.',
-                    criticalOnDisable: false
-                },
-                'google_calendar_sync': {
-                    name: 'Google Calendar API Live Sync',
-                    icon: 'bx-calendar-event',
-                    iconColor: '#4285f4',
-                    iconBg: 'rgba(66, 133, 244, 0.12)',
-                    descOn: 'Enables live background synchronization of clinic appointments to your registered Google Calendar (edjamenf@gmail.com).',
-                    descOff: 'Pauses live synchronization of incoming appointments to Google Calendar. Appointments remain securely accessible in the OptiDent database.',
-                    criticalOnDisable: false
-                },
-                'recaptcha_enabled': {
-                    name: 'Google reCAPTCHA Anti-Bot Layer',
-                    icon: 'bx-shield-quarter',
-                    iconColor: '#0eb1b1',
-                    iconBg: 'rgba(14, 177, 177, 0.12)',
-                    descOn: 'Enforces live Google reCAPTCHA checkbox verification on the Sign In page to block automated bots, credential stuffing, and spam attacks.',
-                    descOff: 'Disables Google reCAPTCHA on the login page, allowing direct username and password authentication without bot challenges.',
-                    criticalOnDisable: false
-                },
-                'qr_checkin_enabled': {
-                    name: 'QR Check-in Passes',
-                    icon: 'bx-qr-scan',
-                    iconColor: '#0eb1b1',
-                    iconBg: 'rgba(14, 177, 177, 0.12)',
-                    descOn: 'Patients can open a signed QR pass for their appointments, and the front desk can scan it to verify and check them in.',
-                    descOff: 'Patients will no longer see QR passes and the front-desk scanner will refuse scans. Receptionists can still check patients in manually from the queue.',
-                    criticalOnDisable: false
-                }
-            };
-
-            const CREDENTIAL_INTEGRATIONS_CONFIG = {
-                'google_calendar_sync': {
-                    name: 'Google Calendar API Live Sync',
-                    icon: 'bx-calendar-event',
-                    iconColor: '#4285f4',
-                    iconBg: 'rgba(66, 133, 244, 0.12)',
-                    fieldId: 'fieldWrap_google_calendar_sync'
-                },
-                'smtp_email_enabled': {
-                    name: 'Gmail / SMTP Email Gateway',
-                    icon: 'bxl-gmail',
-                    iconColor: '#f59e0b',
-                    iconBg: 'rgba(245, 158, 11, 0.12)',
-                    fieldId: 'fieldWrap_smtp_email_enabled'
-                },
-                'recaptcha_enabled': {
-                    name: 'Google reCAPTCHA Anti-Bot Defense',
-                    icon: 'bx-shield-quarter',
-                    iconColor: '#0eb1b1',
-                    iconBg: 'rgba(14, 177, 177, 0.12)',
-                    fieldId: 'fieldWrap_recaptcha_enabled'
-                },
-                'sms_gateway_enabled': {
-                    name: 'SMS Mobile Gateway',
-                    icon: 'bx-message-rounded-dots',
-                    iconColor: '#3b82f6',
-                    iconBg: 'rgba(59, 130, 246, 0.12)',
-                    fieldId: 'fieldWrap_sms_gateway_enabled'
-                },
                 'google_auth_enabled': {
                     name: 'Google Auth & Non-Admin Logins',
                     icon: 'bxl-google',
@@ -7265,13 +7259,20 @@
                     iconBg: 'rgba(99, 102, 241, 0.12)',
                     fieldId: 'fieldWrap_imgbb_enabled'
                 },
-                'google_forms_enabled': {
-                    name: 'Google Forms Webhook',
-                    icon: 'bx-spreadsheet',
-                    iconColor: '#673ab7',
-                    iconBg: 'rgba(103, 58, 183, 0.12)',
-                    fieldId: 'fieldWrap_google_forms_enabled'
-                }
+                'pdf_api_enabled': {
+                    name: 'PDF Report API (PDFShift)',
+                    icon: 'bxs-file-pdf',
+                    iconColor: '#ef4444',
+                    iconBg: 'rgba(239, 68, 68, 0.12)',
+                    fieldId: 'fieldWrap_pdf_api_enabled'
+                },
+                'qr_api_enabled': {
+                    name: 'QR Code API (API Ninjas)',
+                    icon: 'bx-qr-scan',
+                    iconColor: '#0eb1b1',
+                    iconBg: 'rgba(14, 177, 177, 0.12)',
+                    fieldId: 'fieldWrap_qr_api_enabled'
+                },
             };
 
             let pendingIntegrationChange = null;
@@ -7470,8 +7471,9 @@
                     google_calendar_sync: 'guide_gcal',
                     smtp_email_enabled: 'guide_smtp',
                     recaptcha_enabled: 'guide_recaptcha',
-                    sms_gateway_enabled: 'guide_sms',
-                    google_auth_enabled: 'guide_google_auth'
+                    google_auth_enabled: 'guide_google_auth',
+                    qr_api_enabled: 'guide_qr_api',
+                    pdf_api_enabled: 'guide_pdf_api'
                 };
                 const guideId = guideMap[key];
                 if (guideId) {
@@ -8080,6 +8082,7 @@
                         titleText = `${dateKey}: Regular Clinic Open (Click to customize shift or close clinic)`;
                     } else {
                         cellClass += ' is-off';
+                        indicatorHtml = '<span style="font-size: 7.5px; line-height: 1; color: #94a3b8; font-weight: 700; margin-top: 2px;">OFF</span>';
                         titleText = `${dateKey}: Regular Closed Day (Click to add special open hours)`;
                     }
 
@@ -8652,10 +8655,12 @@
             // 4. One-Click Backup and Data Export (Supports PDF, JSON, CSV)
             function exportData(collection, format) {
                 if (format === 'pdf') {
-                    showToast('success', `Generating Official ${collection.toUpperCase()} PDF Report...`);
-                    const pdfUrl = `api/admin/export_pdf.php?report=${encodeURIComponent(collection)}`;
-                    window.open(pdfUrl, '_blank');
-                    setTimeout(() => { loadAuditLogs(); }, 1200);
+                    // PDFs are produced from Reports & Monitoring (official header/footer); open the matching report
+                    const reportFor = { users: 'patients', audit_logs: 'audit_logs', appointments: 'appointments' }[collection] || 'appointments';
+                    switchTab('reports');
+                    const sel = document.getElementById('reportsCategorySelect');
+                    if (sel) { sel.value = reportFor; sel.dispatchEvent(new Event('change')); }
+                    showToast('info', 'Generate the report, then choose Export → PDF to download it with the official header and footer.');
                 } else {
                     showToast('success', `Preparing ${collection.toUpperCase()} export in ${format.toUpperCase()} format...`);
                     const exportUrl = `api/admin/export_system_data.php?collection=${encodeURIComponent(collection)}&format=${encodeURIComponent(format)}`;
@@ -10213,19 +10218,26 @@
                 exportSelectedReportCsv();
             }
 
-            function exportReportsPdf() {
-                const cat = reportsState.category || 'earnings';
-                const params = new URLSearchParams({
-                    report: cat,
-                    date_preset: reportsState.datePreset,
-                    date_from: reportsState.dateFrom,
-                    date_to: reportsState.dateTo,
-                    doctor: reportsState.doctor,
-                    status: reportsState.status
-                });
-                window.open(`api/admin/export_pdf.php?${params.toString()}`, '_blank');
+            // PDF of the report exactly as shown (shared OptiPdf helper → /api/reports/pdf with official header/footer)
+            async function exportReportsPdf() {
                 const menu = document.getElementById('reportsExportDropdown');
                 if (menu) menu.style.display = 'none';
+                const s = reportsState;
+                const period = s.datePreset === 'custom'
+                    ? `${s.dateFrom || '…'} to ${s.dateTo || 'today'}`
+                    : formatReportsPresetLabel(s.datePreset);
+                const filters = [['Period', period], ['Doctor', s.doctor === 'all' ? 'All doctors' : s.doctor], ['Status', s.status === 'all' ? 'All statuses' : s.status]];
+                if (s.searchQuery) filters.push(['Search', s.searchQuery]);
+                try {
+                    const n = await OptiPdf.fromTable(document.getElementById('reportsTableHead').closest('table'), {
+                        title: `${formatReportsCategoryLabel(s.category || 'earnings')} Report`,
+                        subtitle: 'Reports & Monitoring',
+                        filters
+                    });
+                    showToast('success', `PDF downloaded (${n} record${n === 1 ? '' : 's'}).`);
+                } catch (err) {
+                    showToast('error', err.message);
+                }
             }
 
             function exportReportsCsv() {
@@ -10765,7 +10777,7 @@
             style="width: 100%; max-width: 490px; margin: 20px; border-radius: 16px; padding: 24px; border-top: 4px solid #ef4444; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
             <div class="flex items-center justify-between border-bottom pb-1 mb-2">
                 <h3 class="font-bold text-lg mb-0 text-danger flex items-center gap-1">
-                    <i class='bx bx-user-x'></i> Cancel Invitation (Task SA-002)
+                    <i class='bx bx-user-x'></i> Cancel Invitation
                 </h3>
                 <button type="button" class="btn-text text-dim font-bold" onclick="closeCancelInviteModal()"
                     style="font-size: 24px; cursor: pointer; border: none; background: transparent;">&times;</button>
@@ -10785,7 +10797,7 @@
                 </div>
                 <div class="text-xs text-dim font-mono mb-1" id="cancelInviteTargetEmail">email@optident.com</div>
                 <div class="text-xs flex items-center gap-1" style="color: #059669; font-weight: 500; font-size: 11px;">
-                    <i class='bx bx-shield-check'></i> <strong>Protected by SA-006:</strong> Revoked invitation will be
+                    <i class='bx bx-shield-check'></i> <strong>Recovery vault:</strong> Revoked invitation will be
                     archived in the <em>Recovery Vault</em> and can be restored if needed.
                 </div>
             </div>
@@ -10834,7 +10846,7 @@
                 </div>
                 <div class="text-xs text-dim font-mono mb-1" id="deleteTargetEmail">email@optident.com</div>
                 <div class="text-xs flex items-center gap-1" style="color: #059669; font-weight: 500; font-size: 11px;">
-                    <i class='bx bx-shield-check'></i> <strong>Protected by SA-006:</strong> Account will be moved to
+                    <i class='bx bx-shield-check'></i> <strong>Recovery vault:</strong> Account will be moved to
                     the <em>Recovery Vault</em> and can be restored at any time.
                 </div>
             </div>
@@ -11171,7 +11183,7 @@
                 <div>
                     <h3 class="font-bold text-lg mb-0" style="display: flex; align-items: center; gap: 8px;">
                         <i class='bx bx-plus-medical text-primary' style="font-size: 22px;"></i> Document New Clinical
-                        Encounter (D-004)
+                        Encounter
                     </h3>
                     <p class="text-xs text-dim m-0">Record diagnosis, odontogram charted teeth, clinical procedures,
                         anesthesia, and prescriptions.</p>
@@ -11361,7 +11373,7 @@
                 <div>
                     <h3 class="font-bold text-lg mb-0" style="display: flex; align-items: center; gap: 8px;">
                         <i class='bx bx-edit text-primary' style="font-size: 22px;"></i> Update Clinical Record
-                        Information (D-004)
+                        Information
                     </h3>
                     <p class="text-xs text-dim m-0" id="adminEditRecSubtitle">Updating patient clinical record</p>
                 </div>

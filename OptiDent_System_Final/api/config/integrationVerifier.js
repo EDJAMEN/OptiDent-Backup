@@ -58,12 +58,6 @@ const TESTS = {
         return 'Google accepted the reCAPTCHA secret key.';
     },
 
-    async sms_gateway_enabled({ api_key }) {
-        const res = await fetch(`https://api.semaphore.co/api/v4/account?apikey=${encodeURIComponent(api_key)}`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
-        if (!res.ok) throw new Error(`Semaphore rejected the API key (HTTP ${res.status}).`);
-        return 'Semaphore accepted the API key.';
-    },
-
     async google_calendar_sync({ service_account_json }) {
         const credentials = JSON.parse(service_account_json);
         const auth = new google.auth.GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/calendar.events'] });
@@ -83,6 +77,65 @@ const TESTS = {
         return 'ImgBB accepted a self-deleting test upload.';
     }
 };
+
+// Draws one QR with the key; API Ninjas answers {"error": "Invalid API Key."} for a bad key.
+TESTS.qr_api_enabled = async function ({ api_key }) {
+    const png = await fetchQrPng('OptiDent key check', api_key);
+    return `API Ninjas drew a test QR code (${png.length} bytes).`;
+};
+
+/** Draw a QR PNG with API Ninjas. @returns {Promise<Buffer>} */
+export async function fetchQrPng(data, apiKey) {
+    const res = await fetch(`https://api.api-ninjas.com/v1/qrcode?format=png&data=${encodeURIComponent(data)}`, {
+        headers: { 'X-Api-Key': apiKey, Accept: 'image/png' },
+        signal: AbortSignal.timeout(TIMEOUT_MS)
+    });
+    const body = Buffer.from(await res.arrayBuffer());
+    const type = res.headers.get('content-type') || '';
+    if (!res.ok || type.includes('json')) {
+        let msg = `HTTP ${res.status}`;
+        try { msg = JSON.parse(body.toString('utf8')).error || msg; } catch {}
+        throw new Error(`API Ninjas rejected the request (${msg}).`);
+    }
+    if (type.startsWith('image/')) return body;
+    // Without image negotiation the API returns the PNG base64-encoded as text
+    const decoded = Buffer.from(body.toString('utf8').trim(), 'base64');
+    if (decoded.subarray(1, 4).toString() !== 'PNG') throw new Error('API Ninjas returned an unexpected response.');
+    return decoded;
+}
+
+// Checks the key against PDFShift's usage endpoint, which does not spend a conversion credit.
+TESTS.pdf_api_enabled = async function ({ api_key }) {
+    const res = await fetch('https://api.pdfshift.io/v3/credits/usage', { headers: { 'X-API-Key': api_key }, signal: AbortSignal.timeout(TIMEOUT_MS) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.success === false) throw new Error(`PDFShift rejected the key (${data.error || 'HTTP ' + res.status}).`);
+    return 'PDFShift accepted the API key.';
+};
+
+/**
+ * Convert an HTML page to PDF with PDFShift. header/footer are HTML repeated on every page;
+ * PDFShift fills {{page}} and {{total}} in them. @returns {Promise<Buffer>}
+ */
+export async function htmlToPdf({ html, header, footer, landscape }, apiKey) {
+    const res = await fetch('https://api.pdfshift.io/v3/convert/pdf', {
+        method: 'POST',
+        headers: { 'X-API-Key': apiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            source: html, format: 'A4', landscape: !!landscape, use_print: true,
+            margin: { top: '78px', bottom: '56px', left: '36px', right: '36px' },
+            header: { source: header, height: '70px' },
+            footer: { source: footer, height: '44px' }
+        }),
+        signal: AbortSignal.timeout(30000)
+    });
+    const body = Buffer.from(await res.arrayBuffer());
+    if (!res.ok || !(res.headers.get('content-type') || '').includes('pdf')) {
+        let msg = `HTTP ${res.status}`;
+        try { msg = JSON.parse(body.toString('utf8')).error || msg; } catch {}
+        throw new Error(`PDFShift could not convert the report (${msg}).`);
+    }
+    return body;
+}
 
 /** @returns {Promise<string>} success message */
 export async function testIntegration(key, fields, ctx = {}) {

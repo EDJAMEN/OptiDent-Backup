@@ -783,6 +783,7 @@
     <link rel="stylesheet" href="css/weeklyTraffic.css">
     <link rel="stylesheet" href="css/roleHome.css">
     <script src="js/weeklyTraffic.js"></script>
+    <script src="js/pdfReport.js"></script>
     <script src="js/roleHome.js"></script>
 </head>
 
@@ -842,7 +843,6 @@
                 <a href="javascript:void(0)" class="nav-item" data-tab="appointment-management" id="navItemApptManagement" data-perm="appointments.view_all" onclick="switchTab('appointment-management', this); return false;">
                     <i class='bx bx-calendar-edit'></i>
                     <span>Appointment Management</span>
-                    <span style="margin-left: auto; font-size: 9px; background: rgba(14, 177, 177, 0.15); color: var(--rec-primary); padding: 2px 6px; border-radius: 4px; font-weight: 700;">R-007.3</span>
                 </a>
                 <a href="javascript:void(0)" class="nav-item" data-tab="appointments" data-perm="appointments.view_all" onclick="switchTab('appointments', this); return false;">
                     <i class='bx bx-calendar-event'></i>
@@ -1102,7 +1102,7 @@
                     <div class="card-header-bar" style="margin-bottom: 0.75rem; flex-wrap: wrap; gap: 12px;">
                         <div>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 11px; font-weight: 800; background: rgba(14, 177, 177, 0.15); color: var(--rec-primary); padding: 2px 8px; border-radius: 4px;">R-007.3 SPECIFICATION</span>
+                                <span style="font-size: 11px; font-weight: 800; background: rgba(14, 177, 177, 0.15); color: var(--rec-primary); padding: 2px 8px; border-radius: 4px;">SPECIFICATION</span>
                                 <h3 style="margin: 0; font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
                                     <i class='bx bx-calendar-edit text-primary' style="font-size: 22px;"></i> Appointment Management
                                 </h3>
@@ -1210,7 +1210,7 @@
                                     <th>Attending Doctor</th>
                                     <th>Operatory Station</th>
                                     <th>Status</th>
-                                    <th style="text-align: right; min-width: 180px;">R-007.3 Actions</th>
+                                    <th style="text-align: right; min-width: 180px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="apptMgmtTableBody">
@@ -1448,6 +1448,9 @@
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="exportRecReportCsv()" title="Export current report to CSV">
                                 <i class='bx bx-download'></i> Download CSV
                             </button>
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="exportRecReportPdf()" title="Download the report as a PDF with the official header and footer">
+                                <i class='bx bxs-file-pdf'></i> Download PDF
+                            </button>
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" onclick="printRecReport()" title="Print formal report">
                                 <i class='bx bx-printer'></i> Print Report
                             </button>
@@ -1607,6 +1610,7 @@
                         <div style="font-size: 11.5px; color: var(--rec-text-muted); display: flex; align-items: center; gap: 6px;">
                             <i class='bx bx-shield-quarter text-primary' style="font-size: 16px;"></i>
                             <span>Visible report types are dynamically synchronized from the <strong>Super Admin RBAC Security Matrix</strong>.</span>
+                            <span id="recReportGeneratedAt" style="font-weight: 600;"></span>
                         </div>
                         <button type="button" class="btn-rec btn-rec-secondary btn-rec-sm" onclick="openRolePermissionsModal()" style="font-size: 11px;">
                             <i class='bx bx-key'></i> View My Role Permissions
@@ -1816,7 +1820,7 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Medical & Safety Information (R-009) -->
+                <!-- Section 2: Medical & Safety Information -->
                 <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--rec-primary); letter-spacing: 0.5px; margin: 14px 0 8px 0; display: flex; align-items: center; gap: 4px;">
                     <i class='bx bx-shield-plus'></i> Medical & Safety Information
                 </div>
@@ -1995,7 +1999,7 @@
                     </select>
                 </div>
 
-                <!-- Patient Medical Info Banner (R-009) -->
+                <!-- Patient Medical Info Banner -->
                 <div id="bookPatientMedicalBanner" style="display: none; margin-bottom: 1rem;"></div>
 
                 <div class="form-grid-2">
@@ -2064,7 +2068,7 @@
         </div>
     </div>
 
-    <!-- ── MODAL: CANCEL APPOINTMENT (R-010) ────────────────────────── -->
+    <!-- ── MODAL: CANCEL APPOINTMENT ────────────────────────── -->
     <div id="cancelAppointmentModal" class="rec-modal-overlay">
         <div class="rec-modal-content" style="max-width: 440px; padding: 1.5rem; border-radius: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
@@ -2744,7 +2748,6 @@
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: white;">View & Update Appointment Details</h3>
-                            <span style="background: rgba(255,255,255,0.25); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">R-007.3</span>
                         </div>
                         <p style="margin: 2px 0 0 0; font-size: 11.5px; opacity: 0.9;">Update procedure, schedule, attending doctor, station, or status.</p>
                     </div>
@@ -2935,7 +2938,7 @@
         </div>
     </div>
 
-    <!-- ── MODAL: PATIENT MEDICAL INFORMATION ACCESS (R-009) ─────── -->
+    <!-- ── MODAL: PATIENT MEDICAL INFORMATION ACCESS ─────── -->
     <div id="patientMedicalModal" class="rec-modal-overlay">
         <div class="rec-modal-content" style="max-width: 540px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid var(--rec-border); padding-bottom: 0.75rem;">
@@ -3348,13 +3351,13 @@
                 if (status === 'pending') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <button class="btn-rec btn-rec-primary btn-rec-sm" style="font-weight: 700;" title="View & Update Details (R-007.3)" onclick="openViewUpdateApptModal('${apt._id}')">
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" style="font-weight: 700;" title="View & Update Details" onclick="openViewUpdateApptModal('${apt._id}')">
                                 <i class='bx bx-edit-alt'></i> View & Update
                             </button>
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
                                 <i class='bx bx-calendar-edit'></i> Reschedule
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
                                 <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
@@ -3368,7 +3371,7 @@
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
                                 <i class='bx bx-calendar-edit'></i> Reschedule
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
                                 <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
@@ -3382,7 +3385,7 @@
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
                                 <i class='bx bx-calendar-edit'></i> Reschedule
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel / Remove from queue (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel / Remove from queue" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
                                 <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
@@ -3417,7 +3420,7 @@
                 } else {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
                                 <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
@@ -3439,7 +3442,7 @@
                             </div>
                             ${apt.medical_alerts && apt.medical_alerts !== 'None' && apt.medical_alerts !== 'None recorded' ? `
                                 <div style="margin-top: 3px;">
-                                    <span style="background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; cursor: pointer;" title="Medical Alert (R-009): ${escapeHtml(apt.medical_alerts)}" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')">
+                                    <span style="background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; cursor: pointer;" title="Medical Alert: ${escapeHtml(apt.medical_alerts)}" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')">
                                         <i class='bx bxs-error-circle'></i> Alert: ${escapeHtml(apt.medical_alerts)}
                                     </span>
                                 </div>
@@ -3507,10 +3510,10 @@
                 const hasAlert = p.has_alert || (p.medical_alerts && p.medical_alerts !== 'None' && p.medical_alerts !== 'None recorded');
                 
                 const alertTag = hasAlert 
-                    ? `<span style="background: #FEF2F2; color: #DC2626; border: 1px solid #FEE2E2; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.15s ease;" title="Click to view medical information (R-009)" onclick="openPatientMedicalModal('${safeId}', '${safeName}')">
+                    ? `<span style="background: #FEF2F2; color: #DC2626; border: 1px solid #FEE2E2; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.15s ease;" title="Click to view medical information" onclick="openPatientMedicalModal('${safeId}', '${safeName}')">
                          <i class='bx bxs-error-circle'></i> <span style="max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(p.medical_alerts)}</span>
                        </span>`
-                    : `<span style="font-size: 11px; color: #94A3B8; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="openPatientMedicalModal('${safeId}', '${safeName}')" title="Click to view medical profile (R-009)">
+                    : `<span style="font-size: 11px; color: #94A3B8; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="openPatientMedicalModal('${safeId}', '${safeName}')" title="Click to view medical profile">
                          <i class='bx bx-check-circle' style="color: #10B981; font-size: 13px;"></i> None
                        </span>`;
 
@@ -3576,7 +3579,7 @@
                                 <div class="patient-action-menu">
                                     <button type="button" class="action-item action-medical" onclick="openPatientMedicalModal('${safeId}', '${safeName}'); closeAllPatientActionDropdowns();">
                                         <i class='bx bx-shield-plus'></i>
-                                        <span>Medical Info (R-009)</span>
+                                        <span>Medical Info</span>
                                     </button>
                                     <button type="button" class="action-item" onclick="openCheckInReturningModal('${safeId}', '${safeName}', '${safePhone}', '${safeAlerts}'); closeAllPatientActionDropdowns();">
                                         <i class='bx bx-walk'></i>
@@ -3749,7 +3752,7 @@
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
                                 <i class='bx bx-calendar-edit'></i> Reschedule
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel this appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel this appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
                                 <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
@@ -3764,7 +3767,7 @@
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${apt._id}')">
                                 <i class='bx bx-calendar-edit'></i> Reschedule
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel this appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel this appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
                                 <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
@@ -3778,7 +3781,7 @@
                             <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule to Another Date" onclick="openRescheduleModal('${apt._id}')">
                                 <i class='bx bx-calendar-edit'></i> Reschedule
                             </button>
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
                                 <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
@@ -3786,7 +3789,7 @@
                 } else if (status === 'in_progress') {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <button class="btn-rec btn-rec-primary btn-rec-sm" title="View & Update Details (R-007.3)" onclick="openViewUpdateApptModal('${apt._id}')">
+                            <button class="btn-rec btn-rec-primary btn-rec-sm" title="View & Update Details" onclick="openViewUpdateApptModal('${apt._id}')">
                                 <i class='bx bx-edit-alt'></i> View & Update
                             </button>
                                 <i class='bx bx-edit'></i> Manage
@@ -3812,7 +3815,7 @@
                 } else {
                     actionBtn = `
                         <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment (R-010)" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
+                            <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #DC2626; border-color: #FCA5A5; font-weight: 600;" title="Cancel appointment" onclick="openCancelModal('${apt._id}', '${escapeHtml(apt.patient_name || 'Patient')}')">
                                 <i class='bx bx-x-circle'></i> Cancel
                             </button>
                         </div>
@@ -3840,14 +3843,14 @@
                             <div style="font-weight: 700; font-size: 13px; color: var(--rec-text); display: flex; align-items: center; gap: 5px;">
                                 <span>${escapeHtml(apt.patient_name || 'Patient')}</span>
                                 ${apt.medical_alerts && apt.medical_alerts !== 'None' && apt.medical_alerts !== 'None recorded' ? `
-                                    <span style="background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; cursor: pointer;" title="Medical Alert (R-009): ${escapeHtml(apt.medical_alerts)}" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')">
+                                    <span style="background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; cursor: pointer;" title="Medical Alert: ${escapeHtml(apt.medical_alerts)}" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')">
                                         <i class='bx bxs-error-circle'></i> Alert
                                     </span>
                                 ` : ''}
                             </div>
                             <div style="font-size: 11px; color: var(--rec-text-muted); display: flex; align-items: center; gap: 6px;">
                                 <span>${escapeHtml(apt.patient_phone || '')}</span>
-                                <a href="javascript:void(0)" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')" style="font-size: 10px; color: var(--rec-primary); text-decoration: none;" title="View patient medical alerts & emergency info (R-009)"><i class='bx bx-shield-plus'></i> Medical Info</a>
+                                <a href="javascript:void(0)" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')" style="font-size: 10px; color: var(--rec-primary); text-decoration: none;" title="View patient medical alerts & emergency info"><i class='bx bx-shield-plus'></i> Medical Info</a>
                             </div>
                         </td>
                         <td>
@@ -4702,8 +4705,7 @@
                             <i class='bx bxs-error-circle' style="color: #DC2626; font-size: 18px; margin-top: 1px; flex-shrink: 0;"></i>
                             <div>
                                 <div style="font-size: 11px; font-weight: 800; color: #DC2626; text-transform: uppercase; letter-spacing: 0.3px;">
-                                    Medical Safety Alert (R-009)
-                                </div>
+                                    Medical Safety Alert                                </div>
                                 <div style="font-size: 12.5px; font-weight: 700; color: #991B1B; margin-top: 1px;">
                                     ${escapeHtml(alerts)}
                                 </div>
@@ -4930,7 +4932,7 @@
                 'home': "Dashboard",
                 'queue': "Front Desk Reception Workspace",
                 'patients': "Patient Master Directory",
-                'appointment-management': "R-007.3: Appointment Management — View & Update Details",
+                'appointment-management': "Appointment Management — View & Update Details",
                 'appointments': "All Booked Appointments",
                 'doctors': "Dentist Schedule Monitoring & Slot Matrix",
                 'reports': "Front-Desk & Operational Reports (Role-Limited)",
@@ -5611,7 +5613,7 @@
             }
         }
 
-        // ── Appointment Cancellation Handlers (R-010) ──
+        // ── Appointment Cancellation Handlers ──
         function openCancelModal(appointmentId, fallbackName = '') {
             const idInput = document.getElementById('cancelApptId');
             const nameEl = document.getElementById('cancelApptPatientName');
@@ -6229,7 +6231,7 @@
                             <div style="font-weight: 700; font-size: 13px; color: var(--rec-text); display: flex; align-items: center; gap: 6px;">
                                 <span>${escapeHtml(apt.patient_name || 'Patient')}</span>
                                 ${apt.medical_alerts && apt.medical_alerts !== 'None' && apt.medical_alerts !== 'None recorded' ? `
-                                    <span style="background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; cursor: pointer;" title="Medical Alert (R-009): ${escapeHtml(apt.medical_alerts)}" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')">
+                                    <span style="background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; cursor: pointer;" title="Medical Alert: ${escapeHtml(apt.medical_alerts)}" onclick="openPatientMedicalModal('${escapeHtml(apt.patient_id || '')}', '${escapeHtml(apt.patient_name)}')">
                                         <i class='bx bxs-error-circle'></i> Alert
                                     </span>
                                 ` : ''}
@@ -6266,7 +6268,7 @@
                                         <i class='bx bx-check-circle'></i> Check In
                                     </button>
                                 ` : ''}
-                                <button class="btn-rec btn-rec-primary btn-rec-sm" style="font-weight: 700;" title="View & Update Appointment Details (R-007.3)" onclick="openViewUpdateApptModal('${cleanId}')">
+                                <button class="btn-rec btn-rec-primary btn-rec-sm" style="font-weight: 700;" title="View & Update Appointment Details" onclick="openViewUpdateApptModal('${cleanId}')">
                                     <i class='bx bx-edit-alt'></i> View & Update
                                 </button>
                                 <button class="btn-rec btn-rec-secondary btn-rec-sm" style="color: #4F46E5; border-color: #C7D2FE;" title="Reschedule Date & Time" onclick="openRescheduleModal('${cleanId}')">
@@ -7473,7 +7475,16 @@
                 const elVol = document.getElementById('recReportStatVolume');
                 if (elVol) elVol.textContent = m.total_service_volume || '₱0.00';
 
-                renderRecReportRows(category, data.records || (data.data && data.data[category]) || []);
+                const recRows = data.records || (data.data && data.data[category]) || [];
+                renderRecReportRows(category, recRows);
+
+                // Visible confirmation: re-running with the same filters returns the same table, which otherwise looks like nothing happened
+                const optLabel = id => document.getElementById(id)?.selectedOptions?.[0]?.textContent.trim() || '';
+                showToast('success', `Report generated: ${recRows.length} record${recRows.length === 1 ? '' : 's'} (${optLabel('recReportCategory')} · ${optLabel('recReportDatePreset')}).`);
+                const stamp = document.getElementById('recReportGeneratedAt');
+                if (stamp) stamp.textContent = `· Generated at ${new Date().toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', second: '2-digit' })}`;
+                const tableEl = document.getElementById('recReportTableBody')?.closest('table');
+                if (tableEl && tableEl.animate) tableEl.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 450, easing: 'ease-out' });
             } catch (err) {
                 console.error("Receptionist report query error:", err);
                 showToast('error', 'Network error querying report.');
@@ -7822,6 +7833,31 @@
                 return;
             }
             window.print();
+        }
+
+        // PDF of the report exactly as shown (shared OptiPdf helper → /api/reports/pdf with official header/footer)
+        async function exportRecReportPdf() {
+            if (!cachedRecReportData || (!cachedRecReportData.records && !cachedRecReportData.data)) {
+                showToast('info', 'Please generate a report first to download it.');
+                return;
+            }
+            const label = id => { const el = document.getElementById(id); return el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].textContent.trim() : ''; };
+            const preset = document.getElementById('recReportDatePreset')?.value;
+            const period = preset === 'custom'
+                ? `${document.getElementById('recReportDateFrom')?.value || '…'} to ${document.getElementById('recReportDateTo')?.value || 'today'}`
+                : label('recReportDatePreset');
+            try {
+                const n = await OptiPdf.fromTable(document.getElementById('recReportTableHead').closest('table'), {
+                    title: `${label('recReportCategory') || 'Front Desk'} Report`,
+                    subtitle: 'Front-Desk & Operational Reports',
+                    filters: [['Period', period], ['Doctor', label('recReportDoctorFilter')], ['Status', label('recReportStatusFilter')]].filter(f => f[1]),
+                    summary: [['Total', 'recReportStatTotal'], ['Completed', 'recReportStatCompleted'], ['Waiting', 'recReportStatWaiting'], ['Volume', 'recReportStatVolume']]
+                        .map(([k, id]) => { const v = document.getElementById(id)?.textContent.trim(); return v ? `${k}: ${v}` : ''; }).filter(Boolean)
+                });
+                showToast('success', `PDF downloaded (${n} record${n === 1 ? '' : 's'}).`);
+            } catch (err) {
+                showToast('error', err.message);
+            }
         }
 </script>
 </body>
