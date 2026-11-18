@@ -16,6 +16,8 @@ import receptionistRoutes from './api/receptionist/index.js';
 import doctorRoutes from './api/doctor/index.js';
 import adminRoutes from './api/admin/index.js';
 import reportRoutes from './api/reports/index.js';
+import uploadRoutes from './api/uploads/index.js';
+import sharedReportRoutes from './api/shared_reports/index.js';
 
 dotenv.config();
 
@@ -70,8 +72,11 @@ app.use('/api/receptionist', receptionistRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/uploads', uploadRoutes);
+app.use('/api/shared_reports', sharedReportRoutes);
 
 // Health check endpoint
+// @endpoint GET /api/health - Server health probe returning uptime, memory, environment, and MongoDB connection status
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'online',
@@ -90,6 +95,7 @@ app.use('/api', (req, res) => {
 });
 
 // Root default route: the landing page is the front door; login/register stays at index.html
+// @endpoint GET / - Root web entrance rendering the main clinic application portal
 app.get('/', (req, res) => {
     res.sendFile(path.join(publicDir, 'landing.html'));
 });

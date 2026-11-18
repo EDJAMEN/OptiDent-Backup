@@ -12,221 +12,6 @@
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <!-- DentAssist System CSS -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- Restored Gateway Center styles (lost in an accidental deletion; copied verbatim from the earlier version) -->
-    <style>
-        .integrations-toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-        padding: 6px 10px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        }
-        .integrations-filter-group {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-wrap: wrap;
-        }
-        .integration-filter-pill {
-        padding: 6px 14px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #64748b;
-        background: transparent;
-        border: 1px solid transparent;
-        cursor: pointer;
-        transition: all 0.15s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        }
-        .integration-filter-pill:hover {
-        color: #0f172a;
-        background: #e2e8f0;
-        }
-        .integration-filter-pill.active {
-        background: #ffffff;
-        color: #0eb1b1;
-        border-color: #cbd5e1;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-        font-weight: 700;
-        }
-        .integration-search-box {
-        position: relative;
-        display: flex;
-        align-items: center;
-        min-width: 230px;
-        }
-        .integration-search-box i {
-        position: absolute;
-        left: 10px;
-        color: #94a3b8;
-        font-size: 15px;
-        pointer-events: none;
-        }
-        .integration-search-input {
-        width: 100%;
-        padding: 7px 12px 7px 32px;
-        border-radius: 8px;
-        border: 1px solid #cbd5e1;
-        background: #ffffff;
-        font-size: 12px;
-        color: #0f172a;
-        outline: none;
-        transition: all 0.15s ease;
-        }
-        .integration-search-input:focus {
-        border-color: #0eb1b1;
-        box-shadow: 0 0 0 3px rgba(14, 177, 177, 0.15);
-        }
-        #integrationsCardsCore {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 18px;
-        }
-        .integration-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: #e2e8f0;
-        transition: background 0.2s ease;
-        }
-        .token-subtext-container {
-        margin-bottom: 12px;
-        padding: 8px 12px;
-        border-radius: 10px;
-        font-size: 11.5px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        flex-wrap: wrap;
-        border: 1px solid #e2e8f0;
-        background: #f8fafc;
-        min-height: 38px;
-        }
-        .key-guide-box {
-        margin-top: 10px;
-        margin-bottom: 14px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        overflow: hidden;
-        font-size: 12px;
-        }
-        .key-guide-header {
-        padding: 9px 12px;
-        background: #f1f5f9;
-        color: #334155;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        user-select: none;
-        transition: background 0.15s ease;
-        }
-        .key-guide-header:hover {
-        background: #e2e8f0;
-        }
-        .key-guide-content {
-        padding: 12px 14px;
-        line-height: 1.6;
-        color: #475569;
-        background: #ffffff;
-        border-top: 1px solid #e2e8f0;
-        }
-        .key-guide-content ol {
-        margin: 0;
-        padding-left: 20px;
-        }
-        .key-guide-content li {
-        margin-bottom: 6px;
-        }
-        .key-guide-content strong {
-        color: #0f172a;
-        }
-        .key-guide-content code {
-        font-family: monospace;
-        background: #f1f5f9;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 11px;
-        color: #0f172a;
-        word-break: break-all;
-        }
-        .key-guide-pill {
-        font-size: 11px;
-        padding: 4px 10px;
-        border-radius: 8px;
-        background: #f8fafc;
-        color: #475569;
-        border: 1px solid #cbd5e1;
-        font-weight: 600;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        transition: all 0.15s ease;
-        }
-        .key-guide-pill:hover {
-        background: #ffffff;
-        color: #0eb1b1;
-        border-color: #0eb1b1;
-        box-shadow: 0 2px 4px rgba(14, 177, 177, 0.12);
-        }
-        @media (max-width: 992px) {
-        #systemIntegrationsModal {
-        padding: 16px;
-        }
-        
-        #systemIntegrationsModal .modal-container {
-        padding: 22px;
-        max-height: 92vh;
-        }
-        
-        #integrationsCardsCore {
-        grid-template-columns: 1fr;
-        gap: 14px;
-        }
-        
-        .integration-launch-hub {
-        padding: 20px;
-        }
-        }
-        .integration-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            background: #ffffff;
-            padding: 20px 22px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 2px 5px rgba(15, 23, 42, 0.03);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
-            min-height: 250px;
-        }
-        .integration-card:hover {
-            transform: translateY(-2px);
-            border-color: #cbd5e1;
-            box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
-        }
-        /* Equal columns: long values (e.g. service-account emails) truncate instead of widening a column */
-        #integrationsCardsCore { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        #integrationsCardsCore .integration-card, #integrationsCardsCore .integration-card > div, .token-subtext-container > div { min-width: 0; }
-        @media (max-width: 992px) { #integrationsCardsCore { grid-template-columns: minmax(0, 1fr); } }
-    </style>
     <style>
         .badge-super-admin {
             background: linear-gradient(135deg, #0EB1B1, #0284C7);
@@ -653,8 +438,8 @@
         }
 
         .clinic-day-tile {
-            background: #f8fafc;
-            border: 1.5px solid #cbd5e1;
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
             border-radius: 10px;
             padding: 8px 4px;
             text-align: center;
@@ -671,7 +456,6 @@
 
         .clinic-day-tile:hover {
             border-color: #0EB1B1;
-            background: #ffffff;
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
@@ -680,7 +464,7 @@
             background: linear-gradient(135deg, #0EB1B1 0%, #088b8b 100%) !important;
             border-color: #088b8b !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(14, 177, 177, 0.25);
+            box-shadow: 0 4px 12px rgba(14, 177, 177, 0.35);
         }
 
         .clinic-day-tile.active .clinic-day-tile-code,
@@ -706,55 +490,33 @@
             line-height: 1;
         }
 
-        .clinic-preset-btn {
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            background: #f8fafc;
-            color: #334155;
-            border: 1px solid #cbd5e1;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-
-        .clinic-preset-btn:hover {
-            background: #0EB1B1;
-            color: #ffffff;
-            border-color: #0EB1B1;
-            box-shadow: 0 2px 6px rgba(14, 177, 177, 0.25);
-        }
-
         .clinic-calendar-container {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
+            border: 1.5px solid #e2e8f0;
             border-radius: 12px;
-            padding: 14px;
+            padding: 12px;
             margin-top: 10px;
-            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
         }
 
         .clinic-cal-header {
             display: flex !important;
             justify-content: space-between !important;
             align-items: center !important;
-            margin-bottom: 12px !important;
-            padding-bottom: 8px !important;
-            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 10px !important;
         }
 
         .clinic-cal-nav-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
             background: #ffffff;
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
             cursor: pointer;
             font-size: 14px;
-            color: #334155;
+            color: #475569;
             transition: all 0.15s ease;
         }
 
@@ -767,38 +529,31 @@
         .clinic-cal-weekdays {
             display: grid !important;
             grid-template-columns: repeat(7, 1fr) !important;
-            gap: 6px !important;
             text-align: center;
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 700;
-            color: #475569;
+            color: #64748b;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 8px 0;
             margin-bottom: 6px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
         }
 
         .clinic-cal-grid {
             display: grid !important;
             grid-template-columns: repeat(7, 1fr) !important;
-            gap: 6px !important;
+            gap: 5px !important;
         }
 
         .clinic-cal-cell {
-            padding: 7px 4px;
-            border-radius: 9px;
+            padding: 8px 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 12px;
-            font-weight: 600;
-            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.15s ease;
             position: relative;
             user-select: none;
             background: #ffffff;
-            border: 1px solid #e2e8f0;
-            min-height: 46px;
+            border: 1px solid #f1f5f9;
+            min-height: 42px;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
@@ -807,70 +562,52 @@
         }
 
         .clinic-cal-cell:hover {
-            transform: translateY(-1px);
+            transform: scale(1.05);
             z-index: 2;
-            border-color: #0EB1B1;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
         }
 
         .clinic-cal-cell.is-duty {
-            background: rgba(14, 177, 177, 0.08) !important;
+            background: rgba(14, 177, 177, 0.12) !important;
             border: 1.5px solid #0EB1B1 !important;
             color: #0a8f8f !important;
             font-weight: 700 !important;
         }
 
-        .clinic-cal-cell.is-duty:hover {
-            background: rgba(14, 177, 177, 0.15) !important;
-            border-color: #088b8b !important;
-            box-shadow: 0 4px 12px rgba(14, 177, 177, 0.2);
-        }
-
         .clinic-cal-cell.is-off {
             color: #94a3b8;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-        }
-
-        .clinic-cal-cell.is-off:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-            color: #64748b;
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
         }
 
         .clinic-cal-cell.is-other-month {
-            background: #fafafa;
-            border: 1px dashed #e2e8f0;
-            color: #cbd5e1;
-            opacity: 0.5;
+            opacity: 0.25;
             pointer-events: none;
         }
 
         .clinic-cal-cell.is-today {
-            box-shadow: 0 0 0 2px #2563eb, 0 2px 8px rgba(37, 99, 235, 0.25) !important;
-            border-color: #2563eb !important;
-            font-weight: 800 !important;
+            box-shadow: inset 0 0 0 1.5px #3b82f6;
         }
 
         .clinic-cal-cell .duty-dot {
-            width: 5px;
-            height: 5px;
+            width: 4px;
+            height: 4px;
             border-radius: 50%;
             background: #0EB1B1;
-            margin-top: 3px;
+            margin-top: 2px;
         }
 
         .clinic-cal-cell.is-specific-off {
             background: #fff1f2 !important;
-            border: 1.5px solid #f43f5e !important;
+            border: 1.5px dashed #f43f5e !important;
             color: #e11d48 !important;
             font-weight: 700 !important;
         }
 
         .clinic-cal-cell.is-extra-duty {
-            background: #f0fdfa !important;
-            border: 1.5px solid #059669 !important;
-            color: #047857 !important;
+            background: rgba(99, 102, 241, 0.15) !important;
+            border: 1.5px solid #6366f1 !important;
+            color: #4f46e5 !important;
             font-weight: 700 !important;
         }
 
@@ -994,6 +731,7 @@
             border-radius: 20px;
             background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 50%, #f8fafc 100%);
             border: 1px solid rgba(14, 177, 177, 0.25);
+            border-left: 6px solid #0eb1b1;
             padding: 24px 28px;
             box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
             position: relative;
@@ -1124,6 +862,397 @@
             padding: 10px 4px;
         }
 
+        /* ── Weekly Patient Traffic (animated) ─────────────────────── */
+        .wt-card {
+            --wt-c1: #0eb1b1;
+            --wt-c2: #3b82f6;
+            --wt-c3: #f59e0b;
+            --wt-ink: #0f172a;
+            --wt-dim: #64748b;
+            --wt-grid: #eef2f6;
+            --wt-surface: #ffffff;
+            --wt-chip: #f8fafc;
+            --wt-chip-border: #eef2f6;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body[data-theme="dark"] .wt-card {
+            --wt-ink: #e2e8f0;
+            --wt-dim: #94a3b8;
+            --wt-grid: rgba(148, 163, 184, 0.14);
+            --wt-surface: #0f172a;
+            --wt-chip: rgba(148, 163, 184, 0.07);
+            --wt-chip-border: rgba(148, 163, 184, 0.14);
+        }
+
+        .wt-card::before {
+            content: '';
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            right: -90px;
+            top: -120px;
+            background: radial-gradient(circle, rgba(14, 177, 177, 0.16), transparent 65%);
+            pointer-events: none;
+            animation: wtGlow 9s ease-in-out infinite alternate;
+        }
+
+        @keyframes wtGlow {
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+
+            to {
+                transform: translate(-40px, 20px) scale(1.15);
+            }
+        }
+
+        .wt-range-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: var(--wt-chip);
+            color: var(--wt-dim);
+            border: 1px solid var(--wt-chip-border);
+            white-space: nowrap;
+        }
+
+        .wt-live {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+            animation: wtLive 1.8s infinite;
+        }
+
+        @keyframes wtLive {
+            70% {
+                box-shadow: 0 0 0 7px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        .wt-kpis {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .wt-kpi {
+            background: var(--wt-chip);
+            border: 1px solid var(--wt-chip-border);
+            border-radius: 12px;
+            padding: 8px 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .wt-kpi:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+        }
+
+        .wt-kpi-l {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            color: var(--wt-dim);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .wt-kpi-v {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--wt-ink);
+            font-variant-numeric: tabular-nums;
+            line-height: 1.25;
+        }
+
+        .wt-kpi-s {
+            font-size: 10.5px;
+            font-weight: 700;
+            min-height: 14px;
+        }
+
+        .wt-kpi-s.up {
+            color: #059669;
+        }
+
+        .wt-kpi-s.down {
+            color: #dc2626;
+        }
+
+        .wt-kpi-s.flat {
+            color: var(--wt-dim);
+        }
+
+        .wt-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .wt-chart {
+            position: relative;
+            height: 220px;
+            width: 100%;
+        }
+
+        .wt-chart svg {
+            display: block;
+            overflow: visible;
+        }
+
+        .wt-axis {
+            fill: var(--wt-dim);
+            font-size: 10.5px;
+            font-weight: 600;
+        }
+
+        .wt-axis-today {
+            fill: var(--wt-c1);
+            font-weight: 800;
+        }
+
+        .wt-gridline {
+            stroke: var(--wt-grid);
+            stroke-dasharray: 3 4;
+        }
+
+        .wt-baseline {
+            stroke: var(--wt-grid);
+            stroke-width: 1.5;
+        }
+
+        .wt-val {
+            fill: var(--wt-ink);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .wt-col {
+            cursor: pointer;
+            outline: none;
+        }
+
+        .wt-hit {
+            fill: transparent;
+            transition: fill 0.2s ease;
+        }
+
+        .wt-col:hover .wt-hit,
+        .wt-col:focus-visible .wt-hit {
+            fill: rgba(14, 177, 177, 0.08);
+        }
+
+        .wt-col:focus-visible .wt-hit {
+            stroke: var(--wt-c1);
+            stroke-width: 1.5;
+        }
+
+        .wt-bar,
+        .wt-pt,
+        .wt-today-ring {
+            transform-box: fill-box;
+        }
+
+        .wt-bar {
+            transform-origin: 50% 100%;
+        }
+
+        .wt-pt {
+            transform-origin: 50% 50%;
+            fill: var(--wt-surface);
+            stroke: var(--wt-c1);
+            stroke-width: 2.5;
+        }
+
+        .wt-today-ring {
+            transform-origin: 50% 50%;
+            fill: var(--wt-c1);
+            animation: wtPulse 2s ease-out infinite;
+        }
+
+        @keyframes wtPulse {
+            0% {
+                opacity: 0.55;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(3);
+            }
+        }
+
+        /* Animations only run when the SVG has .wt-anim (first view / each time the tab is opened) */
+        .wt-anim .wt-bar {
+            animation: wtGrow 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            animation-delay: var(--d);
+        }
+
+        .wt-anim .wt-val {
+            animation: wtFadeUp 0.45s ease-out both;
+            animation-delay: calc(var(--d) + 550ms);
+        }
+
+        .wt-anim .wt-line {
+            stroke-dasharray: var(--len);
+            animation: wtDraw 1.3s ease-in-out 0.55s both;
+        }
+
+        .wt-anim .wt-area {
+            animation: wtFade 0.9s ease-out 1.1s both;
+        }
+
+        .wt-anim .wt-pt {
+            animation: wtPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            animation-delay: var(--d);
+        }
+
+        @keyframes wtGrow {
+            from {
+                transform: scaleY(0);
+            }
+
+            to {
+                transform: scaleY(1);
+            }
+        }
+
+        @keyframes wtFadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        @keyframes wtDraw {
+            from {
+                stroke-dashoffset: var(--len);
+            }
+
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes wtFade {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes wtPop {
+            from {
+                opacity: 0;
+                transform: scale(0);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .wt-tip {
+            position: absolute;
+            z-index: 5;
+            pointer-events: none;
+            min-width: 168px;
+            background: var(--wt-surface);
+            color: var(--wt-ink);
+            border: 1px solid var(--wt-chip-border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 12px;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+            opacity: 0;
+            transform: translate(-50%, -100%) translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        .wt-tip.show {
+            opacity: 1;
+            transform: translate(-50%, -100%) translateY(-8px);
+        }
+
+        .wt-tip-h {
+            font-weight: 800;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .wt-tip-r {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--wt-dim);
+            line-height: 1.7;
+        }
+
+        .wt-tip-r b {
+            color: var(--wt-ink);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .wt-empty {
+            position: absolute;
+            inset: 0 0 30px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--wt-dim);
+            font-size: 12px;
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        @media (max-width: 640px) {
+            .wt-kpis {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .wt-card::before,
+            .wt-live,
+            .wt-today-ring,
+            .wt-anim .wt-bar,
+            .wt-anim .wt-val,
+            .wt-anim .wt-line,
+            .wt-anim .wt-area,
+            .wt-anim .wt-pt {
+                animation: none !important;
+            }
+        }
 
         /* 4-Tile Command Center */
         .dash-command-grid {
@@ -1206,6 +1335,7 @@
             flex-direction: column;
             gap: 10px;
         }
+
         .dash-proc-card {
             padding: 10px 14px;
             border-radius: 12px;
@@ -1213,20 +1343,24 @@
             border: 1px solid #f1f5f9;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
         .dash-proc-card:hover {
             background: #ffffff;
             border-color: #e2e8f0;
             box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
             transform: translateY(-1px);
         }
+
         [data-theme='dark'] .dash-proc-card {
             background: #1e293b;
             border-color: #334155;
         }
+
         [data-theme='dark'] .dash-proc-card:hover {
             background: #243248;
             border-color: #475569;
         }
+
         .proc-icon-badge {
             width: 34px;
             height: 34px;
@@ -1237,23 +1371,28 @@
             font-size: 18px;
             flex-shrink: 0;
         }
+
         .proc-title {
             font-size: 13px;
             font-weight: 600;
             color: #0f172a;
             line-height: 1.3;
         }
+
         [data-theme='dark'] .proc-title {
             color: #f1f5f9;
         }
+
         .proc-subtitle {
             font-size: 11px;
             color: #64748b;
             line-height: 1.3;
         }
+
         [data-theme='dark'] .proc-subtitle {
             color: #94a3b8;
         }
+
         .proc-metric-pct {
             font-size: 13.5px;
             font-weight: 700;
@@ -1261,15 +1400,18 @@
             line-height: 1.2;
             text-align: right;
         }
+
         [data-theme='dark'] .proc-metric-pct {
             color: #f1f5f9;
         }
+
         .proc-metric-sub {
             font-size: 11px;
             color: #64748b;
             font-weight: 500;
             text-align: right;
         }
+
         .proc-track-bar {
             height: 6px;
             background: #e2e8f0;
@@ -1277,6 +1419,7 @@
             overflow: hidden;
             margin-top: 8px;
         }
+
         [data-theme='dark'] .proc-track-bar {
             background: #334155;
         }
@@ -1358,15 +1501,23 @@
         /* Mission Control Launch Banner in tab-master */
         /* Redesigned Premium Gateway Launch Hub (No AI-cliché colored left-borders) */
         .integration-launch-hub {
+            border-radius: 18px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            border-left: 6px solid #0eb1b1;
             border-radius: 16px;
             background: #ffffff;
             border: 1px solid #e2e8f0;
             padding: 24px 28px;
+            margin-top: 12px;
+            margin-bottom: 28px;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
             margin-top: 14px;
             margin-bottom: 24px;
             box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 6px 16px -4px rgba(15, 23, 42, 0.03);
             position: relative;
             overflow: hidden;
+            transition: all 0.2s ease;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -1528,10 +1679,10 @@
 
         .integrations-modal-header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             gap: 16px;
-            padding-bottom: 18px;
+            padding-bottom: 20px;
             border-bottom: 1px solid #f1f5f9;
             margin-bottom: 18px;
         }
@@ -1540,86 +1691,257 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
             flex-shrink: 0;
-            margin-left: auto;
         }
 
-        .btn-emergency-lock {
-            display: inline-flex;
+        .integrations-toolbar {
+            display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 12.5px;
-            font-weight: 600;
-            color: #dc2626;
-            background: #fff5f5;
-            border: 1px solid #fecaca;
-            cursor: pointer;
-            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-            white-space: nowrap;
-            line-height: 1;
-        }
-
-        .btn-emergency-lock:hover {
-            background: #fee2e2;
-            border-color: #f87171;
-            color: #b91c1c;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
-            transform: translateY(-1px);
-        }
-
-        .btn-restore-all {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 12.5px;
-            font-weight: 600;
-            color: #059669;
-            background: #f0fdf4;
-            border: 1px solid #a7f3d0;
-            cursor: pointer;
-            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-            white-space: nowrap;
-            line-height: 1;
-        }
-
-        .btn-restore-all:hover {
-            background: #dcfce7;
-            border-color: #6ee7b7;
-            color: #047857;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
-            transform: translateY(-1px);
-        }
-
-        .btn-modal-close {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: #f1f5f9;
-            color: #64748b;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 6px 10px;
+            background: #f8fafc;
             border: 1px solid #e2e8f0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 22px;
-            line-height: 1;
-            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-            flex-shrink: 0;
-            padding: 0;
+            border-radius: 12px;
         }
 
-        .btn-modal-close:hover {
-            background: #fee2e2;
-            color: #ef4444;
-            border-color: #fca5a5;
-            transform: rotate(90deg);
+        .integrations-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .integration-filter-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .integration-filter-pill:hover {
+            color: #0f172a;
+            background: #e2e8f0;
+        }
+
+        .integration-filter-pill.active {
+            background: #ffffff;
+            color: #0eb1b1;
+            border-color: #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            font-weight: 700;
+        }
+
+        .integration-search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            min-width: 230px;
+        }
+
+        .integration-search-box i {
+            position: absolute;
+            left: 10px;
+            color: #94a3b8;
+            font-size: 15px;
+            pointer-events: none;
+        }
+
+        .integration-search-input {
+            width: 100%;
+            padding: 7px 12px 7px 32px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            font-size: 12px;
+            color: #0f172a;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        .integration-search-input:focus {
+            border-color: #0eb1b1;
+            box-shadow: 0 0 0 3px rgba(14, 177, 177, 0.15);
+        }
+
+        /* Uniform 2-Column Cards Grid */
+        #integrationsCardsCore {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .integration-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            background: #ffffff;
+            padding: 20px 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(15, 23, 42, 0.03);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            min-height: 250px;
+        }
+
+        .integration-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e2e8f0;
+            transition: background 0.2s ease;
+        }
+
+        .integration-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+            box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+        }
+
+        .token-subtext-container {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 11.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            min-height: 38px;
+        }
+
+        /* How-To-Get-Key Collapsible Accordion Guide */
+        .key-guide-box {
+            margin-top: 10px;
+            margin-bottom: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: 12px;
+        }
+
+        .key-guide-header {
+            padding: 9px 12px;
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+            transition: background 0.15s ease;
+        }
+
+        .key-guide-header:hover {
+            background: #e2e8f0;
+        }
+
+        .key-guide-content {
+            padding: 12px 14px;
+            line-height: 1.6;
+            color: #475569;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .key-guide-content ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .key-guide-content li {
+            margin-bottom: 6px;
+        }
+
+        .key-guide-content strong {
+            color: #0f172a;
+        }
+
+        .key-guide-content code {
+            font-family: monospace;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #0f172a;
+            word-break: break-all;
+        }
+
+        .key-guide-pill {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .key-guide-pill:hover {
+            background: #ffffff;
+            color: #0eb1b1;
+            border-color: #0eb1b1;
+            box-shadow: 0 2px 4px rgba(14, 177, 177, 0.12);
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 992px) {
+            #systemIntegrationsModal {
+                padding: 16px;
+            }
+
+            #systemIntegrationsModal .modal-container {
+                padding: 22px;
+                max-height: 92vh;
+            }
+
+            #integrationsCardsCore {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .integration-launch-hub {
+                padding: 20px;
+            }
         }
 
         @media (max-width: 640px) {
+            #systemIntegrationsModal {
+                padding: 8px;
+            }
+
+            #systemIntegrationsModal .modal-container {
+                padding: 16px;
+                border-radius: 14px;
+                max-height: 95vh;
+            }
+
             .integrations-modal-header {
                 flex-direction: column;
                 align-items: stretch !important;
@@ -1629,22 +1951,14 @@
             .integrations-header-actions {
                 display: flex;
                 width: 100%;
-                align-items: center;
-                justify-content: flex-end;
-                gap: 8px;
-                flex-wrap: wrap;
+                justify-content: space-between;
+                gap: 6px;
             }
 
-            .integrations-header-actions .btn-emergency-lock,
-            .integrations-header-actions .btn-restore-all {
+            .integrations-header-actions button {
                 flex: 1;
-                font-size: 11.5px !important;
-                padding: 7px 10px !important;
-                justify-content: center;
-            }
-
-            .integrations-header-actions .btn-modal-close {
-                flex: 0 0 36px;
+                font-size: 11px !important;
+                padding: 6px 8px !important;
             }
 
             .integrations-toolbar {
@@ -1729,7 +2043,30 @@
     </style>
     <link rel="stylesheet" href="css/weeklyTraffic.css">
     <script src="js/weeklyTraffic.js"></script>
-    <script src="js/pdfReport.js"></script>
+    <script src="js/avatarUpload.js"></script>
+    <script>
+        // Super Admin profile photo: uploads to Cloudinary, then saves the URL on the admin's own account
+        async function onAdminPhotoPick(input) {
+            const file = input?.files?.[0];
+            if (!file) return;
+            try {
+                const url = await window.OptiDentAvatar.upload(file);
+                const res = await fetch('api/admin/update_own_photo.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ profile_picture: url })
+                });
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') throw new Error(data.message || 'Could not save the photo.');
+                window.OptiDentAvatar.show(document.getElementById('admin-avatar'), url, 'SA');
+                showToast('success', 'Profile photo saved.');
+            } catch (err) {
+                showToast('error', err.message);
+            } finally {
+                input.value = '';
+            }
+        }
+    </script>
 </head>
 
 <body data-theme="light">
@@ -1743,7 +2080,7 @@
 
             <!-- Sidebar -->
             <aside class="sidebar border-right bg-glass">
-                <div class="logo mt-1 mb-2">
+                <div class="logo mt-1 mb-2" style="flex-wrap: wrap; row-gap: 6px;">
                     <div class="logo-icon">
                         <img src="assets/lightmode_dentassist.png" alt="OptiDent Logo" class="logo-img"
                             style="max-height: 40px;">
@@ -1753,7 +2090,7 @@
                         </div>
                         <div class="logo-subtext" style="font-size: 6px;">MANAGEMENT SYSTEM</div>
                     </div>
-                    <span class="badge-super-admin">Super Admin</span>
+                    <span class="badge-super-admin" style="margin-left: 44px;">Super Admin</span>
                 </div>
 
                 <ul class="sidebar-menu">
@@ -1806,8 +2143,10 @@
                     <div class="user-profile card-inner soft-shadow clickable-profile"
                         style="display: flex; align-items: center; gap: 10px; padding: 8px;">
                         <div id="admin-avatar" class="avatar flex-center bg-black text-white font-bold"
-                            style="border-radius: 50%; font-size: 14px; width: 40px; height: 40px; background: var(--primary);">
+                            onclick="document.getElementById('adminPhotoInput').click()" title="Click to upload your profile photo"
+                            style="border-radius: 50%; font-size: 14px; width: 40px; height: 40px; background: var(--primary); cursor: pointer; overflow: hidden;">
                             SA</div>
+                        <input type="file" id="adminPhotoInput" accept="image/*" style="display: none;" onchange="onAdminPhotoPick(this)">
                         <div class="flex-col" style="gap: 2px;">
                             <span id="admin-sidebar-name" class="d-block text-sm font-bold">Dr. Super Admin</span>
                             <span id="admin-sidebar-role"
@@ -1972,16 +2311,72 @@
                         <!-- Left: Weekly patient traffic (shared card, rendered by WeeklyTraffic.mount) -->
                         <div id="wtCard"></div>
 
-                                                <!-- Right Chart: Clinical Procedures & Service Matrix -->
-                        <div class="card bg-white p-4" style="border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                        <!-- Left Chart: Weekly Patient Traffic & Flow (animated, real data) -->
+                        <div class="card bg-white p-4 wt-card"
+                            style="border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                            <div class="flex items-center justify-between mb-3" style="gap: 10px; position: relative;">
+                                <div>
+                                    <h3 class="font-bold text-sm text-dark mb-0 flex items-center gap-2">
+                                        <i class='bx bx-pulse text-primary' style="font-size: 18px;"></i> Weekly Patient
+                                        Traffic &amp; Appointment Volume
+                                    </h3>
+                                    <div class="text-xs text-dim mt-1">Daily visits by status, straight from the
+                                        appointment book</div>
+                                </div>
+                                <span class="wt-range-pill"><span class="wt-live"></span> Past 7 Days</span>
+                            </div>
+
+                            <!-- KPI tiles (also act as the legend) -->
+                            <div class="wt-kpis">
+                                <div class="wt-kpi">
+                                    <div class="wt-kpi-l">Total Visits</div>
+                                    <div class="wt-kpi-v" id="wtKpiTotal">0</div>
+                                    <div class="wt-kpi-s flat" id="wtKpiDelta">&nbsp;</div>
+                                </div>
+                                <div class="wt-kpi">
+                                    <div class="wt-kpi-l"><span class="wt-dot" style="background: var(--wt-c1);"></span>
+                                        Completed</div>
+                                    <div class="wt-kpi-v" id="wtKpiCompleted">0</div>
+                                </div>
+                                <div class="wt-kpi">
+                                    <div class="wt-kpi-l"><span class="wt-dot" style="background: var(--wt-c2);"></span>
+                                        Scheduled</div>
+                                    <div class="wt-kpi-v" id="wtKpiScheduled">0</div>
+                                </div>
+                                <div class="wt-kpi">
+                                    <div class="wt-kpi-l"><span class="wt-dot" style="background: var(--wt-c3);"></span>
+                                        Walk-ins</div>
+                                    <div class="wt-kpi-v" id="wtKpiWalkin">0</div>
+                                </div>
+                            </div>
+
+                            <!-- Animated SVG chart (rendered by renderDashWeeklyChart) -->
+                            <div class="wt-chart" id="dashWeeklyChartWrap" role="group"
+                                aria-label="Weekly patient traffic chart"></div>
+
+                            <div class="mt-2 pt-2 border-top flex items-center justify-between text-xs text-dim"
+                                style="position: relative; gap: 8px; flex-wrap: wrap;">
+                                <span><i class='bx bx-line-chart'
+                                        style="color: var(--wt-c1); vertical-align: middle;"></i> Line = total visits
+                                    per day</span>
+                                <span class="font-bold text-dark" id="dashChartTotalVolume">Loading…</span>
+                            </div>
+                        </div>
+
+                        <!-- Right Chart: Clinical Procedures & Service Matrix -->
+                        <div class="card bg-white p-4"
+                            style="border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
                             <div class="flex items-center justify-between mb-3">
                                 <div>
                                     <h3 class="font-bold text-sm text-dark mb-0 flex items-center gap-2">
-                                        <i class='bx bx-pie-chart-alt-2 text-primary' style="font-size: 18px;"></i> Procedure &amp; Treatment Distribution
+                                        <i class='bx bx-pie-chart-alt-2 text-primary' style="font-size: 18px;"></i>
+                                        Procedure &amp; Treatment Distribution
                                     </h3>
-                                    <div class="text-xs text-dim mt-1">High-demand dental services &amp; clinical breakdown</div>
+                                    <div class="text-xs text-dim mt-1">High-demand dental services &amp; clinical
+                                        breakdown</div>
                                 </div>
-                                <span class="badge" style="background: rgba(14, 177, 177, 0.08); color: #0eb1b1; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600;">
+                                <span class="badge"
+                                    style="background: rgba(14, 177, 177, 0.08); color: #0eb1b1; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600;">
                                     Monthly Active
                                 </span>
                             </div>
@@ -1991,7 +2386,8 @@
                                 <div class="dash-proc-card">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-2">
-                                            <div class="proc-icon-badge" style="background: rgba(14, 177, 177, 0.1); color: #0eb1b1;">
+                                            <div class="proc-icon-badge"
+                                                style="background: rgba(14, 177, 177, 0.1); color: #0eb1b1;">
                                                 <i class='bx bx-check-shield'></i>
                                             </div>
                                             <div>
@@ -2005,7 +2401,9 @@
                                         </div>
                                     </div>
                                     <div class="proc-track-bar">
-                                        <div style="width: 36%; height: 100%; background: linear-gradient(90deg, #0eb1b1, #10b981); border-radius: 999px;"></div>
+                                        <div
+                                            style="width: 36%; height: 100%; background: linear-gradient(90deg, #0eb1b1, #10b981); border-radius: 999px;">
+                                        </div>
                                     </div>
                                 </div>
 
@@ -2013,7 +2411,8 @@
                                 <div class="dash-proc-card">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-2">
-                                            <div class="proc-icon-badge" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                                            <div class="proc-icon-badge"
+                                                style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
                                                 <i class='bx bx-smile'></i>
                                             </div>
                                             <div>
@@ -2027,7 +2426,9 @@
                                         </div>
                                     </div>
                                     <div class="proc-track-bar">
-                                        <div style="width: 28%; height: 100%; background: linear-gradient(90deg, #3b82f6, #6366f1); border-radius: 999px;"></div>
+                                        <div
+                                            style="width: 28%; height: 100%; background: linear-gradient(90deg, #3b82f6, #6366f1); border-radius: 999px;">
+                                        </div>
                                     </div>
                                 </div>
 
@@ -2035,7 +2436,8 @@
                                 <div class="dash-proc-card">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-2">
-                                            <div class="proc-icon-badge" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                                            <div class="proc-icon-badge"
+                                                style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
                                                 <i class='bx bx-pulse'></i>
                                             </div>
                                             <div>
@@ -2049,7 +2451,9 @@
                                         </div>
                                     </div>
                                     <div class="proc-track-bar">
-                                        <div style="width: 20%; height: 100%; background: linear-gradient(90deg, #8b5cf6, #ec4899); border-radius: 999px;"></div>
+                                        <div
+                                            style="width: 20%; height: 100%; background: linear-gradient(90deg, #8b5cf6, #ec4899); border-radius: 999px;">
+                                        </div>
                                     </div>
                                 </div>
 
@@ -2057,7 +2461,8 @@
                                 <div class="dash-proc-card">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-2">
-                                            <div class="proc-icon-badge" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                                            <div class="proc-icon-badge"
+                                                style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
                                                 <i class='bx bx-award'></i>
                                             </div>
                                             <div>
@@ -2071,19 +2476,23 @@
                                         </div>
                                     </div>
                                     <div class="proc-track-bar">
-                                        <div style="width: 16%; height: 100%; background: linear-gradient(90deg, #f59e0b, #ef4444); border-radius: 999px;"></div>
+                                        <div
+                                            style="width: 16%; height: 100%; background: linear-gradient(90deg, #f59e0b, #ef4444); border-radius: 999px;">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="mt-3 pt-2 border-top flex items-center justify-between text-xs text-dim">
-                                <span><i class='bx bx-time text-primary'></i> Avg Chair Duration: <strong>38 mins</strong></span>
-                                <span class="text-success font-bold"><i class='bx bx-smile'></i> 98.4% Satisfaction</span>
+                                <span><i class='bx bx-time text-primary'></i> Avg Chair Duration: <strong>38
+                                        mins</strong></span>
+                                <span class="text-success font-bold"><i class='bx bx-smile'></i> 98.4%
+                                    Satisfaction</span>
                             </div>
                         </div>
                     </div>
 
-<!-- Today's Clinical Schedule & Patient Appointments Queue -->
+                    <!-- Today's Clinical Schedule & Patient Appointments Queue -->
                     <div class="card bg-white p-4 mb-3" id="dashTodayQueueSection"
                         style="border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
                         <div class="flex items-center justify-between mb-3" style="flex-wrap: wrap; gap: 12px;">
@@ -2810,19 +3219,17 @@
                                 </div>
                                 <div style="flex: 1;">
                                     <div class="flex items-center gap-2 flex-wrap" style="margin-bottom: 4px;">
-                                        <h3 class="font-bold text-base mb-0" style="color: #0f172a; font-size: 16.5px; letter-spacing: -0.01em;">
-                                            System Integrations &amp; Core API Gateway Hub</h3>
-                                        <span id="systemGateOverallBadge" class="badge"
-                                            style="font-size: 11px; padding: 3px 9px; border-radius: 999px; background: rgba(16, 185, 129, 0.08); color: #059669; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.2); display: inline-flex; align-items: center; gap: 5px;">
+                                        <h3 class="font-bold text-base mb-0" style="color: #0f172a; font-size: 16.5px; letter-spacing: -0.01em;">System Integrations &amp; Core API Gateway Hub</h3>
+                                        <span id="systemGateOverallBadge" class="badge" style="font-size: 11px; padding: 3px 9px; border-radius: 999px; background: rgba(16, 185, 129, 0.08); color: #059669; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.2); display: inline-flex; align-items: center; gap: 5px;">
                                             <span class="live-dot-pulse"></span> All Subsystems Active
                                         </span>
                                     </div>
-                                    <p class="text-xs text-dim mt-0 mb-2" style="font-size: 12.5px; line-height: 1.45; color: #64748b;">
-                                        Centralized gateway orchestration for Google OAuth, Calendar Live Sync, SMTP Mailer, ImgBB Storage, and reCAPTCHA Bot Defense.
+                                    <p class="text-xs text-dim mt-0 mb-2" style="font-size: 12.5px; line-height: 1.5; color: #64748b;">
+                                        Real-time gateway command center for Google OAuth, Calendar Live Sync, SMTP Mailer, SMS Mobile Gateway, reCAPTCHA v2 Anti-Bot, and Webhooks.
                                     </p>
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="hub-meta-pill"><i class='bx bx-shield-quarter text-primary'></i> AES-256 Encrypted</span>
-                                        <span class="hub-meta-pill"><i class='bx bx-check-double text-success'></i> 6 Configured Services</span>
+                                        <span class="hub-meta-pill"><i class='bx bx-check-double text-success'></i> 7 Configured Services</span>
                                         <span class="hub-meta-pill"><i class='bx bx-sync text-info'></i> Real-Time Two-Way Sync</span>
                                     </div>
                                 </div>
@@ -3038,8 +3445,8 @@
 
                                                     <!-- Right Sub-Column: Clinic Working Hours & Duty Availability (Calendar, Presets, Shifts) -->
                                                     <div style="display: flex; flex-direction: column; gap: 14px;">
-                                                        <div class="clinic-schedule-card p-3"
-                                                            style="border-radius: 14px; border: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03); margin: 0; padding: 18px;">
+                                                        <div class="clinic-schedule-card p-3 border rounded-xl"
+                                                            style="border-radius: 12px; border: 1.5px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.02); margin: 0; padding: 16px;">
                                                             <div
                                                                 class="flex items-center justify-between border-bottom pb-2 mb-2">
                                                                 <h4 class="font-bold text-sm mb-0 flex items-center gap-2"
@@ -3155,7 +3562,7 @@
 
                                                                     <!-- Calendar Legend -->
                                                                     <div class="clinic-cal-legend"
-                                                                        style="border-top: 1px solid #e2e8f0; padding-top: 10px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 10.5px; color: #64748b;">
+                                                                        style="border-top: 1px dashed #e2e8f0; padding-top: 8px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 10.5px; color: #64748b;">
                                                                         <span
                                                                             style="display: inline-flex; align-items: center; gap: 4px;">
                                                                             <span
@@ -3280,7 +3687,8 @@
                                                                 </div>
                                                             </div>
 
-                                                            <div class="mt-3 pt-3 border-top" style="border-top: 1px solid #e2e8f0;">
+                                                            <div class="mt-2 pt-2 border-top"
+                                                                style="border-top: 1px dashed #e2e8f0;">
                                                                 <label
                                                                     style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 12px; font-weight: 600; color: var(--text-color);">
                                                                     <input type="checkbox" id="settingLunchBreak"
@@ -4441,7 +4849,8 @@
                     style="font-size: 24px; cursor: pointer; border: none; background: transparent;">&times;</button>
             </div>
             <p class="text-xs text-dim mb-2">
-                Reassigning a user's role updates their permissions according to the <strong>RBAC Matrix</strong>.
+                Reassigning a user's role updates their permissions according to the <strong>RBAC Matrix
+                    </strong>.
             </p>
             <form id="assignRoleForm">
                 <div class="form-group mb-1">
@@ -4616,40 +5025,40 @@
 
             <!-- Modal Header -->
             <div class="integrations-modal-header">
-                <div style="display: flex; align-items: flex-start; gap: 14px; flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
                     <div
-                        style="width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, rgba(14, 177, 177, 0.16), rgba(59, 130, 246, 0.16)); color: #0eb1b1; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(14, 177, 177, 0.12);">
+                        style="width: 50px; height: 50px; border-radius: 16px; background: linear-gradient(135deg, rgba(14, 177, 177, 0.16), rgba(59, 130, 246, 0.16)); color: #0eb1b1; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(14, 177, 177, 0.15);">
                         <i class='bx bx-slider-alt'></i>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                             <h2
-                                style="font-size: 19px; font-weight: 700; color: #0f172a; margin: 0; letter-spacing: -0.01em;">
+                                style="font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; letter-spacing: -0.01em;">
                                 System Integrations &amp; Core API Gateway Hub</h2>
                             <span id="modalSystemGateBadge" class="badge"
                                 style="font-size: 11px; padding: 4px 12px; border-radius: 999px; background: rgba(16, 185, 129, 0.12); color: #059669; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.25); display: inline-flex; align-items: center; gap: 6px;">
-                                <span class="live-dot-pulse"></span> <span id="modalActiveSubsystemCountText">4/6 Subsystems Active</span>
+                                <span class="live-dot-pulse"></span> <span id="modalActiveSubsystemCountText">5/7
+                                    Subsystems Active</span>
                             </span>
                         </div>
-                        <p style="font-size: 12.5px; color: #64748b; margin: 4px 0 0 0; line-height: 1.45;">
-                            Enterprise multi-subsystem gateway manager. Real-time encryption, API token vault &amp; circuit breakers.
+                        <p style="font-size: 13px; color: #64748b; margin: 6px 0 0 0; line-height: 1.5;">
+                            Enterprise multi-subsystem gateway manager. Real-time encryption, API token vault &amp;
+                            circuit breakers.
                         </p>
                     </div>
                 </div>
                 <div class="integrations-header-actions">
-                    <button type="button" class="btn-emergency-lock" onclick="emergencyLockdownPrompt()"
-                        title="Instantly lock down public and staff logins (super admin only)">
-                        <i class='bx bxs-lock-alt'></i>
-                        <span>Emergency Lock</span>
+                    <button type="button" class="btn-outline sm" onclick="emergencyLockdownPrompt()"
+                        style="color: #dc2626; border-color: #fecaca; background: #fff5f5; font-size: 12px; padding: 8px 14px; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                        <i class='bx bxs-lock-alt mr-1'></i> Emergency Lock
                     </button>
-                    <button type="button" class="btn-restore-all" onclick="restoreAllIntegrationsPrompt()"
-                        title="Restore all normal login and email dispatch services">
-                        <i class='bx bx-check-double'></i>
-                        <span>Restore All</span>
+                    <button type="button" class="btn-outline sm" onclick="restoreAllIntegrationsPrompt()"
+                        style="color: #059669; border-color: #a7f3d0; background: #f0fdf4; font-size: 12px; padding: 8px 14px; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                        <i class='bx bx-check-double mr-1'></i> Restore All
                     </button>
-                    <div class="header-action-divider" style="width: 1px; height: 26px; background: #e2e8f0; margin: 0 4px;"></div>
-                    <button type="button" class="btn-modal-close" onclick="closeIntegrationsModal()" title="Close (Esc)">
-                        <i class='bx bx-x'></i>
+                    <button type="button" onclick="closeIntegrationsModal()" title="Close"
+                        style="width: 38px; height: 38px; border-radius: 50%; background: #f1f5f9; color: #64748b; border: none; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;">
+                        &times;
                     </button>
                 </div>
             </div>
@@ -4659,19 +5068,19 @@
                 <div class="integrations-filter-group">
                     <button type="button" class="integration-filter-pill active" data-category="all"
                         onclick="filterIntegrationCategory('all', this)">
-                        All Systems (6)
+                        All Systems (7)
                     </button>
                     <button type="button" class="integration-filter-pill" data-category="security"
                         onclick="filterIntegrationCategory('security', this)">
-                        <i class='bx bx-shield-quarter'></i> Security &amp; Auth (3)
+                        <i class='bx bx-shield-quarter'></i> Security &amp; Auth (2)
                     </button>
                     <button type="button" class="integration-filter-pill" data-category="messaging"
                         onclick="filterIntegrationCategory('messaging', this)">
-                        <i class='bx bx-message-rounded-dots'></i> Messaging &amp; Mail (1)
+                        <i class='bx bx-message-rounded-dots'></i> Messaging &amp; Mail (2)
                     </button>
                     <button type="button" class="integration-filter-pill" data-category="cloud"
                         onclick="filterIntegrationCategory('cloud', this)">
-                        <i class='bx bx-cloud'></i> Cloud &amp; Storage (2)
+                        <i class='bx bx-cloud'></i> Cloud &amp; Webhooks (3)
                     </button>
                 </div>
                 <div class="integration-search-box">
@@ -4811,7 +5220,8 @@
                             </label>
                         </div>
                     </div>
-<!-- 3. Google Calendar API Live Sync -->
+
+<!-- 4. Google Calendar API Live Sync -->
                     <div class="integration-card" data-category="cloud"
                         data-name="google calendar api live sync appointments calendar sync schedule edjamenf@gmail.com">
                         <div>
@@ -4908,7 +5318,7 @@
                         </div>
                     </div>
 
-                    <!-- 4. Google reCAPTCHA v2 Anti-Bot Defense Switch -->
+                    <!-- 5. Google reCAPTCHA v2 Anti-Bot Defense Switch -->
                     <div class="integration-card" data-category="security"
                         data-name="google recaptcha anti-bot security defense brute force shield">
                         <div>
@@ -4971,9 +5381,9 @@
                         </div>
                     </div>
 
-                    <!-- 5. ImgBB Image Hosting -->
+                    <!-- 6. Cloudinary Image Hosting -->
                     <div class="integration-card" data-category="cloud"
-                        data-name="imgbb image hosting cdn uploads clinical photos dental records">
+                        data-name="cloudinary image hosting cdn uploads clinical photos dental records">
                         <div>
                             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                                 <div
@@ -4981,7 +5391,7 @@
                                     <i class='bx bx-image'></i>
                                 </div>
                                 <div>
-                                    <div style="font-weight: 700; font-size: 14.5px; color: #0f172a;">ImgBB Image
+                                    <div style="font-weight: 700; font-size: 14.5px; color: #0f172a;">Cloudinary Image
                                         Hosting</div>
                                     <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Clinical Photos &amp;
                                         Dental Records CDN</div>
@@ -4992,20 +5402,21 @@
                                 High-speed external CDN hosting for clinical dental photos and profile attachments.
                                 Automatically verifies connectivity via self-expiring test tokens.
                             </p>
-                            <div id="tokenSubtext_imgbb_enabled" class="token-subtext-container"></div>
+                            <div id="tokenSubtext_cloudinary_enabled" class="token-subtext-container"></div>
                         </div>
                         <div
                             style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; align-items: center; justify-content: space-between;">
                             <span style="font-size: 12px; font-weight: 700; color: #64748b;"
-                                id="labelImgbbStatus">Standby / Inactive</span>
-                            <label class="master-toggle" title="Toggle ImgBB Image Hosting"
+                                id="labelCloudinaryStatus">Standby / Inactive</span>
+                            <label class="master-toggle" title="Toggle Cloudinary Image Hosting"
                                 style="margin: 0; cursor: pointer;">
-                                <input type="checkbox" id="switchImgbb"
-                                    onchange="requestIntegrationToggle('imgbb_enabled', this.checked, this)">
+                                <input type="checkbox" id="switchCloudinary"
+                                    onchange="requestIntegrationToggle('cloudinary_enabled', this.checked, this)">
                                 <span class="master-toggle-slider"></span>
                             </label>
                         </div>
                     </div>
+
 <!-- 8. QR Code API (api-ninjas.com) — key required; turning it on enables QR check-in -->
                     <div class="integration-card" data-category="security"
                         data-name="qr code api ninjas check-in pass scanner appointment verify reception">
@@ -5082,7 +5493,7 @@
                         </div>
                     </div>
 
-                    <!-- Filter Empty State -->
+<!-- Filter Empty State -->
                     <div id="integrationsFilterEmptyState"
                         style="display: none; grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 14px; border: 1px dashed #cbd5e1;">
                         <i class='bx bx-search-alt' style="font-size: 32px; color: #94a3b8; margin-bottom: 8px;"></i>
@@ -5386,49 +5797,7 @@
                     </div>
                 </div>
 
-                <!-- Field 4: SMS Gateway API Key -->
-                <div id="fieldWrap_sms_gateway_enabled" style="display: none; margin-bottom: 16px;">
-                    <div
-                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
-                        <label style="font-size: 12.5px; font-weight: 600; color: #1e293b;">SMS Gateway API Key</label>
-                        <button type="button" onclick="fillDemoSmsKey()"
-                            style="font-size: 11px; padding: 3px 8px; border-radius: 5px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer;">
-                            Demo Sandbox Key
-                        </button>
-                    </div>
-                    <input type="password" id="inputTokenSmsKey" name="api_key"
-                        placeholder="e.g. sem_live_9a7d3b5c1e8f2a4d6"
-                        style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: monospace; outline: none;">
-                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Semaphore or Twilio live SMS gateway
-                        API credentials.</div>
-
-                    <!-- Step-by-Step Guide for SMS Gateway -->
-                    <div class="key-guide-box">
-                        <div class="key-guide-header" onclick="toggleKeyGuide('guide_sms')">
-                            <span><i class='bx bx-help-circle' style="color: #3b82f6; vertical-align: middle;"></i>
-                                <strong>Step-by-Step: How to get SMS Gateway API Key</strong></span>
-                            <i class='bx bx-chevron-down' id="guide_sms_chevron"
-                                style="transition: transform 0.2s ease;"></i>
-                        </div>
-                        <div id="guide_sms" class="key-guide-content" style="display: none;">
-                            <ol>
-                                <li><strong>For Semaphore (Philippines SMS):</strong> Sign up or log in at <a
-                                        href="https://semaphore.co/" target="_blank"
-                                        style="color: #0284c7; text-decoration: underline;">semaphore.co</a>.</li>
-                                <li>Navigate to <strong>Account &gt; API</strong> to view your 32-character <strong>API
-                                        Key</strong>.</li>
-                                <li>Ensure you have active SMS credits and an approved Sender Name.</li>
-                                <li><strong>For Twilio:</strong> Go to <a href="https://console.twilio.com/"
-                                        target="_blank"
-                                        style="color: #0284c7; text-decoration: underline;">twilio.com/console</a> and
-                                    copy your <strong>Auth Token</strong>.</li>
-                                <li>Paste your Semaphore API Key or Twilio Auth Token into the field above.</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Field 5: Google Auth Client ID -->
+<!-- Field 5: Google Auth Client ID -->
                 <div id="fieldWrap_google_auth_enabled" style="display: none; margin-bottom: 16px;">
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
@@ -5485,19 +5854,22 @@
                     </div>
                 </div>
 
-                <!-- Field 4: ImgBB API Key -->
-                <div id="fieldWrap_imgbb_enabled" style="display: none; margin-bottom: 16px;">
-                    <label for="inputTokenImgbbKey"
-                        style="font-size: 12.5px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 6px;">ImgBB
-                        API Key</label>
-                    <input type="password" id="inputTokenImgbbKey" name="api_key" autocomplete="off"
-                        placeholder="32-character key from api.imgbb.com"
-                        style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: monospace; outline: none;">
-                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Get it at <a
-                            href="https://api.imgbb.com/" target="_blank" rel="noopener"
-                            style="color: #0284c7; text-decoration: underline;">api.imgbb.com</a>. A 1×1 test image is
-                        uploaded and deletes itself after 60 seconds.</div>
+                <!-- Field 6: Cloudinary credentials (cloud name, API key, API secret) -->
+                <div id="fieldWrap_cloudinary_enabled" style="display: none; margin-bottom: 16px;">
+                    <label for="inputTokenCloudinaryCloud" style="font-size: 12.5px; font-weight: 600; color: #1e293b; display: block; margin: 10px 0 6px 0; margin-top: 0;">Cloud Name</label>
+                    <input type="text" id="inputTokenCloudinaryCloud" name="cloud_name" autocomplete="off"
+                        placeholder="your Cloudinary cloud name" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: monospace; outline: none;">
+                    <label for="inputTokenCloudinaryKey" style="font-size: 12.5px; font-weight: 600; color: #1e293b; display: block; margin: 10px 0 6px 0;">API Key</label>
+                    <input type="text" id="inputTokenCloudinaryKey" name="api_key" autocomplete="off"
+                        placeholder="15-digit API key" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: monospace; outline: none;">
+                    <label for="inputTokenCloudinarySecret" style="font-size: 12.5px; font-weight: 600; color: #1e293b; display: block; margin: 10px 0 6px 0;">API Secret</label>
+                    <input type="password" id="inputTokenCloudinarySecret" name="api_secret" autocomplete="off"
+                        placeholder="API secret from the Cloudinary dashboard" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: monospace; outline: none;">
+                    <div style="font-size: 11px; color: #64748b; margin-top: 6px;">Get them from <a
+                            href="https://console.cloudinary.com/" target="_blank" rel="noopener"
+                            style="color: #0284c7; text-decoration: underline;">console.cloudinary.com</a> (Settings &rarr; Access Keys). A harmless live ping checks them before anything is saved.</div>
                 </div>
+
 
                 <!-- Field 6a: PDF Report API (PDFShift) -->
                 <div id="fieldWrap_pdf_api_enabled" style="display: none; margin-bottom: 16px;">
@@ -5548,6 +5920,7 @@
                         </div>
                     </div>
                 </div>
+
 <!-- Live Verification Status / Error Container -->
                 <div id="tokenModalVerificationStatus"
                     style="display: none; margin-bottom: 18px; padding: 12px; border-radius: 10px; font-size: 12.5px; line-height: 1.5;">
@@ -5781,10 +6154,258 @@
         }
 
         // Render Pure SVG Weekly Activity Chart
-        // Weekly Patient Traffic: shared card (public/js/weeklyTraffic.js)
-        function renderDashWeeklyChart() {
-            WeeklyTraffic.mount(document.getElementById('wtCard'), { endpoint: 'api/admin/weekly_traffic.php?days=14', title: 'Weekly patient traffic' });
+        // ── Weekly Patient Traffic: real data, stacked bars + animated trend line ──
+        const WT_SERIES = [
+            { key: 'completed', label: 'Completed', color: 'var(--wt-c1)' },
+            { key: 'scheduled', label: 'Scheduled', color: 'var(--wt-c2)' },
+            { key: 'walkin', label: 'Walk-ins', color: 'var(--wt-c3)' }
+        ];
+        const wtDateKey = d => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(d); // YYYY-MM-DD, clinic time
+        const wtReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let wtState = null;
+        let wtLastWidth = -1;
+        let wtObserversReady = false;
+
+        async function renderDashWeeklyChart() {
+            const wrap = document.getElementById('dashWeeklyChartWrap');
+            if (!wrap) return;
+
+            // 14 days: this week is charted, the week before powers the "vs last week" delta
+            const now = Date.now();
+            const keys = [];
+            for (let i = 13; i >= 0; i--) keys.push(wtDateKey(new Date(now - i * 86400000)));
+
+            let appts = [];
+            try {
+                const res = await fetch(`api/admin/get_reports_data.php?date_preset=custom&date_from=${keys[0]}&date_to=${keys[13]}`);
+                const json = await res.json();
+                // shortcut: the reports endpoint caps its list at 100 rows; fine for 14 days at today's volume, add a per-day counts endpoint if the clinic grows past ~7 visits/day.
+                appts = (json && json.data && json.data.appointments) || [];
+            } catch (_) { }
+
+            const days = keys.map(k => ({ key: k, completed: 0, scheduled: 0, walkin: 0, cancelled: 0 }));
+            const index = Object.fromEntries(keys.map((k, i) => [k, i]));
+            appts.forEach(a => {
+                const i = index[String(a.appointment_date || '').slice(0, 10)];
+                if (i === undefined) return;
+                const status = String(a.status || '').toLowerCase();
+                if (['cancelled', 'canceled', 'no_show'].includes(status)) days[i].cancelled++;
+                else if (a.is_walkin) days[i].walkin++;
+                else if (status === 'completed') days[i].completed++;
+                else days[i].scheduled++;
+            });
+            days.forEach(d => { d.total = d.completed + d.scheduled + d.walkin; });
+
+            wtState = { week: days.slice(7), prev: days.slice(0, 7) };
+            updateWeeklyKpis();
+            setupWeeklyChartObservers(wrap);
+            drawWeeklyChart(wtIsVisible(wrap)); // animate now if on screen; otherwise the observer animates on first view
         }
+        // Weekly Patient Traffic: shared card (public/js/weeklyTraffic.js)
+            function renderDashWeeklyChart() {
+                WeeklyTraffic.mount(document.getElementById('wtCard'), { endpoint: 'api/admin/weekly_traffic.php?days=14', title: 'Weekly patient traffic' });
+            }
+
+            function wtIsVisible(el) {
+                const r = el.getBoundingClientRect();
+                return el.offsetParent !== null && r.bottom > 0 && r.top < window.innerHeight;
+            }
+
+            function setupWeeklyChartObservers(wrap) {
+                if (wtObserversReady) return;
+                wtObserversReady = true;
+                // Replay the animation every time the chart scrolls into view or the Dashboard tab is reopened
+                if ('IntersectionObserver' in window) {
+                    new IntersectionObserver(entries => {
+                        entries.forEach(e => { if (e.isIntersecting) drawWeeklyChart(true); });
+                    }, { threshold: 0.35 }).observe(wrap);
+                }
+                // Redraw (without animation) when the card is resized; skip hidden→shown, the IntersectionObserver handles that
+                if ('ResizeObserver' in window) {
+                    new ResizeObserver(() => {
+                        const w = wrap.clientWidth;
+                        const wasHidden = wtLastWidth <= 0;
+                        if (w === wtLastWidth) return;
+                        wtLastWidth = w;
+                        if (w > 0 && !wasHidden) drawWeeklyChart(false);
+                    }).observe(wrap);
+                }
+            }
+
+            function wtNiceMax(m) {
+                for (const x of [4, 6, 8, 10, 12, 16, 20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500]) if (x >= m) return x;
+                return Math.ceil(m / 100) * 100;
+            }
+
+            // Catmull-Rom → cubic Bézier for a smooth curve through the daily totals
+            function wtSmoothPath(pts, minY, maxY) {
+                if (pts.length < 2) return '';
+                // Clamp control points so the curve never overshoots below zero or above the chart
+                const cl = v => Math.min(Math.max(v, minY), maxY);
+                let d = `M${pts[0][0]},${pts[0][1]}`;
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+                    const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = cl(p1[1] + (p2[1] - p0[1]) / 6);
+                    const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = cl(p2[1] - (p3[1] - p1[1]) / 6);
+                    d += ` C${c1x},${c1y} ${c2x},${c2y} ${p2[0]},${p2[1]}`;
+                }
+                return d;
+            }
+
+            function drawWeeklyChart(animate) {
+                const wrap = document.getElementById('dashWeeklyChartWrap');
+                if (!wrap || !wtState) return;
+                const W = wrap.clientWidth;
+                if (W <= 0) return; // hidden tab: drawn when it becomes visible
+                wtLastWidth = W;
+
+                const H = 220, pad = { l: 30, r: 10, t: 24, b: 34 };
+                const week = wtState.week;
+                const max = wtNiceMax(Math.max(...week.map(d => d.total), 4));
+                const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+                const step = iw / 7, bw = Math.max(12, Math.min(34, step * 0.5));
+                const y = v => pad.t + ih - (v / max) * ih;
+                const base = pad.t + ih;
+                const todayIdx = 6;
+
+                const ticks = [0, max / 2, max];
+                let grid = ticks.map(t => `
+                <line class="${t === 0 ? 'wt-baseline' : 'wt-gridline'}" x1="${pad.l}" x2="${W - pad.r}" y1="${y(t)}" y2="${y(t)}" />
+                <text class="wt-axis" x="${pad.l - 8}" y="${y(t) + 3.5}" text-anchor="end">${t}</text>`).join('');
+
+                const pts = [];
+                let defs = '', cols = '';
+                week.forEach((d, i) => {
+                    const cx = pad.l + step * i + step / 2;
+                    const x = cx - bw / 2;
+                    const topY = y(d.total);
+                    pts.push([cx, topY]);
+                    const date = new Date(d.key + 'T00:00:00');
+                    const wk = date.toLocaleDateString('en-US', { weekday: 'short' });
+                    const md = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    const isToday = i === todayIdx;
+
+                    // Stacked segments, clipped to one rounded bar
+                    defs += `<clipPath id="wtClip${i}"><rect x="${x}" y="${topY}" width="${bw}" height="${base - topY}" rx="${Math.min(8, bw / 2)}" /></clipPath>`;
+                    let acc = 0, segs = '';
+                    WT_SERIES.forEach(s => {
+                        const v = d[s.key];
+                        if (!v) return;
+                        const y1 = y(acc + v), y0 = y(acc);
+                        segs += `<rect x="${x}" y="${y1}" width="${bw}" height="${y0 - y1}" fill="${s.color}" />`;
+                        acc += v;
+                    });
+                    const stub = d.total ? '' : `<rect x="${x}" y="${base - 4}" width="${bw}" height="4" rx="2" fill="var(--wt-grid)" />`;
+                    const label = `${wk}, ${md}: ${d.total} visit${d.total === 1 ? '' : 's'}. ${d.completed} completed, ${d.scheduled} scheduled, ${d.walkin} walk-ins, ${d.cancelled} cancelled.`;
+
+                    cols += `
+                    <g class="wt-col" tabindex="0" role="img" aria-label="${label}" data-i="${i}" style="--d:${i * 85}ms">
+                        <rect class="wt-hit" x="${pad.l + step * i + 3}" y="${pad.t - 14}" width="${step - 6}" height="${ih + 14}" rx="10" />
+                        <g class="wt-bar" clip-path="url(#wtClip${i})">${segs}</g>${stub}
+                        ${d.total ? `<text class="wt-val" x="${cx}" y="${topY - 9}" text-anchor="middle">${d.total}</text>` : ''}
+                        <text class="wt-axis ${isToday ? 'wt-axis-today' : ''}" x="${cx}" y="${base + 15}" text-anchor="middle">${isToday ? 'Today' : wk}</text>
+                        <text class="wt-axis" x="${cx}" y="${base + 28}" text-anchor="middle" style="font-size: 9.5px; font-weight: 500;">${md}</text>
+                    </g>`;
+                });
+
+                const line = wtSmoothPath(pts, pad.t, base);
+                const area = `${line} L${pts[6][0]},${base} L${pts[0][0]},${base} Z`;
+                const dots = pts.map((p, i) => `<circle class="wt-pt" cx="${p[0]}" cy="${p[1]}" r="4" style="--d:${900 + i * 110}ms" />`).join('');
+                const [tx, ty] = pts[todayIdx];
+
+                const empty = week.every(d => !d.total) ? `<div class="wt-empty">No appointments in the past 7 days</div>` : '';
+
+                wrap.innerHTML = `
+                <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" class="${animate && !wtReducedMotion() ? 'wt-anim' : ''}" aria-hidden="false">
+                    <defs>
+                        ${defs}
+                        <linearGradient id="wtAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#0eb1b1" stop-opacity="0.22" />
+                            <stop offset="100%" stop-color="#0eb1b1" stop-opacity="0" />
+                        </linearGradient>
+                        <linearGradient id="wtLineGrad" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stop-color="#10b981" />
+                            <stop offset="100%" stop-color="#0eb1b1" />
+                        </linearGradient>
+                    </defs>
+                    ${grid}
+                    <path class="wt-area" d="${area}" fill="url(#wtAreaGrad)" pointer-events="none" />
+                    ${cols}
+                    <path class="wt-line" d="${line}" fill="none" stroke="url(#wtLineGrad)" stroke-width="2.5" stroke-linecap="round" pointer-events="none" />
+                    <circle class="wt-today-ring" cx="${tx}" cy="${ty}" r="4" pointer-events="none" />
+                    <g pointer-events="none">${dots}</g>
+                </svg>
+                ${empty}
+                <div class="wt-tip" id="wtTip" role="status" aria-live="polite"></div>`;
+
+                const path = wrap.querySelector('.wt-line');
+                if (path) path.style.setProperty('--len', Math.ceil(path.getTotalLength()));
+
+                const tip = wrap.querySelector('#wtTip');
+                const show = col => {
+                    const d = week[+col.dataset.i];
+                    const date = new Date(d.key + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+                    tip.innerHTML = `
+                    <div class="wt-tip-h"><span>${date}</span><span>${d.total}</span></div>
+                    ${WT_SERIES.map(s => `<div class="wt-tip-r"><span><span class="wt-dot" style="background:${s.color}"></span> ${s.label}</span><b>${d[s.key]}</b></div>`).join('')}
+                    <div class="wt-tip-r"><span><span class="wt-dot" style="background:#cbd5e1"></span> Cancelled</span><b>${d.cancelled}</b></div>`;
+                    const i = +col.dataset.i;
+                    tip.style.left = `${Math.min(Math.max(pts[i][0], 90), W - 90)}px`;
+                    tip.style.top = `${Math.max(pts[i][1] - 6, 70)}px`;
+                    tip.classList.add('show');
+                };
+                const hide = () => tip.classList.remove('show');
+                wrap.querySelectorAll('.wt-col').forEach(col => {
+                    col.addEventListener('mouseenter', () => show(col));
+                    col.addEventListener('focus', () => show(col));
+                    col.addEventListener('mouseleave', hide);
+                    col.addEventListener('blur', hide);
+                });
+            }
+
+            function wtCountUp(el, to) {
+                if (!el) return;
+                if (wtReducedMotion() || to === 0) { el.textContent = to; return; }
+                const start = performance.now(), dur = 900;
+                const tick = t => {
+                    const p = Math.min((t - start) / dur, 1);
+                    el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+                    if (p < 1) requestAnimationFrame(tick);
+                };
+                requestAnimationFrame(tick);
+            }
+
+            function updateWeeklyKpis() {
+                const sum = (arr, k) => arr.reduce((n, d) => n + d[k], 0);
+                const { week, prev } = wtState;
+                const total = sum(week, 'total'), prevTotal = sum(prev, 'total');
+                wtCountUp(document.getElementById('wtKpiTotal'), total);
+                wtCountUp(document.getElementById('wtKpiCompleted'), sum(week, 'completed'));
+                wtCountUp(document.getElementById('wtKpiScheduled'), sum(week, 'scheduled'));
+                wtCountUp(document.getElementById('wtKpiWalkin'), sum(week, 'walkin'));
+
+                const delta = document.getElementById('wtKpiDelta');
+                if (delta) {
+                    if (!prevTotal) {
+                        delta.className = 'wt-kpi-s flat';
+                        delta.textContent = total ? 'New this week' : 'No visits yet';
+                    } else {
+                        const pct = Math.round(((total - prevTotal) / prevTotal) * 100);
+                        delta.className = `wt-kpi-s ${pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat'}`;
+                        delta.textContent = `${pct > 0 ? '▲' : pct < 0 ? '▼' : '•'} ${Math.abs(pct)}% vs last week`;
+                    }
+                }
+
+                const foot = document.getElementById('dashChartTotalVolume');
+                if (foot) {
+                    const peak = week.reduce((a, b) => (b.total > a.total ? b : a), week[0]);
+                    const peakDay = new Date(peak.key + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' });
+                    const cancelled = sum(week, 'cancelled');
+                    foot.textContent = `Avg ${(total / 7).toFixed(1)} / day` +
+                        (peak.total ? ` · Peak ${peakDay}` : '') +
+                        (cancelled ? ` · ${cancelled} cancelled` : '');
+                }
+            }
 
             // Render Today's Clinical Schedule Table
             function renderDashTodayQueue(todayList, allAppts) {
@@ -5950,6 +6571,8 @@
                             return false;
                         }
                         document.getElementById('admin-sidebar-name').textContent = data.user.full_name;
+                        const adminInitials = (data.user.full_name || 'SA').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'SA';
+                        window.OptiDentAvatar.show(document.getElementById('admin-avatar'), data.user.profile_picture, adminInitials);
                         return true;
                     } else {
                         window.location.replace('index.html');
@@ -6990,6 +7613,7 @@
                 google_auth_enabled: true,
                 allow_non_admin_logins: true,
                 smtp_email_enabled: true,
+                sms_gateway_enabled: false,
                 patient_self_registration: true,
                 patient_online_booking: true,
                 patient_rescheduling_enabled: true,
@@ -7006,11 +7630,13 @@
             const TOKEN_SUBTEXT_LABELS = {
                 smtp_email_enabled: 'App Password:',
                 google_auth_enabled: 'OAuth Client:',
+                sms_gateway_enabled: 'SMS API Key:',
                 google_calendar_sync: 'Service Account:',
                 recaptcha_enabled: 'Secret Key:',
-                imgbb_enabled: 'ImgBB API Key:',
+                cloudinary_enabled: 'Cloudinary API Secret:',
+                google_forms_enabled: 'Webhook Secret:',
                 qr_api_enabled: 'API Ninjas Key:',
-                pdf_api_enabled: 'PDFShift Key:',
+                pdf_api_enabled: 'PDFShift Key:'
             };
 
             function renderTokenSubtext(key, isEnabled, maskedVal) {
@@ -7059,6 +7685,7 @@
                 integrations = integrations || activeSystemIntegrations || {};
                 const googleAuth = integrations.google_auth_enabled !== false && integrations.allow_non_admin_logins !== false;
                 const smtp = integrations.smtp_email_enabled !== false;
+                const sms = !!integrations.sms_gateway_enabled;
                 const selfReg = integrations.patient_self_registration !== false;
                 const booking = integrations.patient_online_booking !== false;
                 const resched = integrations.patient_rescheduling_enabled !== false;
@@ -7098,6 +7725,17 @@
                 // 3. SMS Gateway
                 const bSms = document.getElementById('badgeSmsGateway');
                 const lSms = document.getElementById('labelSmsGatewayStatus');
+                const sSms = document.getElementById('switchSmsGateway');
+                if (sSms) sSms.checked = sms;
+                if (bSms) {
+                    bSms.textContent = sms ? 'ACTIVE' : 'STANDBY';
+                    bSms.style.background = sms ? 'rgba(16, 185, 129, 0.1)' : 'rgba(100, 116, 139, 0.1)';
+                    bSms.style.color = sms ? '#10b981' : '#64748b';
+                }
+                if (lSms) {
+                    lSms.textContent = sms ? 'SMS Dispatch Active' : 'Standby / Inactive';
+                    lSms.style.color = sms ? '#10b981' : '#64748b';
+                }
 
                 // 4. Google Calendar API Live Sync
                 const gCalSync = integrations.google_calendar_sync !== false;
@@ -7142,13 +7780,15 @@
                 // Render Vault Key Subtexts on all 5 integration cards
                 renderTokenSubtext('google_auth_enabled', googleAuth, activeMaskedTokens.google_auth_enabled);
                 renderTokenSubtext('smtp_email_enabled', smtp, activeMaskedTokens.smtp_email_enabled);
+                renderTokenSubtext('sms_gateway_enabled', sms, activeMaskedTokens.sms_gateway_enabled);
                 renderTokenSubtext('google_calendar_sync', gCalSync, activeMaskedTokens.google_calendar_sync);
                 renderTokenSubtext('recaptcha_enabled', recaptcha, activeMaskedTokens.recaptcha_enabled);
 
-                // ImgBB (off unless explicitly enabled)
-                [['imgbb_enabled', 'switchImgbb', 'labelImgbbStatus', 'Image Hosting Active'],
+                // Cloudinary + Google Forms (off unless explicitly enabled)
+                [['cloudinary_enabled', 'switchCloudinary', 'labelCloudinaryStatus', 'Image Hosting Active'],
+                ['google_forms_enabled', 'switchGoogleForms', 'labelGoogleFormsStatus', 'Webhook Active'],
                 ['qr_api_enabled', 'switchQrApi', 'labelQrApiStatus', 'QR Check-in Active'],
-                ['pdf_api_enabled', 'switchPdfApi', 'labelPdfApiStatus', 'PDF Reports Active'],].forEach(([k, sw, lb, onText]) => {
+                ['pdf_api_enabled', 'switchPdfApi', 'labelPdfApiStatus', 'PDF Reports Active']].forEach(([k, sw, lb, onText]) => {
                     const on = !!integrations[k];
                     const s = document.getElementById(sw);
                     const l = document.getElementById(lb);
@@ -7196,7 +7836,9 @@
                 updateTelemetryPill('smtp', smtp, 'ONLINE', 'PAUSED');
                 updateTelemetryPill('calendar', gCalSync, 'SYNC ACTIVE', 'PAUSED');
                 updateTelemetryPill('recaptcha', recaptcha, 'ARMED', 'DISABLED');
-                updateTelemetryPill('imgbb', !!integrations.imgbb_enabled, 'CDN ACTIVE', 'STANDBY');
+                updateTelemetryPill('sms', sms, 'ACTIVE', 'STANDBY');
+                updateTelemetryPill('imgbb', !!integrations.cloudinary_enabled, 'CDN ACTIVE', 'STANDBY');
+                updateTelemetryPill('forms', !!integrations.google_forms_enabled, 'HOOK ACTIVE', 'STANDBY');
 
                 // Count operational subsystems
                 let activeSubsystemsCount = 0;
@@ -7204,8 +7846,9 @@
                 if (smtp) activeSubsystemsCount++;
                 if (gCalSync) activeSubsystemsCount++;
                 if (recaptcha) activeSubsystemsCount++;
-                if (integrations.imgbb_enabled) activeSubsystemsCount++;
-                if (integrations.qr_checkin_enabled) activeSubsystemsCount++;
+                if (sms) activeSubsystemsCount++;
+                if (integrations.cloudinary_enabled) activeSubsystemsCount++;
+                if (integrations.google_forms_enabled) activeSubsystemsCount++;
 
                 const modalBadge = document.getElementById('modalSystemGateBadge');
                 if (modalBadge) {
@@ -7218,7 +7861,7 @@
                         modalBadge.style.background = "rgba(239, 68, 68, 0.15)";
                         modalBadge.style.color = "#ef4444";
                     } else {
-                        modalBadge.innerHTML = `<span class='live-dot-pulse'></span> <span id="modalActiveSubsystemCountText">${activeSubsystemsCount}/6 Subsystems Active</span>`;
+                        modalBadge.innerHTML = `<span class='live-dot-pulse'></span> <span id="modalActiveSubsystemCountText">${activeSubsystemsCount}/7 Subsystems Active</span>`;
                         modalBadge.style.background = "rgba(16, 185, 129, 0.12)";
                         modalBadge.style.color = "#059669";
                     }
@@ -7245,6 +7888,64 @@
                     descOff: 'Suspends live SMTP email dispatch. The system will switch to mock verification codes for testing to prevent delivery timeout failures.',
                     criticalOnDisable: false
                 },
+                'sms_gateway_enabled': {
+                    name: 'SMS Mobile Gateway',
+                    icon: 'bx-message-rounded-dots',
+                    iconColor: '#3b82f6',
+                    iconBg: 'rgba(59, 130, 246, 0.12)',
+                    descOn: 'Enables automated SMS text dispatch to patient mobile phones for appointment reminders and schedule updates.',
+                    descOff: 'Disables SMS text dispatch and keeps automated mobile reminders in standby mode.',
+                    criticalOnDisable: false
+                },
+                'google_calendar_sync': {
+                    name: 'Google Calendar API Live Sync',
+                    icon: 'bx-calendar-event',
+                    iconColor: '#4285f4',
+                    iconBg: 'rgba(66, 133, 244, 0.12)',
+                    descOn: 'Enables live background synchronization of clinic appointments to your registered Google Calendar (edjamenf@gmail.com).',
+                    descOff: 'Pauses live synchronization of incoming appointments to Google Calendar. Appointments remain securely accessible in the OptiDent database.',
+                    criticalOnDisable: false
+                },
+                'recaptcha_enabled': {
+                    name: 'Google reCAPTCHA Anti-Bot Layer',
+                    icon: 'bx-shield-quarter',
+                    iconColor: '#0eb1b1',
+                    iconBg: 'rgba(14, 177, 177, 0.12)',
+                    descOn: 'Enforces live Google reCAPTCHA checkbox verification on the Sign In page to block automated bots, credential stuffing, and spam attacks.',
+                    descOff: 'Disables Google reCAPTCHA on the login page, allowing direct username and password authentication without bot challenges.',
+                    criticalOnDisable: false
+                }
+            };
+
+            const CREDENTIAL_INTEGRATIONS_CONFIG = {
+                'google_calendar_sync': {
+                    name: 'Google Calendar API Live Sync',
+                    icon: 'bx-calendar-event',
+                    iconColor: '#4285f4',
+                    iconBg: 'rgba(66, 133, 244, 0.12)',
+                    fieldId: 'fieldWrap_google_calendar_sync'
+                },
+                'smtp_email_enabled': {
+                    name: 'Gmail / SMTP Email Gateway',
+                    icon: 'bxl-gmail',
+                    iconColor: '#f59e0b',
+                    iconBg: 'rgba(245, 158, 11, 0.12)',
+                    fieldId: 'fieldWrap_smtp_email_enabled'
+                },
+                'recaptcha_enabled': {
+                    name: 'Google reCAPTCHA Anti-Bot Defense',
+                    icon: 'bx-shield-quarter',
+                    iconColor: '#0eb1b1',
+                    iconBg: 'rgba(14, 177, 177, 0.12)',
+                    fieldId: 'fieldWrap_recaptcha_enabled'
+                },
+                'sms_gateway_enabled': {
+                    name: 'SMS Mobile Gateway',
+                    icon: 'bx-message-rounded-dots',
+                    iconColor: '#3b82f6',
+                    iconBg: 'rgba(59, 130, 246, 0.12)',
+                    fieldId: 'fieldWrap_sms_gateway_enabled'
+                },
                 'google_auth_enabled': {
                     name: 'Google Auth & Non-Admin Logins',
                     icon: 'bxl-google',
@@ -7252,12 +7953,19 @@
                     iconBg: 'rgba(234, 67, 53, 0.12)',
                     fieldId: 'fieldWrap_google_auth_enabled'
                 },
-                'imgbb_enabled': {
-                    name: 'ImgBB Image Hosting',
+                'cloudinary_enabled': {
+                    name: 'Cloudinary Image Hosting',
                     icon: 'bx-image',
                     iconColor: '#6366f1',
                     iconBg: 'rgba(99, 102, 241, 0.12)',
-                    fieldId: 'fieldWrap_imgbb_enabled'
+                    fieldId: 'fieldWrap_cloudinary_enabled'
+                },
+                'google_forms_enabled': {
+                    name: 'Google Forms Webhook',
+                    icon: 'bx-spreadsheet',
+                    iconColor: '#673ab7',
+                    iconBg: 'rgba(103, 58, 183, 0.12)',
+                    fieldId: 'fieldWrap_google_forms_enabled'
                 },
                 'pdf_api_enabled': {
                     name: 'PDF Report API (PDFShift)',
@@ -7471,9 +8179,10 @@
                     google_calendar_sync: 'guide_gcal',
                     smtp_email_enabled: 'guide_smtp',
                     recaptcha_enabled: 'guide_recaptcha',
-                    google_auth_enabled: 'guide_google_auth',
+                    sms_gateway_enabled: 'guide_sms',
                     qr_api_enabled: 'guide_qr_api',
-                    pdf_api_enabled: 'guide_pdf_api'
+                    pdf_api_enabled: 'guide_pdf_api',
+                    google_auth_enabled: 'guide_google_auth'
                 };
                 const guideId = guideMap[key];
                 if (guideId) {
@@ -8082,7 +8791,6 @@
                         titleText = `${dateKey}: Regular Clinic Open (Click to customize shift or close clinic)`;
                     } else {
                         cellClass += ' is-off';
-                        indicatorHtml = '<span style="font-size: 7.5px; line-height: 1; color: #94a3b8; font-weight: 700; margin-top: 2px;">OFF</span>';
                         titleText = `${dateKey}: Regular Closed Day (Click to add special open hours)`;
                     }
 
@@ -8655,12 +9363,10 @@
             // 4. One-Click Backup and Data Export (Supports PDF, JSON, CSV)
             function exportData(collection, format) {
                 if (format === 'pdf') {
-                    // PDFs are produced from Reports & Monitoring (official header/footer); open the matching report
-                    const reportFor = { users: 'patients', audit_logs: 'audit_logs', appointments: 'appointments' }[collection] || 'appointments';
-                    switchTab('reports');
-                    const sel = document.getElementById('reportsCategorySelect');
-                    if (sel) { sel.value = reportFor; sel.dispatchEvent(new Event('change')); }
-                    showToast('info', 'Generate the report, then choose Export → PDF to download it with the official header and footer.');
+                    showToast('success', `Generating Official ${collection.toUpperCase()} PDF Report...`);
+                    const pdfUrl = `api/admin/export_pdf.php?report=${encodeURIComponent(collection)}`;
+                    window.open(pdfUrl, '_blank');
+                    setTimeout(() => { loadAuditLogs(); }, 1200);
                 } else {
                     showToast('success', `Preparing ${collection.toUpperCase()} export in ${format.toUpperCase()} format...`);
                     const exportUrl = `api/admin/export_system_data.php?collection=${encodeURIComponent(collection)}&format=${encodeURIComponent(format)}`;
@@ -10218,26 +10924,19 @@
                 exportSelectedReportCsv();
             }
 
-            // PDF of the report exactly as shown (shared OptiPdf helper → /api/reports/pdf with official header/footer)
-            async function exportReportsPdf() {
+            function exportReportsPdf() {
+                const cat = reportsState.category || 'earnings';
+                const params = new URLSearchParams({
+                    report: cat,
+                    date_preset: reportsState.datePreset,
+                    date_from: reportsState.dateFrom,
+                    date_to: reportsState.dateTo,
+                    doctor: reportsState.doctor,
+                    status: reportsState.status
+                });
+                window.open(`api/admin/export_pdf.php?${params.toString()}`, '_blank');
                 const menu = document.getElementById('reportsExportDropdown');
                 if (menu) menu.style.display = 'none';
-                const s = reportsState;
-                const period = s.datePreset === 'custom'
-                    ? `${s.dateFrom || '…'} to ${s.dateTo || 'today'}`
-                    : formatReportsPresetLabel(s.datePreset);
-                const filters = [['Period', period], ['Doctor', s.doctor === 'all' ? 'All doctors' : s.doctor], ['Status', s.status === 'all' ? 'All statuses' : s.status]];
-                if (s.searchQuery) filters.push(['Search', s.searchQuery]);
-                try {
-                    const n = await OptiPdf.fromTable(document.getElementById('reportsTableHead').closest('table'), {
-                        title: `${formatReportsCategoryLabel(s.category || 'earnings')} Report`,
-                        subtitle: 'Reports & Monitoring',
-                        filters
-                    });
-                    showToast('success', `PDF downloaded (${n} record${n === 1 ? '' : 's'}).`);
-                } catch (err) {
-                    showToast('error', err.message);
-                }
             }
 
             function exportReportsCsv() {

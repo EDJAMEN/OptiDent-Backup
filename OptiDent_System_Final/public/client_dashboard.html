@@ -2436,10 +2436,26 @@
             }
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 const base64Data = e.target.result;
-                document.getElementById('editProfilePictureData').value = base64Data;
+                // Upload to Cloudinary; store the returned URL, not the image data
+                document.getElementById('editProfilePictureData').value = '';
                 updateEditAvatarPreview(base64Data, document.getElementById('editClientFullName')?.value, document.getElementById('editAvatarColor')?.value);
+                try {
+                    const res = await fetch('api/uploads/avatar.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: base64Data })
+                    });
+                    const data = await res.json();
+                    if (data.status !== 'success') throw new Error(data.message || 'Upload failed.');
+                    document.getElementById('editProfilePictureData').value = data.url;
+                    updateEditAvatarPreview(data.url, document.getElementById('editClientFullName')?.value, document.getElementById('editAvatarColor')?.value);
+                } catch (err) {
+                    showToast('error', err.message || 'Could not upload the photo.');
+                    input.value = '';
+                    updateEditAvatarPreview('', document.getElementById('editClientFullName')?.value, document.getElementById('editAvatarColor')?.value);
+                }
             };
             reader.readAsDataURL(file);
         }

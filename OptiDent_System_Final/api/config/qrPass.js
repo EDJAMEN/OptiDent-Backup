@@ -5,7 +5,7 @@
  * by anyone else fails verification at the front desk.
  */
 import crypto from 'crypto';
-import { getIntegration } from './integrationStore.js';
+import { getIntegration, isIntegrationOn } from './integrationStore.js';
 
 const PREFIX = 'OPTIDENT-QR:v1:';
 
@@ -21,6 +21,7 @@ function sign(id) {
  * @returns {string|null} the API Ninjas key, or null when QR check-in is off
  */
 export function qrApiKey() {
+    if (!isIntegrationOn('qr_api_enabled')) return null; // switched off → QR check-in off, even if a key is still cached
     return getIntegration('qr_api_enabled')?.api_key || null;
 }
 

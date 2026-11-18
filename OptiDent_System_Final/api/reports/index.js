@@ -18,11 +18,14 @@ const MAX_ROWS = 5000, MAX_COLS = 14, MAX_CELL = 400;
 const str = (v, max) => String(v ?? '').slice(0, max);
 const isStrList = (a, maxLen) => Array.isArray(a) && a.length <= maxLen;
 
+// @endpoint POST /api/reports/pdf - Generates official branded PDF reports with PDFShift or built-in fallback engine
 router.post('/pdf', async (req, res) => {
     try {
+        // Fail closed: PDFs are only served when the Super Admin has switched the PDF Report API on AND a key is saved
+        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
         const apiKey = getIntegration('pdf_api_enabled')?.api_key;
-        if (!apiKey) {
-            return res.status(403).json({ status: 'error', message: 'PDF reports are off: the Super Admin has not connected the PDF Report API key (Settings & Controls → Open Gateway Center).' });
+        if (settings?.integrations?.pdf_api_enabled !== true || !apiKey) {
+            return res.status(403).json({ status: 'error', message: 'PDF reports are off: turn on the PDF Report API and save its key (Settings & Controls → Open Gateway Center).' });
         }
         const b = req.body || {};
         // Validate shape and size before rendering anything
@@ -34,7 +37,6 @@ router.post('/pdf', async (req, res) => {
         const filters = isStrList(b.filters, 12) ? b.filters.filter(Array.isArray).map(([k, v]) => [str(k, 40), str(v, 120)]) : [];
         const summary = isStrList(b.summary, 12) ? b.summary.map(s => str(s, 160)) : [];
 
-        const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
         const roleLabel = { super_admin: 'Super Admin', admin: 'Admin', receptionist: 'Receptionist', staff: 'Staff', doctor: 'Doctor' }[req.user.role] || req.user.role;
         const fileBase = str(b.title, 60).replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'Report';
         const stamp = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date());

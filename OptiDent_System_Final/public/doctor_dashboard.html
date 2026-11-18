@@ -1031,6 +1031,8 @@
     <link rel="stylesheet" href="css/roleHome.css">
     <script src="js/weeklyTraffic.js"></script>
     <script src="js/roleHome.js"></script>
+    <script src="js/avatarUpload.js"></script>
+    <script src="js/sharedReports.js"></script>
 </head>
 
 <body data-theme="light">
@@ -1145,6 +1147,13 @@
                     <a class="nav-item" id="nav-profile" onclick="switchDocTab('profile')">
                         <i class='bx bx-id-card'></i>
                         <span>Doctor Profile</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="nav-item" id="nav-reports" onclick="switchDocTab('reports')">
+                        <i class='bx bx-file'></i>
+                        <span>Shared Reports</span>
                     </a>
                 </li>
 
@@ -1446,6 +1455,14 @@
                 </div>
             </section>
 
+            <!-- Shared Reports: uploaded by the receptionist (read-only for doctors) -->
+            <section id="tab-reports" class="doc-tab-content" style="display: none;">
+                <div class="content-card" style="padding: 1.25rem;">
+                    <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 800; color: var(--doctor-text);">Shared Reports</h3>
+                    <div id="docReportsList"></div>
+                </div>
+            </section>
+
             <!-- TAB 5: Doctor Profile (D-001 Settings) -->
             <section id="tab-profile" class="doc-tab-content" style="display: none;">
                 <div class="profile-grid-layout">
@@ -1465,6 +1482,13 @@
                             </span>
                         </div>
 
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+                            <div id="docPhotoPreview" class="doctor-avatar-circle" style="width: 56px; height: 56px; overflow: hidden; flex-shrink: 0;">DR</div>
+                            <label style="font-size: 12px; font-weight: 700; color: var(--doctor-primary, #0eb1b1); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class='bx bx-upload'></i> Upload Photo
+                                <input type="file" id="docPhotoInput" accept="image/*" style="display: none;" onchange="onDocPhotoPick(this)">
+                            </label>
+                        </div>
                         <form id="form-doc-profile">
                             <div class="form-row-2col mb-2">
                                 <div>
@@ -4728,6 +4752,8 @@
         function populateProfileForm(doc) {
             if (!doc) return;
 
+            docPictureUrl = doc.profile_picture || '';
+
             // Read-only identity fields
             document.getElementById('docProfileName').value = doc.full_name || '';
             document.getElementById('docProfileLicense').value = doc.professional_id || 'PRC-VERIFIED';
@@ -4761,7 +4787,8 @@
                 .map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
             const el = id => document.getElementById(id);
-            if (el('cardDocInitials')) el('cardDocInitials').textContent = initials;
+            window.OptiDentAvatar.show(el('cardDocInitials'), docPictureUrl, initials);
+            window.OptiDentAvatar.show(el('docPhotoPreview'), docPictureUrl, initials);
             if (el('cardDocName')) el('cardDocName').textContent = name;
             if (el('cardDocSpecialty')) el('cardDocSpecialty').textContent = spec;
             if (el('cardDocLicense')) el('cardDocLicense').textContent = `PRC License: ${license}`;
@@ -4771,7 +4798,25 @@
             if (el('sidebarDocName')) el('sidebarDocName').textContent = name;
             if (el('sidebarDocSpecialty')) el('sidebarDocSpecialty').textContent = spec;
             if (el('sidebarDocLicense')) el('sidebarDocLicense').textContent = license;
-            if (el('doctorInitials')) el('doctorInitials').textContent = initials;
+            window.OptiDentAvatar.show(el('doctorInitials'), docPictureUrl, initials);
+        }
+
+        // Profile photo (hosted on Cloudinary); saved with the profile
+        let docPictureUrl = '';
+
+        async function onDocPhotoPick(input) {
+            const file = input?.files?.[0];
+            if (!file) return;
+            try {
+                docPictureUrl = await window.OptiDentAvatar.upload(file);
+                const name = (document.getElementById('docProfileName')?.value || 'DR').replace(/^Dr\.\s*/i, '');
+                const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'DR';
+                window.OptiDentAvatar.show(document.getElementById('docPhotoPreview'), docPictureUrl, initials);
+                showToast('success', 'Photo uploaded. Click Save to keep it.');
+            } catch (err) {
+                showToast('error', err.message);
+                input.value = '';
+            }
         }
 
         document.getElementById('form-doc-profile').addEventListener('submit', async function (e) {
@@ -4787,7 +4832,8 @@
                 phone: document.getElementById('docProfilePhone').value.trim(),
                 specialization: document.getElementById('docProfileSpecialty').value,
                 schedule_days: document.getElementById('docProfileSchedule').value.trim(),
-                bio: document.getElementById('docProfileBio').value.trim()
+                bio: document.getElementById('docProfileBio').value.trim(),
+                profile_picture: docPictureUrl
             };
 
             try {
@@ -5838,6 +5884,7 @@
             const tabContent = document.getElementById(`tab-${tabKey}`);
             if (navItem) navItem.classList.add('active');
             if (tabContent) tabContent.style.display = 'block';
+            if (tabKey === 'reports' && window.loadSharedReports) window.loadSharedReports('docReportsList');
 
             const headings = {
                 'home': "Dashboard",

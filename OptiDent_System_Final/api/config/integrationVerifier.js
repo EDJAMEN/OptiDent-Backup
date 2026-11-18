@@ -66,15 +66,17 @@ const TESTS = {
         return `Google issued a token for ${credentials.client_email}.`;
     },
 
-    // Uploads a 1×1 image that ImgBB deletes after 60s (its minimum expiration).
-    async imgbb_enabled({ api_key }) {
-        const { data } = await postForm(`https://api.imgbb.com/1/upload?expiration=60&key=${encodeURIComponent(api_key)}`, { image: PIXEL_PNG_BASE64 });
-        if (data.error?.code === 103) {
-            // Key is real, but ImgBB blocks the account or this server's network/IP
-            throw new Error('ImgBB recognised the key but has blocked its account or this network (ImgBB code 103: "forbidden"). Log in at imgbb.com to check the account, or try a key from another account or network.');
-        }
-        if (!data.success) throw new Error(`ImgBB rejected the API key (${data.error?.message || 'upload failed'}).`);
-        return 'ImgBB accepted a self-deleting test upload.';
+    // Cloudinary Admin API ping: a harmless read that only passes with a real cloud name, key and secret.
+    async cloudinary_enabled({ cloud_name, api_key, api_secret }) {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloud_name)}/ping`, {
+            headers: { Authorization: 'Basic ' + Buffer.from(`${api_key}:${api_secret}`).toString('base64') },
+            signal: AbortSignal.timeout(TIMEOUT_MS)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401) throw new Error('Cloudinary rejected the API key or API secret.');
+        if (res.status === 404) throw new Error('Cloudinary does not recognise that cloud name.');
+        if (!res.ok) throw new Error(`Cloudinary check failed (${data?.error?.message || 'HTTP ' + res.status}).`);
+        return 'Cloudinary accepted the credentials.';
     }
 };
 

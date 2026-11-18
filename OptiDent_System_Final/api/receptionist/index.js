@@ -21,6 +21,7 @@ const DEFAULT_TIME_SLOTS = [
 /**
  * R-002: Receptionist Dashboard Data API
  */
+// @endpoint GET /api/receptionist/get_dashboard_data - Returns live overview of today's appointments, queue order, and arriving patients
 router.get('/get_dashboard_data', async (req, res) => {
     try {
         const today = new Date().toISOString().slice(0, 10);
@@ -179,6 +180,7 @@ router.get('/get_dashboard_data', async (req, res) => {
 /**
  * R-003: Create Appointment (Walk-in or Scheduled)
  */
+// @endpoint POST /api/receptionist/create_appointment - Books an appointment for walk-in or phone-in patients with doctor and procedure
 router.post('/create_appointment', async (req, res) => {
     try {
         const body = req.body;
@@ -249,6 +251,7 @@ router.post('/create_appointment', async (req, res) => {
 /**
  * Delete Appointment(s) (Supports multiple selection!)
  */
+// @endpoint POST /api/receptionist/delete_appointment - Soft-deletes an appointment record (moves to Recovery Vault)
 router.post('/delete_appointment', async (req, res) => {
     try {
         const body = req.body;
@@ -292,6 +295,7 @@ router.post('/delete_appointment', async (req, res) => {
 /**
  * Reschedule Appointment
  */
+// @endpoint POST /api/receptionist/reschedule_appointment - Reschedules an appointment to a new date/time and syncs to Google Calendar
 router.post('/reschedule_appointment', async (req, res) => {
     try {
         const body = req.body;
@@ -345,6 +349,7 @@ router.post('/reschedule_appointment', async (req, res) => {
 /**
  * Cancel Appointment
  */
+// @endpoint POST /api/receptionist/cancel_appointment - Cancels an appointment and updates queue roster
 router.post('/cancel_appointment', async (req, res) => {
     try {
         const body = req.body;
@@ -381,6 +386,7 @@ router.post('/cancel_appointment', async (req, res) => {
 /**
  * Update Appointment Status (checked_in, in_progress, completed, cancelled)
  */
+// @endpoint POST /api/receptionist/update_appointment_status - Updates patient queue status (arrived, seated, in_progress, completed)
 router.post('/update_appointment_status', async (req, res) => {
     try {
         const body = req.body;
@@ -411,6 +417,7 @@ router.post('/update_appointment_status', async (req, res) => {
 /**
  * Register Walk-In Patient
  */
+// @endpoint POST /api/receptionist/register_patient - Creates a new patient profile at reception desk for walk-in clients
 router.post('/register_patient', async (req, res) => {
     try {
         const body = req.body;
@@ -457,6 +464,7 @@ router.post('/register_patient', async (req, res) => {
 /**
  * R-012: Receptionist Profile Management
  */
+// @endpoint POST /api/receptionist/update_profile - Updates receptionist personal details and contact information
 router.post('/update_profile', async (req, res) => {
     try {
         const body = req.body;
@@ -465,21 +473,23 @@ router.post('/update_profile', async (req, res) => {
         const phone = (body.phone || '').trim();
         const bio = (body.bio || '').trim();
         const avatarColor = body.avatar_color || '#0eb1b1';
+        // Only https photo URLs (Cloudinary) are stored; anything else is ignored
+        const profilePicture = /^https:\/\/[^\s"'<>]+$/.test(body.profile_picture || '') ? body.profile_picture : '';
 
         if (!fullName || !email) {
             return res.status(400).json({ status: 'error', message: 'Full name and email are required.' });
         }
 
-        await dbClient.updateOne('users', { _id: req.user.id }, {
-            $set: {
-                full_name: fullName,
-                email: email,
-                phone: phone,
-                bio: bio,
-                avatar_color: avatarColor,
-                updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19)
-            }
-        });
+        const $set = {
+            full_name: fullName,
+            email: email,
+            phone: phone,
+            bio: bio,
+            avatar_color: avatarColor,
+            updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19)
+        };
+        if (profilePicture) $set.profile_picture = profilePicture;
+        await dbClient.updateOne('users', { _id: req.user.id }, { $set });
 
         req.session.email = email;
         req.session.full_name = fullName;
@@ -499,6 +509,7 @@ router.post('/update_profile', async (req, res) => {
 /**
  * Change Password
  */
+// @endpoint POST /api/receptionist/change_password - Updates receptionist account password
 router.post('/change_password', async (req, res) => {
     try {
         const body = req.body;
@@ -543,6 +554,7 @@ router.post('/change_password', async (req, res) => {
 /**
  * R-004: Patient Search Live API
  */
+// @endpoint GET /api/receptionist/search_patients - Fast directory search across patient names, contact numbers, and emails
 router.get('/search_patients', async (req, res) => {
     try {
         const query = (req.query.q || req.query.query || req.query.search || '').trim().toLowerCase();
@@ -696,6 +708,7 @@ router.get('/search_patients', async (req, res) => {
 /**
  * R-008: Schedule Monitoring Matrix API
  */
+// @endpoint GET /api/receptionist/get_doctor_schedule_slots - Computes open chairside time slots for any doctor on a requested date
 router.get('/get_doctor_schedule_slots', async (req, res) => {
     try {
         const targetDate = req.query.date || new Date().toISOString().slice(0, 10);
@@ -845,6 +858,7 @@ router.get('/get_doctor_schedule_slots', async (req, res) => {
 /**
  * R-004: Patient Details & History
  */
+// @endpoint GET /api/receptionist/get_patient_details - Fetches complete demographic and treatment dossier for a selected patient
 router.get('/get_patient_details', async (req, res) => {
     try {
         const pId = req.query.id || req.query.patient_id;
@@ -906,6 +920,7 @@ router.get('/get_patient_details', async (req, res) => {
 /**
  * R-004: Fast Check-in for Returning Patients
  */
+// @endpoint POST /api/receptionist/checkin_returning_patient - Processes QR pass scan or marks arrival to advance to waiting queue
 router.post('/checkin_returning_patient', async (req, res) => {
     try {
         const body = req.body;
@@ -966,6 +981,7 @@ router.post('/checkin_returning_patient', async (req, res) => {
 /**
  * Update Patient Demographics & Alerts
  */
+// @endpoint POST /api/receptionist/update_patient - Updates patient personal and contact data
 router.post('/update_patient', async (req, res) => {
     try {
         const body = req.body;
@@ -1000,6 +1016,7 @@ router.post('/update_patient', async (req, res) => {
 /**
  * Update Appointment Details (procedure, doctor, chair, notes)
  */
+// @endpoint POST /api/receptionist/update_appointment - Modifies appointment timing, notes, procedure type, or dentist assignment
 router.post('/update_appointment', async (req, res) => {
     try {
         const body = req.body;
@@ -1064,6 +1081,7 @@ router.post('/update_appointment', async (req, res) => {
 /**
  * Reorder Queue Priority
  */
+// @endpoint POST /api/receptionist/reorder_queue - Enables drag-and-drop chairside queue priority adjustments
 router.post('/reorder_queue', async (req, res) => {
     try {
         const { appointment_id, operatory_chair, priority } = req.body;
@@ -1084,6 +1102,7 @@ router.post('/reorder_queue', async (req, res) => {
  * Role-Governed Front Desk & Operational Reports
  * Permissions dynamically enforced via MongoDB `roles_permissions` collection configured by Super Admin.
  */
+// @endpoint GET /api/receptionist/get_reports_data - Retrieves daily reception summaries, patient counts, and queue statistics
 router.get('/get_reports_data', async (req, res) => {
     try {
         const category = (req.query.category || 'queue_summary').toLowerCase();
@@ -1360,6 +1379,7 @@ router.get('/get_reports_data', async (req, res) => {
 });
 
 /** Weekly Patient Traffic for the front desk: clinic-wide per-day counts. */
+// @endpoint GET /api/receptionist/weekly_traffic - Fetches weekly appointment traffic analytics for reception desk
 router.get('/weekly_traffic', async (req, res) => {
     try {
         return res.status(200).json(await dailyTraffic({ days: req.query.days }));
@@ -1373,6 +1393,7 @@ router.get('/weekly_traffic', async (req, res) => {
  * Verify a patient's appointment QR pass at the front desk.
  * Always 200 with a `result`: valid | not_today | past | completed | cancelled | not_found | invalid.
  */
+// @endpoint POST /api/receptionist/verify_qr - Cryptographically validates patient check-in QR code token
 router.post('/verify_qr', async (req, res) => {
     try {
         if (!qrApiKey()) return res.status(403).json({ status: 'error', message: 'QR check-in is off: the Super Admin has not connected the QR Code API key (Gateway Center). Check the patient in from the queue instead.' });

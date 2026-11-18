@@ -18,8 +18,16 @@ export const INTEGRATION_FIELDS = {
     google_calendar_sync: [
         { name: 'service_account_json', label: 'Service Account JSON', secret: true, jsonKeys: ['client_email', 'private_key', 'private_key_id'] }
     ],
-    imgbb_enabled: [
-        { name: 'api_key', label: 'ImgBB API Key', secret: true, pattern: /^[a-f0-9]{32}$/i }
+    cloudinary_enabled: [
+        { name: 'cloud_name', label: 'Cloudinary Cloud Name', pattern: /^[a-z0-9_-]{2,64}$/i },
+        { name: 'api_key', label: 'Cloudinary API Key', pattern: /^\d{10,20}$/ },
+        { name: 'api_secret', label: 'Cloudinary API Secret', secret: true, pattern: /^[\w-]{20,80}$/ }
+    ],
+    qr_api_enabled: [
+        { name: 'api_key', label: 'API Ninjas API Key', secret: true, pattern: /^\S{16,}$/ }
+    ],
+    pdf_api_enabled: [
+        { name: 'api_key', label: 'PDFShift API Key', secret: true, pattern: /^\S{16,}$/ }
     ]
 };
 

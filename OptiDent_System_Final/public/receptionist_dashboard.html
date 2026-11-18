@@ -785,6 +785,8 @@
     <script src="js/weeklyTraffic.js"></script>
     <script src="js/pdfReport.js"></script>
     <script src="js/roleHome.js"></script>
+    <script src="js/avatarUpload.js"></script>
+    <script src="js/sharedReports.js"></script>
 </head>
 
 <body data-theme="light">
@@ -873,6 +875,11 @@
                     <i class='bx bx-user-check'></i>
                     <span>Staff Directory</span>
                     <span style="margin-left: auto; font-size: 9px; background: #EEF2FF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Delegated</span>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-item" data-tab="reports" onclick="switchTab('reports', this); return false;">
+                    <i class='bx bx-file'></i>
+                    <span>Upload Reports</span>
                 </a>
 
                 <a href="javascript:void(0)" class="nav-item" data-tab="profile" onclick="switchTab('profile', this); return false;">
@@ -1619,14 +1626,44 @@
                 </div>
             </section>
 
+<!-- ── TAB: UPLOAD REPORTS (shared with doctors) ─────────────────── -->
+            <section id="tab-reports" class="tab-section">
+                <div style="max-width: 780px;">
+                    <div class="content-card" style="margin-bottom: 1.25rem;">
+                        <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 800; color: var(--rec-text);">Upload Report</h3>
+                        <form id="recReportForm" onsubmit="submitRecReport(event)">
+                            <label style="font-size: 12px; font-weight: 700; color: var(--rec-text-muted);">Report title</label>
+                            <input id="recReportTitle" type="text" maxlength="120" required placeholder="e.g. Lab result - Juan Dela Cruz" style="width: 100%; margin: 4px 0 12px 0; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
+                            <label style="font-size: 12px; font-weight: 700; color: var(--rec-text-muted);">Patient name (optional)</label>
+                            <input id="recReportPatient" type="text" maxlength="120" style="width: 100%; margin: 4px 0 12px 0; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
+                            <label style="font-size: 12px; font-weight: 700; color: var(--rec-text-muted);">File (PDF or image, max 10MB)</label>
+                            <input id="recReportFile" type="file" accept="application/pdf,image/*" required style="display: block; margin: 4px 0 14px 0; font-size: 13px;">
+                            <button type="submit" id="btnRecReportUpload" class="btn-rec btn-rec-primary" style="padding: 10px 22px; font-size: 13px;">
+                                <i class='bx bx-upload'></i> Upload Report
+                            </button>
+                        </form>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 800; color: var(--rec-text);">Uploaded Reports</h3>
+                        <div id="recReportsList"></div>
+                    </div>
+                </div>
+            </section>
+
 <!-- ── TAB 5: MY ACCOUNT / PROFILE (R-012) ─────────────────────── -->
             <section id="tab-profile" class="tab-section">
                 <div style="max-width: 780px;">
                     <!-- Minimal Profile Header Card with Live Avatar Preview -->
                     <div class="content-card" style="margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 1.25rem;">
-                            <div id="profAvatarPreview" class="rec-avatar-circle" style="width: 58px; height: 58px; font-size: 20px; font-weight: 800; background: var(--rec-primary); color: white; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 4px 12px rgba(14, 177, 177, 0.25); flex-shrink: 0;">
-                                FD
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0;">
+                                <div id="profAvatarPreview" class="rec-avatar-circle" style="width: 58px; height: 58px; font-size: 20px; font-weight: 800; background: var(--rec-primary); color: white; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 4px 12px rgba(14, 177, 177, 0.25); overflow: hidden;">
+                                    FD
+                                </div>
+                                <label style="font-size: 11px; font-weight: 700; color: var(--rec-primary); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class='bx bx-upload'></i> Upload Photo
+                                    <input type="file" id="profPhotoInput" accept="image/*" style="display: none;" onchange="onProfilePhotoPick(this)">
+                                </label>
                             </div>
                             <div>
                                 <h3 id="profHeaderName" style="margin: 0; font-size: 18px; font-weight: 800; color: var(--rec-text);">Receptionist Name</h3>
@@ -3212,8 +3249,7 @@
             const initials = names.map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'FD';
             const avatar = document.getElementById('sidebarAvatar');
             if (avatar) {
-                avatar.textContent = initials;
-                if (rec.avatar_color) avatar.style.backgroundColor = rec.avatar_color;
+                window.OptiDentAvatar.show(avatar, rec.profile_picture, initials, rec.avatar_color || '');
             }
         }
 
@@ -4846,12 +4882,74 @@
             const names = displayName.split(' ');
             const initials = names.map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'FD';
             const preview = document.getElementById('profAvatarPreview');
-            if (preview) preview.textContent = initials;
+            window.OptiDentAvatar.show(preview, profPictureUrl, initials);
         }
 
         function onProfilePositionInput(val) {
             const headerRole = document.getElementById('profHeaderRole');
             if (headerRole) headerRole.textContent = (val || '').trim() || 'Front Desk Receptionist';
+        }
+
+        // Receptionist-only report upload: file goes to Cloudinary, then is listed for doctors
+        function readFileAsDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('Could not read the file.'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function submitRecReport(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnRecReportUpload');
+            const fileInput = document.getElementById('recReportFile');
+            const file = fileInput?.files?.[0];
+            if (!file) return showToast('error', 'Please choose a file.');
+            if (file.size > 10 * 1024 * 1024) return showToast('error', 'File size must be under 10MB.');
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Uploading...";
+            try {
+                const dataUrl = await readFileAsDataUrl(file);
+                const res = await fetch('api/shared_reports/upload.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: document.getElementById('recReportTitle').value.trim(),
+                        patient_name: document.getElementById('recReportPatient').value.trim(),
+                        file_name: file.name,
+                        file: dataUrl
+                    })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.status !== 'success') throw new Error(data.message || 'Upload failed.');
+                showToast('success', data.message);
+                document.getElementById('recReportForm').reset();
+                window.loadSharedReports('recReportsList');
+            } catch (err) {
+                showToast('error', err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "<i class='bx bx-upload'></i> Upload Report";
+            }
+        }
+
+        // Profile photo (hosted on Cloudinary); saved with the profile
+        let profPictureUrl = '';
+
+        async function onProfilePhotoPick(input) {
+            const file = input?.files?.[0];
+            if (!file) return;
+            try {
+                profPictureUrl = await window.OptiDentAvatar.upload(file);
+                const names = (document.getElementById('profFullName')?.value || 'FD').trim().split(' ');
+                const initials = names.map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'FD';
+                window.OptiDentAvatar.show(document.getElementById('profAvatarPreview'), profPictureUrl, initials);
+                showToast('success', 'Photo uploaded. Click Save Profile to keep it.');
+            } catch (err) {
+                showToast('error', err.message);
+                input.value = '';
+            }
         }
 
         function selectAvatarColor(color) {
@@ -4886,6 +4984,7 @@
 
         function populateProfileForm(rec) {
             if (!rec) return;
+            profPictureUrl = rec.profile_picture || '';
             if (document.getElementById('profFullName')) document.getElementById('profFullName').value = rec.full_name || '';
             if (document.getElementById('profEmail')) document.getElementById('profEmail').value = rec.email || '';
             if (document.getElementById('profPosition')) document.getElementById('profPosition').value = rec.position || 'Front Desk Receptionist';
@@ -4920,6 +5019,7 @@
 
             const targetSection = document.getElementById(`tab-${tabId}`);
             if (targetSection) targetSection.classList.add('active');
+            if (tabId === 'reports' && window.loadSharedReports) window.loadSharedReports('recReportsList');
 
             let navEl = el;
             if (!navEl || !navEl.classList || !navEl.classList.contains('nav-item')) {
@@ -6991,6 +7091,7 @@
                         schedule_days: scheduleDays,
                         bio: bio,
                         avatar_color: avatarColor,
+                        profile_picture: profPictureUrl,
                         current_password: currentPass,
                         new_password: newPass
                     })

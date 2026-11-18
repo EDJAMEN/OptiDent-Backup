@@ -15,6 +15,7 @@ router.use(requireAuth(['doctor', 'super_admin', 'admin']));
 /**
  * D-002: Doctor Dashboard & Queue
  */
+// @endpoint GET /api/doctor/get_dashboard_data - Returns today's assigned appointments, queue status, and active patient count
 router.get('/get_dashboard_data', async (req, res) => {
     try {
         const userEmail = req.user.email;
@@ -254,6 +255,7 @@ router.get('/get_dashboard_data', async (req, res) => {
 /**
  * D-004: Save Clinical Record
  */
+// @endpoint POST /api/doctor/save_clinical_record - Saves 32-tooth odontogram conditions, clinical diagnosis, prescriptions, and post-op care
 router.post('/save_clinical_record', async (req, res) => {
     try {
         const body = req.body;
@@ -345,6 +347,7 @@ router.post('/save_clinical_record', async (req, res) => {
 /**
  * Update Appointment Status
  */
+// @endpoint POST /api/doctor/update_appointment_status - Transitions appointment state (confirmed, in_progress, completed, cancelled)
 router.post('/update_appointment_status', async (req, res) => {
     try {
         const body = req.body;
@@ -390,6 +393,7 @@ router.post('/update_appointment_status', async (req, res) => {
 /**
  * Approve Requested Appointment
  */
+// @endpoint POST /api/doctor/approve_appointment - Approves patient self-booking requests and assigns operatory chair
 router.post('/approve_appointment', async (req, res) => {
     try {
         const apptId = req.body.appointment_id;
@@ -429,23 +433,26 @@ router.post('/approve_appointment', async (req, res) => {
 /**
  * Doctor Profile Update
  */
+// @endpoint POST /api/doctor/update_profile - Updates doctor professional bio, specialization, and contact information
 router.post('/update_profile', async (req, res) => {
     try {
         const body = req.body;
         const fullName = (body.full_name || '').trim();
         const phone = (body.phone || '').trim();
         const specialization = (body.specialization || '').trim();
+        // Only https photo URLs (Cloudinary) are stored; anything else is ignored
+        const profilePicture = /^https:\/\/[^\s"'<>]+$/.test(body.profile_picture || '') ? body.profile_picture : '';
 
         if (!fullName) return res.status(400).json({ status: 'error', message: 'Doctor full name is required.' });
 
-        await dbClient.updateOne('users', { _id: req.user.id }, {
-            $set: {
-                full_name: fullName,
-                phone: phone,
-                specialization: specialization,
-                updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19)
-            }
-        });
+        const $set = {
+            full_name: fullName,
+            phone: phone,
+            specialization: specialization,
+            updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19)
+        };
+        if (profilePicture) $set.profile_picture = profilePicture;
+        await dbClient.updateOne('users', { _id: req.user.id }, { $set });
 
         req.session.full_name = fullName;
         return res.status(200).json({ status: 'success', message: 'Doctor profile updated.' });
@@ -458,6 +465,7 @@ router.post('/update_profile', async (req, res) => {
 /**
  * Change Password
  */
+// @endpoint POST /api/doctor/change_password - Updates doctor account portal password
 router.post('/change_password', async (req, res) => {
     try {
         const body = req.body;
@@ -538,6 +546,7 @@ function generateSlots(openingTime = '08:00 AM', closingTime = '05:00 PM', lunch
 /**
  * D-006: Update Doctor Schedule & Time Slots
  */
+// @endpoint POST /api/doctor/update_schedule - Configures doctor clinical duty hours, off-duty days, and chair allocation
 router.post('/update_schedule', async (req, res) => {
     try {
         const body = req.body;
@@ -603,6 +612,7 @@ router.post('/update_schedule', async (req, res) => {
 /**
  * D-003: Patient Medical History & Clinical Record API
  */
+// @endpoint GET /api/doctor/get_patient_medical_history - Displays patient medical alerts, systemic conditions, and allergy warnings
 router.get('/get_patient_medical_history', async (req, res) => {
     try {
         const patientName = (req.query.patient_name || '').trim();
@@ -795,6 +805,7 @@ router.get('/get_patient_medical_history', async (req, res) => {
 /**
  * D-004: Get Clinical Records
  */
+// @endpoint GET /api/doctor/get_clinical_records - Fetches complete chronological clinical history and visual odontogram states
 router.get('/get_clinical_records', async (req, res) => {
     try {
         const query = (req.query.q || '').trim().toLowerCase();
@@ -874,6 +885,7 @@ router.get('/get_clinical_records', async (req, res) => {
 /**
  * Delete Record History
  */
+// @endpoint POST /api/doctor/delete_record_history - Removes or archives an outdated treatment note entry
 router.post('/delete_record_history', async (req, res) => {
     try {
         const body = req.body;
@@ -1001,10 +1013,13 @@ const handleEmailTodaySchedule = async (req, res) => {
     }
 };
 
+// @endpoint POST /api/doctor/email_today_schedule - Dispatches automated email with today's scheduled patients and treatments
 router.post('/email_today_schedule', handleEmailTodaySchedule);
+// @endpoint GET /api/doctor/email_today_schedule - Queries today's chairside schedule summary
 router.get('/email_today_schedule', handleEmailTodaySchedule);
 
 /** Weekly Patient Traffic for the signed-in doctor (same matching rules as get_dashboard_data). */
+// @endpoint GET /api/doctor/weekly_traffic - Fetches weekly appointment traffic statistics for doctor operatory
 router.get('/weekly_traffic', async (req, res) => {
     try {
         const role = (req.user.role || '').toLowerCase();

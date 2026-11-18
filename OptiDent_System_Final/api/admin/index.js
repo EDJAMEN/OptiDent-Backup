@@ -21,6 +21,7 @@ router.use(requireAuth(['super_admin', 'admin']));
 /**
  * SA-003: Get All Users
  */
+// @endpoint GET /api/admin/get_users - Queries master user list with search, role filters, and pagination
 router.get('/get_users', async (req, res) => {
     try {
         const roleFilter = (req.query.role || 'all').toLowerCase();
@@ -79,6 +80,7 @@ router.get('/get_users', async (req, res) => {
 /**
  * SA-003: Create User
  */
+// @endpoint POST /api/admin/create_user - Direct administrative creation of staff and patient accounts
 router.post('/create_user', async (req, res) => {
     try {
         const body = req.body;
@@ -144,6 +146,7 @@ async function resolveUserQuery(body) {
 /**
  * Update User Details
  */
+// @endpoint POST /api/admin/update_user - Updates user credentials, role assignment, and contact details
 router.post('/update_user', async (req, res) => {
     try {
         const body = req.body;
@@ -179,6 +182,7 @@ router.post('/update_user', async (req, res) => {
 /**
  * Delete User (Soft Delete)
  */
+// @endpoint POST /api/admin/delete_user - Soft-deletes a user account (preserves record in Recovery Vault)
 router.post('/delete_user', async (req, res) => {
     try {
         const query = await resolveUserQuery(req.body);
@@ -212,6 +216,7 @@ router.post('/delete_user', async (req, res) => {
 /**
  * Toggle User Status (Active / Inactive)
  */
+// @endpoint POST /api/admin/toggle_user_status - Toggles account access between Active and Suspended
 router.post('/toggle_user_status', async (req, res) => {
     try {
         const query = await resolveUserQuery(req.body);
@@ -236,6 +241,7 @@ router.post('/toggle_user_status', async (req, res) => {
 /**
  * SA-004: RBAC Permissions Matrix
  */
+// @endpoint GET /api/admin/get_rbac_matrix - Returns full permission matrix mapping granular actions to system roles
 router.get('/get_rbac_matrix', async (req, res) => {
     try {
         const allUsers = await dbClient.find('users', {});
@@ -276,7 +282,7 @@ router.get('/get_rbac_matrix', async (req, res) => {
 
             // Clinic Pricing & Settings
             { module: "Clinic Administration", key: "pricing_manage", permission_key: "pricing_manage", name: "Manage Procedure Pricing", label: "Manage Procedure Pricing", description: "Edit dental service fees, pricing guides, and discounts.", roles: ["super_admin"] },
-            { module: "Clinic Administration", key: "integrations.write", permission_key: "integrations.write", name: "Manage System Integrations", label: "Manage System Integrations", description: "Save, test, and erase integration keys (Google, Email, reCAPTCHA, Google Calendar, ImgBB).", roles: ["super_admin"] },
+            { module: "Clinic Administration", key: "integrations.write", permission_key: "integrations.write", name: "Manage System Integrations", label: "Manage System Integrations", description: "Save, test, and erase integration keys (Google, Email, reCAPTCHA, Google Calendar, Cloudinary).", roles: ["super_admin"] },
             { module: "Clinic Administration", key: "audit_logs_view", permission_key: "audit_logs_view", name: "Inspect Security & Audit Trail", label: "Inspect Security & Audit Trail", description: "View authentication logs, IP addresses, and user activity history.", roles: ["super_admin"] },
 
             // Reports & Intelligence Governance (Granular Report Control for Super Admin)
@@ -342,6 +348,7 @@ router.get('/get_rbac_matrix', async (req, res) => {
 /**
  * Update Role Permission
  */
+// @endpoint POST /api/admin/update_role_permissions - Updates permission grants across Doctor, Receptionist, or Patient roles
 router.post('/update_role_permissions', async (req, res) => {
     try {
         const permKey = req.body.permission_key || req.body.key;
@@ -409,6 +416,7 @@ router.post('/update_role_permissions', async (req, res) => {
 /**
  * SA-005: Audit Logs
  */
+// @endpoint GET /api/admin/get_audit_logs - Retrieves immutable system audit trail with timestamps, IP addresses, and user
 router.get('/get_audit_logs', async (req, res) => {
     try {
         const limit = parseInt(req.query.limit, 10) || 150;
@@ -452,6 +460,7 @@ router.get('/get_audit_logs', async (req, res) => {
 /**
  * SA-008: System Settings
  */
+// @endpoint GET /api/admin/get_system_settings - Retrieves clinic operating profile, working days, shifts, and active gateways
 router.get('/get_system_settings', async (req, res) => {
     try {
         let settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
@@ -501,6 +510,7 @@ router.get('/get_system_settings', async (req, res) => {
 /**
  * Update System Settings
  */
+// @endpoint POST /api/admin/update_system_settings - Persists changes to clinic schedule parameters, duty days, and rules
 router.post('/update_system_settings', async (req, res) => {
     try {
         const body = req.body;
@@ -544,6 +554,7 @@ async function canWriteIntegrations(req) {
  * encrypt + save + audit in one transaction → reload cache → respond with hints only.
  * Plain switches (maintenance_mode, self-registration, ...) just flip a flag.
  */
+// @endpoint POST /api/admin/toggle_integration - Circuit breaker toggling Google Auth, SMTP, Calendar, and reCAPTCHA
 router.post('/toggle_integration', async (req, res) => {
     try {
         const key = req.body.key || req.body.integration;
@@ -637,6 +648,7 @@ router.post('/toggle_integration', async (req, res) => {
 /**
  * Helper: Retrieve clinic default service account JSON for Google Calendar
  */
+// @endpoint GET /api/admin/get_default_service_account - Fetches current service account identity for Google Cloud integration
 router.get('/get_default_service_account', (req, res) => {
     try {
         const saCandidates = ['google-service-account.json', 'master-host-514202-g2-5a4a6823ad9c.json'];
@@ -656,6 +668,7 @@ router.get('/get_default_service_account', (req, res) => {
 /**
  * Google Calendar API Status & Live Incoming Appointments
  */
+// @endpoint GET /api/admin/get_google_calendar_status - Validates live connectivity to Google Calendar API v3 and sync state
 router.get('/get_google_calendar_status', async (req, res) => {
     try {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' }) || {};
@@ -774,12 +787,15 @@ const handleGoogleCalendarSync = async (req, res) => {
     }
 };
 
+// @endpoint POST /api/admin/sync_google_calendar - Queues bi-directional synchronization between MongoDB and Google Calendar
 router.post('/sync_google_calendar', handleGoogleCalendarSync);
+// @endpoint POST /api/admin/sync_google_calendar_now - Forces immediate live two-way synchronization of appointment blocks
 router.post('/sync_google_calendar_now', handleGoogleCalendarSync);
 
 /**
  * Generate iCalendar RFC 5545 feed of all incoming clinic appointments
  */
+// @endpoint GET /api/admin/google_calendar_feed - Queries live calendar event stream directly from Google Workspace
 router.get('/google_calendar_feed', async (req, res) => {
     try {
         const allAppts = await dbClient.find('appointments', {});
@@ -854,6 +870,7 @@ router.get('/google_calendar_feed', async (req, res) => {
 /**
  * SA-006: Soft-Deleted Records (Data Recovery Vault)
  */
+// @endpoint GET /api/admin/get_deleted_records - Inspects soft-deleted users, appointments, and treatments in Recovery Vault
 router.get('/get_deleted_records', async (req, res) => {
     try {
         const filter = (req.query.collection || 'all').toLowerCase();
@@ -940,6 +957,7 @@ router.get('/get_deleted_records', async (req, res) => {
 /**
  * Restore Record
  */
+// @endpoint POST /api/admin/restore_record - Restores a soft-deleted item back to active database collections
 router.post('/restore_record', async (req, res) => {
     try {
         const { id, type, collection, identifier } = req.body;
@@ -976,6 +994,7 @@ router.post('/restore_record', async (req, res) => {
 /**
  * SA-007: Archive & Unarchive
  */
+// @endpoint GET /api/admin/get_archived_records - Searches historical cold-storage archives for past appointments
 router.get('/get_archived_records', async (req, res) => {
     try {
         const appts = await dbClient.find('appointments', { is_archived: true });
@@ -985,6 +1004,7 @@ router.get('/get_archived_records', async (req, res) => {
     }
 });
 
+// @endpoint POST /api/admin/archive_record - Transfers completed or closed record into cold-storage archive
 router.post('/archive_record', async (req, res) => {
     try {
         const { id } = req.body;
@@ -997,6 +1017,7 @@ router.post('/archive_record', async (req, res) => {
     }
 });
 
+// @endpoint POST /api/admin/unarchive_record - Returns an archived record back to active collections
 router.post('/unarchive_record', async (req, res) => {
     try {
         const { id } = req.body;
@@ -1010,6 +1031,7 @@ router.post('/unarchive_record', async (req, res) => {
 });
 
 /** Weekly Patient Traffic (dashboard chart): clinic-wide per-day counts. */
+// @endpoint GET /api/admin/weekly_traffic - Aggregates weekly patient visits and booking traffic metrics
 router.get('/weekly_traffic', async (req, res) => {
     try {
         return res.status(200).json(await dailyTraffic({ days: req.query.days }));
@@ -1022,6 +1044,7 @@ router.get('/weekly_traffic', async (req, res) => {
 /**
  * Reports Data (SA-009)
  */
+// @endpoint GET /api/admin/get_reports_data - Aggregates clinic revenue, appointment volume, procedure distribution, and doctor performance
 router.get('/get_reports_data', async (req, res) => {
     try {
         const category = (req.query.category || 'all').toLowerCase();
@@ -1242,6 +1265,7 @@ router.get('/get_reports_data', async (req, res) => {
 /**
  * Export Reports to RFC 4180 CSV with UTF-8 BOM (SA-009)
  */
+// @endpoint GET /api/admin/export_csv - Exports clinic earnings, patient directory, or appointments to CSV format
 router.get('/export_csv', async (req, res) => {
     try {
         const type = (req.query.type || req.query.category || req.query.report || 'earnings').toLowerCase();
@@ -1467,6 +1491,7 @@ router.get('/export_csv', async (req, res) => {
 /**
  * SA-002: Invitations Management
  */
+// @endpoint GET /api/admin/get_invitations - Lists pending, accepted, and expired staff invitation tokens
 router.get('/get_invitations', async (req, res) => {
     try {
         const raw = await dbClient.find('invitations', {});
@@ -1496,6 +1521,7 @@ router.get('/get_invitations', async (req, res) => {
  * Invite Doctor & Receptionist Endpoint
  * Task SA-002: Super Admin Invites Doctor or Receptionist via Email / Token Link
  */
+// @endpoint POST /api/admin/invite_user - Issues signed cryptographic onboarding invite email to new Doctor or Staff
 router.post('/invite_user', async (req, res) => {
     try {
         const body = req.body;
@@ -1591,6 +1617,7 @@ router.post('/invite_user', async (req, res) => {
 /**
  * Cancel / Revoke Staff Invitation
  */
+// @endpoint POST /api/admin/cancel_invite - Revokes an unaccepted onboarding invitation link
 router.post('/cancel_invite', async (req, res) => {
     try {
         const email = (req.body.email || '').trim().toLowerCase();
@@ -1632,6 +1659,7 @@ router.post('/cancel_invite', async (req, res) => {
 /**
  * Resend Staff Invitation Email
  */
+// @endpoint POST /api/admin/resend_invite - Refreshes and resends an onboarding invite email
 router.post('/resend_invite', async (req, res) => {
     try {
         const body = req.body;
@@ -1679,6 +1707,7 @@ router.post('/resend_invite', async (req, res) => {
 /**
  * System Data & Storage Stats
  */
+// @endpoint GET /api/admin/get_system_data_stats - Returns database health, collection counts, and memory storage metrics
 router.get('/get_system_data_stats', async (req, res) => {
     try {
         const usersCount = await dbClient.countDocuments('users', {});
@@ -1717,6 +1746,7 @@ router.get('/get_system_data_stats', async (req, res) => {
 /**
  * Assign User Role
  */
+// @endpoint POST /api/admin/assign_user_role - Reassigns an existing user to a different system role
 router.post('/assign_user_role', async (req, res) => {
     try {
         const role = (req.body.role || '').toLowerCase();
@@ -1751,6 +1781,7 @@ router.post('/assign_user_role', async (req, res) => {
 /**
  * Purge Record (Permanent Delete)
  */
+// @endpoint POST /api/admin/purge_record - Permanently and irreversibly purges a soft-deleted record
 router.post('/purge_record', async (req, res) => {
     try {
         const { id, type, collection, identifier } = req.body;
@@ -1779,6 +1810,7 @@ router.post('/purge_record', async (req, res) => {
 /**
  * SA-007: Batch Archive Automation
  */
+// @endpoint POST /api/admin/batch_archive - Performs bulk archiving on completed records past specified age
 router.post('/batch_archive', async (req, res) => {
     try {
         const body = req.body;
@@ -1882,6 +1914,7 @@ router.post('/batch_archive', async (req, res) => {
 /**
  * Get Email SMTP Config
  */
+// @endpoint GET /api/admin/get_email_config - Checks current SMTP mailer dispatch configuration
 router.get('/get_email_config', async (req, res) => {
     try {
         const configDoc = await dbClient.findOne('system_settings', { setting_type: 'email_config' });
@@ -1902,6 +1935,7 @@ router.get('/get_email_config', async (req, res) => {
 /**
  * Save Email SMTP Config
  */
+// @endpoint POST /api/admin/save_email_config - Updates clinic SMTP relay host, port, user, and password credentials
 router.post('/save_email_config', async (req, res) => {
     try {
         const { smtp_user, smtp_pass } = req.body;
@@ -1933,6 +1967,7 @@ router.post('/save_email_config', async (req, res) => {
 /**
  * D-004: Clinical Records API for Super Admin
  */
+// @endpoint GET /api/admin/get_clinical_records - Super Admin review of patient treatment histories
 router.get('/get_clinical_records', async (req, res) => {
     try {
         const query = (req.query.q || '').trim().toLowerCase();
@@ -2009,6 +2044,7 @@ router.get('/get_clinical_records', async (req, res) => {
     }
 });
 
+// @endpoint POST /api/admin/save_clinical_record - Administrative record override or corrections
 router.post('/save_clinical_record', async (req, res) => {
     try {
         const body = req.body;
@@ -2092,6 +2128,27 @@ router.post('/save_clinical_record', async (req, res) => {
     } catch (err) {
         console.error('Admin save clinical record error:', err);
         return res.status(500).json({ status: 'error', message: 'Failed to save clinical record.' });
+    }
+});
+
+// @endpoint POST /api/admin/update_own_photo - Saves the signed-in admin's profile photo (Cloudinary https URL only)
+router.post('/update_own_photo', async (req, res) => {
+    try {
+        const url = req.body?.profile_picture || '';
+        if (!/^https:\/\/[^\s"'<>]+$/.test(url)) {
+            return res.status(400).json({ status: 'error', message: 'A hosted photo URL is required.' });
+        }
+        const user = await dbClient.findOne('users', { _id: req.user.id });
+        if (!user) {
+            // Master (environment) admins have no users-table record to attach a photo to
+            return res.status(404).json({ status: 'error', message: 'This admin account has no user record to attach a photo to.' });
+        }
+        await dbClient.updateOne('users', { _id: req.user.id }, { $set: { profile_picture: url, updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19) } });
+        await logAudit(req, 'UPDATE_OWN_PHOTO', 'ADMIN', {}, 'success');
+        return res.json({ status: 'success', message: 'Profile photo saved.' });
+    } catch (err) {
+        console.error('Update own photo error:', err);
+        return res.status(500).json({ status: 'error', message: 'Could not save the photo.' });
     }
 });
 

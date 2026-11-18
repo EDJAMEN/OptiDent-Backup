@@ -52,6 +52,7 @@ const DEFAULT_TIME_SLOTS = [
 /**
  * C-002: Client Dashboard Overview
  */
+// @endpoint GET /api/client/get_dashboard_data - Returns upcoming appointments, recent treatments, notifications, and announcements
 router.get('/get_dashboard_data', async (req, res) => {
     try {
         const user = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email });
@@ -186,6 +187,7 @@ router.get('/get_dashboard_data', async (req, res) => {
 /**
  * C-011: Get Clinical Services & Standard Pricing Guide
  */
+// @endpoint GET /api/client/get_services - Lists active clinic dental treatments, descriptions, durations, and fees
 router.get('/get_services', async (req, res) => {
     try {
         const services = await getActiveServicesList();
@@ -205,6 +207,7 @@ router.get('/get_services', async (req, res) => {
 /**
  * C-003: Book Appointment
  */
+// @endpoint POST /api/client/book_appointment - Creates a new dental appointment booking request
 router.post('/book_appointment', async (req, res) => {
     try {
         const user = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email });
@@ -330,6 +333,7 @@ router.post('/book_appointment', async (req, res) => {
 /**
  * C-004: Reschedule Appointment
  */
+// @endpoint POST /api/client/reschedule_appointment - Moves an existing appointment to a new date/time slot with calendar sync
 router.post('/reschedule_appointment', async (req, res) => {
     try {
         const body = req.body;
@@ -407,6 +411,7 @@ router.post('/reschedule_appointment', async (req, res) => {
 /**
  * C-005: Cancel Appointment
  */
+// @endpoint POST /api/client/cancel_appointment - Cancels an upcoming appointment and notifies clinic staff
 router.post('/cancel_appointment', async (req, res) => {
     try {
         const body = req.body;
@@ -470,6 +475,7 @@ router.post('/cancel_appointment', async (req, res) => {
 /**
  * C-006: Get Available Slots
  */
+// @endpoint GET /api/client/get_available_slots - Calculates open chairside slots respecting clinic operating hours and lunch break
 router.get('/get_available_slots', async (req, res) => {
     try {
         const date = req.query.date;
@@ -556,6 +562,7 @@ router.get('/get_available_slots', async (req, res) => {
 /**
  * C-007: Clinical Medical History Dossier
  */
+// @endpoint GET /api/client/get_medical_history - Retrieves verified medical conditions, allergies, clinical history, and recalls
 router.get('/get_medical_history', async (req, res) => {
     try {
         const user = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email });
@@ -613,6 +620,7 @@ router.get('/get_medical_history', async (req, res) => {
 /**
  * C-008: Profile Customization
  */
+// @endpoint POST /api/client/update_profile - Updates patient contact information, address, and emergency contact details
 router.post('/update_profile', async (req, res) => {
     try {
         const user = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email });
@@ -686,6 +694,7 @@ router.post('/update_profile', async (req, res) => {
 /**
  * C-001 Step 2: Complete Profile & Clinical Safety Details
  */
+// @endpoint POST /api/client/complete_profile - Saves comprehensive medical disclosure during first-time onboarding
 router.post('/complete_profile', async (req, res) => {
     try {
         const userId = req.session.user_id || req.user.id;
@@ -745,6 +754,7 @@ router.post('/complete_profile', async (req, res) => {
  */
 
 // 1. Get Patient Notifications and Unread Count
+// @endpoint GET /api/client/get_notifications - Fetches unread and historical in-app notifications
 router.get('/get_notifications', async (req, res) => {
     try {
         const user = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email });
@@ -776,6 +786,7 @@ router.get('/get_notifications', async (req, res) => {
 });
 
 // 2. Mark Notification(s) as Read
+// @endpoint POST /api/client/mark_notification_read - Marks a specific notification or all notifications as read
 router.post('/mark_notification_read', async (req, res) => {
     try {
         const user = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email });
@@ -806,6 +817,7 @@ router.post('/mark_notification_read', async (req, res) => {
 });
 
 // 3. Send Patient Account Verification OTP (Email / SMS)
+// @endpoint POST /api/client/send_otp - Dispatches OTP verification code to patient contact email
 router.post('/send_otp', async (req, res) => {
     try {
         const user = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email });
@@ -859,6 +871,7 @@ router.post('/send_otp', async (req, res) => {
 });
 
 // 4. Verify OTP Code
+// @endpoint POST /api/client/verify_otp - Verifies patient OTP for sensitive profile or appointment alterations
 router.post('/verify_otp', async (req, res) => {
     try {
         const user = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email });
@@ -919,6 +932,7 @@ router.post('/verify_otp', async (req, res) => {
 });
 
 // 5. Update Notification Preferences
+// @endpoint POST /api/client/update_notification_preferences - Toggles email notification preferences
 router.post('/update_notification_preferences', async (req, res) => {
     try {
         const user = await dbClient.findOne('users', { _id: req.user.id }) || await dbClient.findOne('users', { email: req.user.email });
@@ -966,6 +980,7 @@ async function findOwnAppointment(req, apptId) {
     return mine ? appt : null;
 }
 
+// @endpoint GET /api/client/get_appointment_qr - Generates cryptographically signed HMAC QR Check-in Pass for front-desk scanning
 router.get('/get_appointment_qr', async (req, res) => {
     try {
         const apptId = req.query.appointment_id || req.query.id;
@@ -989,6 +1004,7 @@ router.get('/get_appointment_qr', async (req, res) => {
 });
 
 // QR pass image (PNG) drawn by the QR Code API integration (api-ninjas.com)
+// @endpoint GET /api/client/qr_image - Streams QR code check-in image dynamically for scanning
 router.get('/qr_image', async (req, res) => {
     try {
         const key = qrApiKey();
@@ -1005,6 +1021,7 @@ router.get('/qr_image', async (req, res) => {
 });
 
 // 2. Export Standard iCalendar (.ics) File for Apple, Google & Outlook Calendar
+// @endpoint GET /api/client/get_appointment_ics - Generates an .ics iCalendar file for importing appointment into calendar apps
 router.get('/get_appointment_ics', async (req, res) => {
     try {
         const apptId = req.query.appointment_id || req.query.id;

@@ -12,6 +12,7 @@ const router = express.Router();
 /**
  * Public reCAPTCHA & Maintenance Configuration
  */
+// @endpoint GET /api/auth/recaptcha_config - Returns public reCAPTCHA site key and status for login bot defense
 router.get('/recaptcha_config', async (req, res) => {
     try {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
@@ -38,6 +39,7 @@ router.get('/recaptcha_config', async (req, res) => {
 /**
  * Public System Maintenance Status Check
  */
+// @endpoint GET /api/auth/maintenance_status - Checks whether clinic-wide Emergency Maintenance Mode is currently active
 router.get('/maintenance_status', async (req, res) => {
     try {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
@@ -56,6 +58,7 @@ router.get('/maintenance_status', async (req, res) => {
  * Universal Login Endpoint (C-001, SA-001, D-001, R-001)
  * Handles client, receptionist, doctor, and admin logins
  */
+// @endpoint POST /api/auth/login - Authenticates clinic staff (Super Admin, Doctor, Receptionist) with credentials and reCAPTCHA
 router.post('/login', async (req, res) => {
     try {
         const email = (req.body.email || '').trim().toLowerCase();
@@ -212,6 +215,7 @@ router.post('/login', async (req, res) => {
 });
 
 // Alias for client_login
+// @endpoint POST /api/auth/client_login - Authenticates registered patients into the patient self-service portal
 router.post('/client_login', (req, res, next) => {
     req.body.required_role = 'patient';
     return router.handle(req, res, next);
@@ -220,6 +224,7 @@ router.post('/client_login', (req, res, next) => {
 /**
  * Google Sign-In Configuration
  */
+// @endpoint GET /api/auth/google_config - Provides Google OAuth 2.0 Client ID for client-side Google Identity Services
 router.get('/google_config', async (req, res) => {
     try {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
@@ -246,6 +251,7 @@ function googleClientId(settings) {
  * Google Sign-In (Google Identity Services).
  * Trusts ONLY a Google-signed ID token issued for our client ID — never an email sent by the browser.
  */
+// @endpoint POST /api/auth/google_login - Exchanges Google credential tokens for authenticated clinic session cookie
 router.post('/google_login', async (req, res) => {
     try {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
@@ -381,11 +387,13 @@ async function handleSessionCheck(req, res) {
     }
 
     // Refresh user name/role if updated in DB
+    let profilePicture = '';
     try {
         const fresh = await dbClient.findOne('users', { email: session.email });
         if (fresh) {
             session.full_name = fresh.full_name || session.full_name;
             session.role = (fresh.role || session.role).toLowerCase();
+            profilePicture = fresh.profile_picture || '';
         }
     } catch (_) { }
 
@@ -403,19 +411,23 @@ async function handleSessionCheck(req, res) {
             email: session.email,
             full_name: session.full_name,
             role: session.role.toLowerCase(),
-            is_master: !!session.is_master
+            is_master: !!session.is_master,
+            profile_picture: profilePicture
         }
     };
 
     return res.status(200).json(payload);
 }
 
+// @endpoint GET /api/auth/me - Retrieves profile details and current role for the active session
 router.get('/me', handleSessionCheck);
+// @endpoint GET /api/auth/check_session - Heartbeat probe validating session cookie validity and lifetime
 router.get('/check_session', handleSessionCheck);
 
 /**
  * Role Permissions Matrix (my_permissions.php)
  */
+// @endpoint GET /api/auth/my_permissions - Fetches dynamic RBAC permission keys assigned to authenticated user role
 router.get('/my_permissions', async (req, res) => {
     const session = req.session;
     if (!session || !session.email || !session.role) {
@@ -521,6 +533,7 @@ function ucfirst(str) {
 /**
  * Logout
  */
+// @endpoint POST /api/auth/logout - Destroys session on the server and clears authentication cookies
 router.post('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) {
@@ -535,6 +548,7 @@ router.post('/logout', (req, res) => {
  * Client Registration Step 1 (Send Code)
  * Task C-001: Verification Code based on Gmail
  */
+// @endpoint POST /api/auth/send_patient_code - Sends 6-digit email OTP verification code to unverified patient registrants
 router.post('/send_patient_code', async (req, res) => {
     try {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
@@ -629,6 +643,7 @@ router.post('/send_patient_code', async (req, res) => {
 /**
  * Client Registration
  */
+// @endpoint POST /api/auth/client_register - Finalizes patient account creation upon submitting correct verification code
 router.post('/client_register', async (req, res) => {
     try {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
@@ -733,6 +748,7 @@ router.post('/client_register', async (req, res) => {
 /**
  * C-001: Client Registration Step 1
  */
+// @endpoint POST /api/auth/client_register_step1 - Validates initial personal details and pre-checks email uniqueness
 router.post('/client_register_step1', async (req, res) => {
     try {
         const settings = await dbClient.findOne('system_settings', { setting_type: 'clinic_profile' });
@@ -857,6 +873,7 @@ router.post('/client_register_step1', async (req, res) => {
 /**
  * Accept Invitation
  */
+// @endpoint POST /api/auth/accept_invite - Allows newly invited Doctor or Receptionist to set password and activate account
 router.post('/accept_invite', async (req, res) => {
     try {
         const body = req.body;
@@ -1041,6 +1058,7 @@ router.post('/accept_invite', async (req, res) => {
 /**
  * Validate Invite Token
  */
+// @endpoint GET /api/auth/validate_invite - Validates cryptographic onboarding invite tokens issued by Super Admin
 router.get('/validate_invite', async (req, res) => {
     try {
         const token = (req.query.token || '').trim();
@@ -1099,6 +1117,7 @@ router.get('/validate_invite', async (req, res) => {
  * Request Password Reset (Forgot Password)
  * Sends a 6-digit OTP code to the registered email address
  */
+// @endpoint POST /api/auth/forgot_password - Initiates self-service password reset flow and emails a time-limited OTP
 router.post('/forgot_password', async (req, res) => {
     try {
         const email = (req.body.email || '').trim().toLowerCase();
@@ -1163,6 +1182,7 @@ router.post('/forgot_password', async (req, res) => {
 /**
  * Verify OTP Code for Password Reset
  */
+// @endpoint POST /api/auth/verify_reset_code - Validates submitted OTP without committing password mutation
 router.post('/verify_reset_code', async (req, res) => {
     try {
         const email = (req.body.email || '').trim().toLowerCase();
@@ -1211,6 +1231,7 @@ router.post('/verify_reset_code', async (req, res) => {
 /**
  * Verify Code & Complete Password Reset
  */
+// @endpoint POST /api/auth/reset_password - Updates account password using validated recovery token
 router.post('/reset_password', async (req, res) => {
     try {
         const email = (req.body.email || '').trim().toLowerCase();
